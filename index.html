@@ -562,7 +562,7 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
         <span>Uma temporada de futebol de verdade para os alunos FF Soccer.</span>
       </div>
       <div><h4>A League</h4><a href="#a-league">Como funciona</a><a href="#a-league">Regulamento</a><a href="#pre-inscricao">Pré-inscrição</a><a href="#hall-da-fama">Hall da fama</a></div>
-      <div><h4>Campeonato</h4><a href="#campeonato">Tabela e jogos</a><a href="#campeonato-estatisticas">Estatísticas</a><a href="#campeonato-times">Times</a><a href="#campeonato-atletas">Atletas</a></div>
+      <div><h4>Campeonato</h4><a href="#campeonato">Tabela e jogos</a><a href="#campeonato-estatisticas">Estatísticas</a><a href="#campeonato-times">Times</a></div>
       <div><h4>Acompanhe</h4><a href="#ao-vivo">TV FF · ao vivo</a><span>Canal oficial no YouTube</span><span>Instagram da FF Soccer</span></div>
     </div>
     <div class="legal"><span>© 2027 FF Soccer Pro League. Todos os direitos reservados.</span><span>Protótipo em desenvolvimento · dados fictícios</span></div>
@@ -767,7 +767,7 @@ P.classificacao=function(){
 };
 
 function camp(tab,body){
-  var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas'],['times','Times','campeonato-times'],['atletas','Atletas','campeonato-atletas']];
+  var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas'],['times','Times','campeonato-times']];
   return '<div class="wrap"><div class="phead"><div class="eyebrow">1ª Temporada · primeira fase</div><h1>Campeonato</h1><p class="lead">Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.</p></div>'+
   '<nav class="ctabs">'+tabs.map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+body+'</div>';
 }
@@ -1098,7 +1098,7 @@ var app=document.getElementById('app');
 var ALIAS={'':'inicio'};
 function route(){
   var h=(location.hash||'').replace('#','')||'inicio',page=h,arg=null;
-  if(h==='classificacao')h='campeonato';if(h==='atletas')h='campeonato-atletas';page=h;
+  if(h==='classificacao')h='campeonato';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
   if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
@@ -1109,7 +1109,7 @@ function route(){
   if(page==='entrar'&&ME){page='minha-area';}
   if(!P[page])page='inicio';
   app.innerHTML=P[page](arg);
-  var navKey={jogos:'campeonato',jogo:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
+  var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
   document.getElementById('acct').classList.toggle('on',/^minha-area|entrar/.test(page));
   document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('on',a.dataset.r===navKey);});
   document.getElementById('drawer').hidden=true;document.getElementById('burger').setAttribute('aria-expanded','false');
