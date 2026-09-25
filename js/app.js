@@ -549,4 +549,4 @@ setInterval(function(){
     ticker();}
 },20000);
 
-route();
+carregarBanco(function(){CLR=CUR;ticker();route();});

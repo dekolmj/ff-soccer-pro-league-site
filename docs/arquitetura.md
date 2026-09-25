@@ -19,10 +19,11 @@ Navegador ──► GitHub Pages (arquivos da branch main)
 |---|---|
 | `index.html` | Estrutura fixa: tarja de pré-lançamento, ticker, cabeçalho, menu, gaveta do celular, toast, pop-up de vídeo, `<main id="app">` e rodapé. Carrega o CSS e os scripts. |
 | `css/site.css` | Todo o visual. Tema escuro único, cores e fontes descritas no `CLAUDE.md`. |
-| `js/config.js` | `CONFIG.FORM_ENDPOINT` (URL do Apps Script) e `CONFIG.VERSAO_TERMOS`. |
+| `js/config.js` | `CONFIG.FORM_ENDPOINT` (URL do Apps Script), `CONFIG.VERSAO_TERMOS`, `CONFIG.SUPABASE_URL` e `CONFIG.SUPABASE_KEY` (chave pública de leitura). |
 | `js/dados-exemplo.js` | Gerador com semente fixa `rng(2027)`: `TEAMS`/`TM`, `PLAYERS`/`PM`, `GAMES`, `LIVE`, `ST` (tabela), `SCORERS`, `MVPS`, `craqueOf()`. |
+| `js/banco.js` | `carregarBanco(pronto)`: lê times, atletas, elencos, jogos, escalações, súmula e VAR do Supabase e remonta as mesmas variáveis de `dados-exemplo.js`. Se o banco falhar, demorar mais de 4 s ou não tiver jogo ao vivo, o site segue com os dados gerados. `BANCO_OK` diz qual valeu. |
 | `js/tv-canvas.js` | Animação da TV FF. Isolada numa função; expõe só `Scene(canvas)` e `initCanvases()`. |
-| `js/app.js` | Helpers de HTML, páginas (`P[...]`), área logada de demonstração, pop-up de vídeo, roteador (`route`/`bind`), ticker e pré-inscrição. Termina chamando `route()`. |
+| `js/app.js` | Helpers de HTML, páginas (`P[...]`), área logada de demonstração, pop-up de vídeo, roteador (`route`/`bind`), ticker e pré-inscrição. Termina chamando `carregarBanco(...)`, que desenha a primeira página. |
 | `assets/escudo.webp`, `assets/letreiro.webp` | Marca usada no cabeçalho, rodapé e cartões (antes ficavam embutidas no HTML). |
 | `apps-script/Code.gs` | Recebe o POST da pré-inscrição, valida e grava na planilha. |
 
@@ -32,8 +33,9 @@ Os scripts são `<script>` comuns, no fim do `<body>`, e dividem variáveis glob
 
 1. `config.js` — sem dependências.
 2. `dados-exemplo.js` — roda na hora e monta os dados.
-3. `tv-canvas.js` — só define funções; usa os dados quando uma animação começa.
-4. `app.js` — usa tudo acima e desenha a página atual.
+3. `banco.js` — só define funções; `app.js` chama `carregarBanco()` no fim.
+4. `tv-canvas.js` — só define funções; usa os dados quando uma animação começa.
+5. `app.js` — usa tudo acima e desenha a página atual.
 
 Mudar essa ordem quebra o site.
 
@@ -72,7 +74,7 @@ supabase/
 Etapas, uma de cada vez:
 
 1. **Pré-inscrição no banco.** Criar a tabela `inscricoes` com política que só permite inserir; trocar o destino em `js/config.js`; importar o CSV da planilha. A chave pública (anon) do Supabase pode ficar no site; a chave `service_role` **nunca** entra no repositório.
-2. **Dados reais.** Substituir `js/dados-exemplo.js` por leitura do banco, mantendo os mesmos formatos (`TEAMS`, `PLAYERS`, `GAMES`…) para as páginas não precisarem mudar.
+2. **Dados reais.** ~~Ler do banco mantendo os mesmos formatos (`TEAMS`, `PLAYERS`, `GAMES`…)~~ (feito em `js/banco.js`). Os dados de exemplo estão no banco com `exemplo = true` (gerados por `supabase/exemplo/gerar.js`); no lançamento, apague-os com os comandos do topo de `supabase/migrations/20260925000007_dados_exemplo.sql` e tire o `dados-exemplo.js`.
 3. **Login de verdade.** Trocar o login de demonstração por Supabase Auth.
 4. **Painel da FF.** Aprovar inscrições, montar escalação e minutagem, lançar súmula, subir fotos e publicar avisos.
 5. **App nas lojas** (Expo/React Native), usando o mesmo banco.
