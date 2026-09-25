@@ -435,7 +435,7 @@ window.addEventListener('hashchange',function(){var m=document.getElementById('v
 var app=document.getElementById('app');
 var ALIAS={'':'inicio'};
 function route(){
-  var h=(location.hash||'').replace('#','')||'inicio',page=h,arg=null;
+  var h=(location.hash||'').replace('#','')||'a-league',page=h,arg=null;
   if(h==='classificacao')h='campeonato';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
   if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
