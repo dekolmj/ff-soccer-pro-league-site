@@ -89,7 +89,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 ## Próximos passos planejados
 
 1. ~~**Separar o `index.html` em arquivos**~~ (feito).
-2. **Banco de dados no Supabase:** Postgres, login e armazenamento de fotos. Trocar o destino da pré-inscrição, com política que só permite inserir (RLS), e importar o CSV da planilha.
+2. **Banco de dados no Supabase:** estrutura criada (pasta `supabase/`) e aplicada no projeto **FF Soccer Project** (`xsbmuzaensxrkeqwzfkp`, São Paulo, organização FF Soccer). O site ainda não usa o banco. Falta: Postgres, login e armazenamento de fotos. Trocar o destino da pré-inscrição, com política que só permite inserir (RLS), e importar o CSV da planilha.
 3. **Dados reais:** trocar os dados de exemplo pelos times, atletas e jogos reais, lidos do banco.
 4. **Painel da FF:** aprovar inscrições, montar escalação e minutagem, lançar súmula, subir fotos e publicar avisos.
 5. **App nas lojas** (Expo/React Native), usando o mesmo banco.
