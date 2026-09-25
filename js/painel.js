@@ -1,9 +1,9 @@
-/* Painel da equipe FF (#painel): login com e-mail e senha (Supabase Auth) e análise das pré-inscrições em tempo real.
-   A biblioteca do Supabase só é baixada quando alguém abre o painel, para o resto do site continuar leve.
+/* Login único do site (#entrar) e painel da equipe FF (#painel): Supabase Auth e análise das pré-inscrições em tempo real.
+   A biblioteca do Supabase só é baixada quando alguém abre a tela Entrar ou o painel, para o resto do site continuar leve.
    Quem pode ver e alterar é decidido no banco (tabela equipe_ff e regras de acesso), não aqui. */
 
 var SBJS='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
-var SB=null,PN={user:null,equipe:null,lista:[],filtro:'em_analise',busca:'',modo:'entrar',canal:null};
+var SB=null,PN={user:null,equipe:null,lista:[],filtro:'em_analise',busca:'',canal:null};
 var PN_ST={em_analise:['Em análise','gold'],aprovada:['Aprovada','ok'],lista_espera:['Lista de espera',''],recusada:['Recusada',''],cancelada:['Cancelada','']};
 
 function pnEl(){return document.getElementById('painel');}
@@ -11,7 +11,7 @@ function pnSb(cb){
   if(SB)return cb();
   var s=document.createElement('script');s.src=SBJS;
   s.onload=function(){SB=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);cb();};
-  s.onerror=function(){var el=pnEl();if(el)el.innerHTML='<p class="err" style="padding:40px 0">Não foi possível abrir o painel. Confira sua internet e recarregue a página.</p>';};
+  s.onerror=function(){var el=pnEl()||enEl();if(el)el.innerHTML='<p class="err" style="margin:0">Não foi possível carregar o login. Confira sua internet e recarregue a página.</p>';};
   document.head.appendChild(s);
 }
 function pnErro(m){
@@ -27,42 +27,65 @@ function pnErro(m){
 
 P.painel=function(){setTimeout(pnIniciar,0);return '<div class="wrap pnwrap" id="painel"><p class="muted" style="padding:40px 0">Carregando o painel…</p></div>';};
 
+// Sem login, o painel manda para a tela Entrar, que é a porta única do site.
 function pnIniciar(){
   if(!CONFIG.SUPABASE_URL){pnEl().innerHTML='<p class="muted" style="padding:40px 0">Painel indisponível.</p>';return;}
-  pnSb(function(){SB.auth.getSession().then(function(r){var s=r.data&&r.data.session;PN.user=s?s.user:null;return PN.user?pnCarregar():pnLogin();});});
+  pnSb(function(){SB.auth.getSession().then(function(r){var s=r.data&&r.data.session;PN.user=s?s.user:null;if(PN.user)pnCarregar();else location.replace('#entrar');});});
 }
 
-function pnLogin(msg){
-  var el=pnEl();if(!el)return;var criar=PN.modo==='criar';
-  el.innerHTML='<div class="login"><div style="text-align:center;display:grid;gap:10px;justify-items:center"><img src="'+LOGO+'" width="76" height="76" alt="" style="object-fit:contain"><h1 style="font-size:44px">Painel da FF</h1><p class="muted" style="margin:0">Acesso só para a equipe FF Soccer.</p></div>'+
-  '<form class="card" id="pnF" novalidate style="display:grid;gap:14px"><label class="fld">E-mail<input id="pnEmail" type="email" autocomplete="username" placeholder="voce@email.com"></label>'+
-  '<label class="fld">'+(criar?'Crie uma senha (mínimo 6 caracteres)':'Senha')+'<input id="pnSenha" type="password" autocomplete="'+(criar?'new-password':'current-password')+'" placeholder="••••••••"></label>'+
-  (criar?'<label class="fld">Repita a senha<input id="pnSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>':'')+
-  '<div class="err" id="pnErr" role="alert"></div>'+(msg?'<div class="notice">'+msg+'</div>':'')+
+function pnSair(){if(PN.canal){SB.removeChannel(PN.canal);PN.canal=null;}SB.auth.signOut().then(function(){PN.user=null;PN.equipe=null;PN.lista=[];location.hash='entrar';toast('Você saiu.');});}
+
+/* ================= TELA ENTRAR (#entrar) =================
+   Login único: quem é da equipe FF vai para o painel; as outras contas veem um aviso
+   (a área do atleta com login próprio ainda não existe; a demonstração continua na mesma tela). */
+var EN={modo:'entrar'};
+function enEl(){return document.getElementById('entrarF');}
+
+function entrarIniciar(){
+  if(!CONFIG.SUPABASE_URL)return enForm();
+  pnSb(function(){SB.auth.getSession().then(function(r){var s=r.data&&r.data.session;if(s)enDestino(s.user);else enForm();});});
+}
+
+function enForm(msg){
+  var el=enEl();if(!el)return;var criar=EN.modo==='criar';
+  el.innerHTML='<form id="enF" novalidate style="display:grid;gap:14px"><label class="fld">E-mail<input id="enEmail" type="email" autocomplete="username" placeholder="voce@email.com"></label>'+
+  '<label class="fld">'+(criar?'Crie uma senha (mínimo 6 caracteres)':'Senha')+'<input id="enSenha" type="password" autocomplete="'+(criar?'new-password':'current-password')+'" placeholder="••••••••"></label>'+
+  (criar?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>':'')+
+  '<div class="err" id="enErr" role="alert"></div>'+(msg?'<div class="notice">'+msg+'</div>':'')+
   '<button class="btn primary" type="submit" style="justify-content:center">'+(criar?'Criar senha':'Entrar')+'</button>'+
-  '<a class="more" href="#painel" id="pnModo">'+(criar?'Já tenho senha: entrar':'Primeiro acesso? Criar senha')+'</a></form></div>';
-  document.getElementById('pnModo').addEventListener('click',function(e){e.preventDefault();PN.modo=criar?'entrar':'criar';pnLogin();});
-  document.getElementById('pnF').addEventListener('submit',function(e){
-    e.preventDefault();var em=document.getElementById('pnEmail').value.trim(),se=document.getElementById('pnSenha').value,er=document.getElementById('pnErr');
+  '<div class="between" style="flex-wrap:wrap"><a class="more" href="#entrar" id="enModo">'+(criar?'Já tenho senha: entrar':'Primeiro acesso? Criar senha')+'</a>'+(criar?'':'<a class="more" href="#entrar" id="enEsqueci">Esqueci a senha</a>')+'</div></form>';
+  document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=criar?'entrar':'criar';enForm();});
+  var esq=document.getElementById('enEsqueci');if(esq)esq.addEventListener('click',function(e){e.preventDefault();toast('Para trocar a senha, fale com o administrador da FF.');});
+  document.getElementById('enF').addEventListener('submit',function(e){
+    e.preventDefault();var em=document.getElementById('enEmail').value.trim(),se=document.getElementById('enSenha').value,er=document.getElementById('enErr');
     if(!/^\S+@\S+\.\S+$/.test(em)||!se){er.textContent='Preencha e-mail e senha.';return;}
-    if(criar&&se!==document.getElementById('pnSenha2').value){er.textContent='As duas senhas não são iguais.';return;}
+    if(criar&&se!==document.getElementById('enSenha2').value){er.textContent='As duas senhas não são iguais.';return;}
+    if(!SB){er.textContent='Login indisponível agora. Tente de novo em instantes.';return;}
     var bt=this.querySelector('button');bt.disabled=true;er.textContent='';
     if(criar){
-      SB.auth.signUp({email:em,password:se,options:{emailRedirectTo:location.href.split('#')[0]+'#painel'}}).then(function(r){
+      SB.auth.signUp({email:em,password:se,options:{emailRedirectTo:location.href.split('#')[0]+'#entrar'}}).then(function(r){
         bt.disabled=false;if(r.error){er.textContent=pnErro(r.error.message);return;}
-        if(r.data.session){PN.user=r.data.user;return pnCarregar();}
-        PN.modo='entrar';pnLogin('Senha criada. Falta confirmar o e-mail: abra o link que chegou para você (confira o spam) ou peça a liberação ao administrador. Depois, é só entrar aqui.');
+        if(r.data.session)return enDestino(r.data.user);
+        EN.modo='entrar';enForm('Senha criada. Falta confirmar o e-mail: abra o link que chegou para você (confira o spam) ou peça a liberação ao administrador. Depois, é só entrar aqui.');
       });
     }else{
       SB.auth.signInWithPassword({email:em,password:se}).then(function(r){
         bt.disabled=false;if(r.error){er.textContent=pnErro(r.error.message);return;}
-        PN.user=r.data.user;pnCarregar();
+        enDestino(r.data.user);
       });
     }
   });
 }
 
-function pnSair(){if(PN.canal){SB.removeChannel(PN.canal);PN.canal=null;}SB.auth.signOut().then(function(){PN.user=null;PN.equipe=null;PN.lista=[];PN.modo='entrar';pnLogin();});}
+function enDestino(user){
+  PN.user=user;
+  SB.from('equipe_ff').select('nome,papel').eq('user_id',user.id).maybeSingle().then(function(r){
+    if(r.data){PN.equipe=r.data;toast('Bem-vindo, '+r.data.nome.split(' ')[0]+'!');location.hash='painel';return;}
+    var el=enEl();if(!el)return;
+    el.innerHTML='<div style="display:grid;gap:12px;text-align:center"><h3>Acesso ainda não liberado</h3><p class="muted" style="margin:0">Você entrou como <b>'+esc(user.email)+'</b>. A área do atleta com login próprio chega em breve; por enquanto, use a demonstração abaixo. Se você é da equipe FF, peça a liberação ao administrador.</p><button class="btn" id="enSair" style="justify-content:center">Sair</button></div>';
+    document.getElementById('enSair').addEventListener('click',function(){SB.auth.signOut().then(function(){EN.modo='entrar';enForm();});});
+  });
+}
 
 function pnCarregar(){
   SB.from('equipe_ff').select('nome,papel').eq('user_id',PN.user.id).maybeSingle().then(function(r){

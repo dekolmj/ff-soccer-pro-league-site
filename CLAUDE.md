@@ -29,7 +29,7 @@ js/dados-exemplo.js   times, atletas e jogos de exemplo (reserva, se o banco nã
 js/banco.js           lê times, atletas e jogos do Supabase e monta as mesmas variáveis
 js/tv-canvas.js       animação da TV FF (Scene, initCanvases)
 js/app.js             páginas, roteador, menu, área logada, vídeo em pop-up, pré-inscrição
-js/painel.js          painel da equipe FF (#painel): login e análise das pré-inscrições em tempo real
+js/painel.js          login único (#entrar) e painel da equipe FF (#painel): pré-inscrições em tempo real
 assets/               escudo.webp, letreiro.webp, favicon.png, apple-touch-icon.png, og-image.jpg
 apps-script/Code.gs   Google Apps Script que recebe a pré-inscrição e grava na planilha
 supabase/             estrutura do banco (migrations/) e gerador dos dados de exemplo (exemplo/)
@@ -49,8 +49,8 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
   - `#ao-vivo`
   - `#hall-da-fama`
   - `#pre-inscricao`
-- **Painel da FF:** `#painel`, fora do menu. Login real com e-mail e senha (Supabase Auth, biblioteca `supabase-js@2.117.2` baixada por CDN só nessa página). Só vira equipe quem está em `privado.convites_equipe` **e** confirmou o e-mail; convide pelo SQL do topo de `supabase/migrations/20260925000008_painel_equipe.sql`. E-mails da equipe ficam só no banco, nunca no código.
-- **Área logada (demonstração):** `#entrar`, `#minha-area`, `#minha-area-time`, `#minha-area-inscricao`, `#minha-area-fotos`, `#minha-area-campeonatos`. O login é de mentira: entra sempre como o atleta de exemplo `falcoes-10`, André Marques.
+- **Login único:** o botão **Entrar** (`#entrar`) tem login real com e-mail e senha (Supabase Auth, biblioteca `supabase-js@2.117.2` baixada por CDN só no Entrar e no painel). Quem é da equipe FF vai para o **painel** (`#painel`, fora do menu; sem login, ele manda para `#entrar`). Outras contas veem "Acesso ainda não liberado", porque a área do atleta com login próprio ainda não existe. "Esqueci a senha" pede para falar com o administrador. Só vira equipe quem está em `privado.convites_equipe` **e** confirmou o e-mail; convide pelo SQL do topo de `supabase/migrations/20260925000008_painel_equipe.sql`. E-mails da equipe ficam só no banco, nunca no código.
+- **Área do atleta (demonstração):** botão "Entrar como André" na tela Entrar; rotas `#minha-area`, `#minha-area-time`, `#minha-area-inscricao`, `#minha-area-fotos`, `#minha-area-campeonatos`. O login é de mentira: entra sempre como o atleta de exemplo `falcoes-10`, André Marques.
 - **Menu:** League · Campeonato · Ao vivo · Hall da fama, mais os botões Pré-inscrição e Entrar. O logo leva a `#inicio`.
 - **Dados de exemplo:** gerados com semente fixa (`rng(2027)`) em `js/dados-exemplo.js` e copiados para o banco com a marca `exemplo = true` (`node supabase/exemplo/gerar.js` gera o SQL). São 8 times, 20 atletas por time e 9 rodadas. A rodada 6 tem Falcões x Lobos "ao vivo". A tabela e a artilharia são calculadas a partir dos jogos.
 - **Banco:** o site lê do Supabase ao abrir (`js/banco.js`) e só desenha a página depois (até 4 s). Se o banco falhar, demorar ou não tiver jogo ao vivo, usa os dados de `dados-exemplo.js`. O que a equipe editar no banco aparece no site.

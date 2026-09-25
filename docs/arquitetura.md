@@ -22,7 +22,7 @@ Navegador ──► GitHub Pages (arquivos da branch main)
 | `js/config.js` | `CONFIG.FORM_ENDPOINT` (URL do Apps Script), `CONFIG.VERSAO_TERMOS`, `CONFIG.SUPABASE_URL` e `CONFIG.SUPABASE_KEY` (chave pública de leitura). |
 | `js/dados-exemplo.js` | Gerador com semente fixa `rng(2027)`: `TEAMS`/`TM`, `PLAYERS`/`PM`, `GAMES`, `LIVE`, `ST` (tabela), `SCORERS`, `MVPS`, `craqueOf()`. |
 | `js/banco.js` | `carregarBanco(pronto)`: lê times, atletas, elencos, jogos, escalações, súmula e VAR do Supabase e remonta as mesmas variáveis de `dados-exemplo.js`. Se o banco falhar, demorar mais de 4 s ou não tiver jogo ao vivo, o site segue com os dados gerados. `BANCO_OK` diz qual valeu. |
-| `js/painel.js` | `P.painel` (`#painel`): baixa o `supabase-js` por CDN, faz login com e-mail e senha, confere se a pessoa está em `equipe_ff` e lista as pré-inscrições, com aprovação e atualização em tempo real (canal `postgres_changes` em `pre_inscricoes`). |
+| `js/painel.js` | `entrarIniciar()` monta o login real da tela `#entrar` (e-mail e senha) e manda a equipe FF para `P.painel` (`#painel`), que confere `equipe_ff` e lista as pré-inscrições, com aprovação e atualização em tempo real (canal `postgres_changes` em `pre_inscricoes`). |
 | `js/tv-canvas.js` | Animação da TV FF. Isolada numa função; expõe só `Scene(canvas)` e `initCanvases()`. |
 | `js/app.js` | Helpers de HTML, páginas (`P[...]`), área logada de demonstração, pop-up de vídeo, roteador (`route`/`bind`), ticker e pré-inscrição. Termina chamando `carregarBanco(...)`, que desenha a primeira página. |
 | `assets/escudo.webp`, `assets/letreiro.webp` | Marca usada no cabeçalho, rodapé e cartões (antes ficavam embutidas no HTML). |
