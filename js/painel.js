@@ -25,7 +25,7 @@ function pnErro(m){
   return 'Não deu certo agora. Tente de novo em instantes.';
 }
 
-P.painel=function(){setTimeout(pnIniciar,0);return '<div class="wrap" id="painel"><p class="muted" style="padding:40px 0">Carregando o painel…</p></div>';};
+P.painel=function(){setTimeout(pnIniciar,0);return '<div class="wrap pnwrap" id="painel"><p class="muted" style="padding:40px 0">Carregando o painel…</p></div>';};
 
 function pnIniciar(){
   if(!CONFIG.SUPABASE_URL){pnEl().innerHTML='<p class="muted" style="padding:40px 0">Painel indisponível.</p>';return;}
@@ -113,24 +113,20 @@ function pnLista(){
   var q=PN.busca.trim().toLowerCase();
   var ls=PN.lista.filter(function(x){return (PN.filtro==='todas'||x.status===PN.filtro)&&(!q||[x.nome,x.email,x.protocolo].join(' ').toLowerCase().indexOf(q)>=0);});
   if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">'+(PN.lista.length?'Nenhuma pré-inscrição neste filtro.':'Ainda não chegou nenhuma pré-inscrição pelo banco. As próximas enviadas pelo site aparecem aqui na hora.')+'</p></div>';return;}
-  box.innerHTML=ls.map(function(x){
+  var th=['Protocolo','Recebida','Nome','E-mail','Celular','Nascimento','Unidade','Posição','Kit','Camisa','Status',''];
+  box.innerHTML='<div class="card pntbl" style="padding:0"><div class="tblw"><table class="tbl"><thead><tr>'+th.map(function(h,i){return '<th'+(i===th.length-1?' class="ac"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
+  ls.map(function(x){
     var st=PN_ST[x.status]||[x.status,''];
     var acoes=x.status==='em_analise'
-      ?'<button class="btn primary sm" data-id="'+x.id+'" data-s="aprovada">✓ Aprovar</button><button class="btn sm" data-id="'+x.id+'" data-s="lista_espera">Lista de espera</button><button class="btn sm" data-id="'+x.id+'" data-s="recusada">✕ Recusar</button>'
-      :'<button class="btn sm" data-id="'+x.id+'" data-s="em_analise">Voltar para análise</button>';
-    return '<div class="card" style="display:grid;gap:10px"><div class="between wrapm" style="align-items:flex-start"><div><h3>'+esc(x.nome)+'</h3><div class="lbl">'+esc(x.protocolo)+' · recebida em '+pnData(x.recebido_em)+'</div></div>'+
-      '<div class="row" style="flex-wrap:wrap;gap:6px">'+(x.duplicado?'<span class="chip">E-mail repetido</span>':'')+'<span class="chip '+st[1]+'">'+st[0]+'</span></div></div>'+
-      '<div class="kv">'+
-      '<div class="between"><span>E-mail</span><span style="word-break:break-all;text-align:right">'+esc(x.email)+'</span></div>'+
-      '<div class="between"><span>Celular</span><span>'+esc(x.celular)+'</span></div>'+
-      '<div class="between"><span>Nascimento</span><span>'+esc(String(x.nascimento||'').split('-').reverse().join('/'))+' · '+pnIdade(x.nascimento)+' anos</span></div>'+
-      '<div class="between"><span>Unidade</span><span>'+esc(x.unidade)+'</span></div>'+
-      '<div class="between"><span>Posição</span><span>'+esc(x.posicao)+'</span></div>'+
-      '<div class="between"><span>Kit</span><span>'+esc(x.kit)+'</span></div>'+
-      '<div class="between"><span>Camisa</span><span>'+esc(x.nome_camisa)+' · Nº '+esc(x.numero)+'</span></div>'+
-      (x.analisado_em?'<div class="between"><span>Decisão</span><span>'+pnData(x.analisado_em)+'</span></div>':'')+
-      '</div><div class="row" style="flex-wrap:wrap;gap:8px">'+acoes+'</div></div>';
-  }).join('');
+      ?'<button class="btn primary sm" data-id="'+x.id+'" data-s="aprovada">✓ Aprovar</button><button class="btn sm" data-id="'+x.id+'" data-s="lista_espera">Espera</button><button class="btn sm" data-id="'+x.id+'" data-s="recusada">✕ Recusar</button>'
+      :'<button class="btn sm" data-id="'+x.id+'" data-s="em_analise">↺ Reabrir</button>';
+    return '<tr><td>'+esc(x.protocolo)+'</td><td>'+pnData(x.recebido_em).replace(/\/\d{4}/,'')+'</td><td class="nm">'+esc(x.nome)+'</td>'+
+      '<td class="em">'+esc(x.email)+(x.duplicado?'<div><span class="chip">repetido</span></div>':'')+'</td><td>'+esc(x.celular)+'</td>'+
+      '<td>'+esc(String(x.nascimento||'').split('-').reverse().join('/'))+' <span class="lbl">('+pnIdade(x.nascimento)+')</span></td>'+
+      '<td>'+esc(x.unidade)+'</td><td>'+esc(x.posicao)+'</td><td>'+esc(x.kit)+'</td><td>'+esc(x.nome_camisa)+' · Nº '+esc(x.numero)+'</td>'+
+      '<td><span class="chip '+st[1]+'">'+st[0]+'</span>'+(x.analisado_em?'<div class="lbl" style="margin-top:4px">'+pnData(x.analisado_em).replace(/\/\d{4}/,'')+'</div>':'')+'</td>'+
+      '<td class="ac"><div class="row" style="gap:6px">'+acoes+'</div></td></tr>';
+  }).join('')+'</tbody></table></div></div>';
   box.querySelectorAll('button[data-s]').forEach(function(b){b.addEventListener('click',function(){pnDecidir(b.dataset.id,b.dataset.s,b);});});
 }
 
