@@ -3,7 +3,7 @@ var LOGO='assets/escudo.webp';
 /* ================= HELPERS ================= */
 function badge(tid,cls){var t=TM[tid];return '<span class="badge '+(cls||'')+'" style="background:'+t.c+'">'+t.n[0]+'</span>';}
 function tn(tid){return TM[tid].n;}
-function avBg(id){return FOTOS[id]?'background:url('+FOTOS[id]+') center/cover;':'';}function esc(s){return String(s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+function avBg(id){return FOTOS[id]?'background:url('+FOTOS[id]+') center 18%/cover;':'';}function esc(s){return String(s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 function statusChip(g){if(g.st==='ao vivo')return '<span class="live">Ao vivo · '+g.min+"'</span>";if(g.st==='encerrado')return '<span class="lbl">Encerrado</span>';return '<span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span>';}
 function gameCard(g){
   var done=g.st!=='agendado',hl=done&&g.gh<g.ga,al=done&&g.ga<g.gh;
@@ -178,7 +178,7 @@ P.atleta=function(id){
     return '<tr><td class="l">'+g.r+'</td><td class="l"><a href="#'+g.id+'" class="row" style="gap:8px">'+badge(op,'sm')+tn(op)+'</a></td><td><span class="form"><i class="'+res+'">'+res+'</i></span> '+my+' x '+th+'</td><td>'+x.min+"'</td><td>"+(x.gl||'–')+'</td><td>'+(g.mvp===p.id?'⭐':'')+'</td></tr>';}).join('');
   var mvpR=GAMES.filter(function(g){return g.mvp===p.id;}).map(function(g){return '<span class="chip gold">⭐ MVP · rodada '+g.r+'</span>';}).join('');
   return '<div class="wrap"><div class="phead"><a class="more" href="#campeonato-atletas">‹ Atletas</a></div>'+
-  '<div class="prof" data-n="'+p.num+'"><div class="avatar" style="'+avBg(p.id)+'"></div><div style="display:grid;gap:8px;position:relative"><span class="k">'+POSN[p.pos]+' · '+t.n+' · Nº '+p.num+'</span><h1>'+esc(p.n)+'</h1><div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Unidade '+p.unit+'</span><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Atleta FF desde 2026</span></div></div></div>'+
+  '<div class="prof" data-n="'+p.num+'"><div class="avatar'+(FOTOS[p.id]?' ret':'')+'" style="'+avBg(p.id)+'"></div><div style="display:grid;gap:8px;position:relative"><span class="k">'+POSN[p.pos]+' · '+t.n+' · Nº '+p.num+'</span><h1>'+esc(p.n)+'</h1><div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Unidade '+p.unit+'</span><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Atleta FF desde 2026</span></div></div></div>'+
   '<div class="lbl" style="margin:26px 0 10px">1ª Temporada</div><div class="stats"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div><div><b>'+avg+"'</b><span>Média min</span></div><div><b>"+p.min+"'</b><span>Minutos</span></div></div>"+
   '<div class="grid2" style="margin-top:18px"><div class="card"><h3 style="margin-bottom:6px">Jogos na temporada</h3>'+(rows?'<div class="tblw"><table class="tbl"><thead><tr><th class="l">Rod.</th><th class="l">Adversário</th><th>Placar</th><th>Min</th><th>Gols</th><th>MVP</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">Ainda sem jogos.</p>')+'</div>'+
   '<div style="display:grid;gap:18px;align-content:start"><div class="card" style="display:grid;gap:10px"><h3>Conquistas</h3><div class="row" style="flex-wrap:wrap;gap:6px">'+(mvpR||'')+'<span class="chip ok">✓ 1ª Temporada</span><span class="chip ok">✓ Festival FF</span><span class="chip">🔒 Campeão</span><span class="chip">🔒 Artilheiro</span></div></div>'+
@@ -269,7 +269,7 @@ function myShots(p){
 }
 function area(tab,body){
   var p=PM[ME],nPh=myShots(p).filter(function(s){return s.k==='foto';}).length;
-  return '<div class="wrap"><div class="area"><nav class="side"><div class="me"><div class="avatar" style="width:52px;height:52px;border:2px solid #0B0B0A;'+avBg(p.id)+'"></div><b>'+esc(p.n).replace(' ','<br>')+'</b><span>'+POSN[p.pos]+' · '+tn(p.team)+' · Nº '+p.num+'</span></div>'+
+  return '<div class="wrap"><div class="area"><nav class="side"><div class="me"><div class="avatar'+(FOTOS[p.id]?' ret':'')+'" style="width:52px;height:52px;border:2px solid #0B0B0A;'+avBg(p.id)+'"></div><b>'+esc(p.n).replace(' ','<br>')+'</b><span>'+POSN[p.pos]+' · '+tn(p.team)+' · Nº '+p.num+'</span></div>'+
   '<a href="#minha-area" class="'+(tab==='painel'?'on':'')+'">🏠 Meu painel</a>'+
   '<a href="#minha-area-time" class="'+(tab==='time'?'on':'')+'">⚽ Meu time<em>Escalação</em></a>'+
   '<a href="#minha-area-inscricao" class="'+(tab==='insc'?'on':'')+'">📋 Inscrição e kit</a>'+

@@ -1017,3 +1017,4 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
 .camps .card h3{min-height:2.2em}
 .camps .card{display:flex;flex-direction:column}.camps .card .kv{margin-top:auto}
 @media (max-width:980px){.livegrid{grid-template-columns:minmax(0,1fr)}} @media (max-width:900px){.area,.grid2,.grid3{grid-template-columns:minmax(0,1fr)}} .grid2>*>*,.livegrid>*>*{min-width:0} .selbar{flex-wrap:wrap} @media (max-width:480px){.wrapm,.wrapm>.row{flex-wrap:wrap}#renewBtn{white-space:normal}}
+.avatar.ret{border-radius:12px}.prof .avatar.ret{width:150px;height:200px}.side .me .avatar.ret{width:90px!important;height:120px!important}
