@@ -46,7 +46,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
   - `#ao-vivo`
   - `#hall-da-fama`
   - `#pre-inscricao`
-- **Área logada (demonstração):** `#entrar`, `#minha-area`, `#minha-area-time`, `#minha-area-inscricao`, `#minha-area-fotos`, `#minha-area-campeonatos`. O login é de mentira: entra sempre como o atleta de exemplo `falcoes-10`, Marcelo Tavares.
+- **Área logada (demonstração):** `#entrar`, `#minha-area`, `#minha-area-time`, `#minha-area-inscricao`, `#minha-area-fotos`, `#minha-area-campeonatos`. O login é de mentira: entra sempre como o atleta de exemplo `falcoes-10`, André Marques.
 - **Menu:** League · Campeonato · Ao vivo · Hall da fama, mais os botões Pré-inscrição e Entrar. O logo leva a `#inicio`.
 - **Dados de exemplo:** gerados no próprio JS com semente fixa (`rng(2027)`). São 8 times, 20 atletas por time e 9 rodadas. A rodada 6 tem Falcões x Lobos "ao vivo". A tabela e a artilharia são calculadas a partir dos jogos.
 - **TV FF:** os vídeos são uma animação em canvas (função `Scene`), no lugar dos vídeos do YouTube. Os melhores momentos abrem em pop-up.
