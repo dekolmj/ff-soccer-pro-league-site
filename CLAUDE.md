@@ -22,14 +22,20 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 ## Estrutura atual
 
 ```
-index.html            site inteiro: CSS + HTML + JS; imagens em data URI
-assets/               favicon.png, apple-touch-icon.png, og-image.jpg
+index.html            estrutura da página (cabeçalho, menu, rodapé, <main id="app">)
+css/site.css          todo o visual
+js/config.js          CONFIG: endereço da pré-inscrição e versão dos termos
+js/dados-exemplo.js   times, atletas e jogos de exemplo
+js/tv-canvas.js       animação da TV FF (Scene, initCanvases)
+js/app.js             páginas, roteador, menu, área logada, vídeo em pop-up, pré-inscrição
+assets/               escudo.webp, letreiro.webp, favicon.png, apple-touch-icon.png, og-image.jpg
 apps-script/Code.gs   Google Apps Script que recebe a pré-inscrição e grava na planilha
+docs/arquitetura.md   desenho da estrutura e decisões técnicas
 README.md             passo a passo para o Lucas (publicar e ligar a planilha)
 .nojekyll             necessário para o GitHub Pages
 ```
 
-O `index.html` é um app de página única, com rotas por `#hash`, JavaScript puro e sem frameworks.
+O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem frameworks. Os scripts são carregados em ordem no fim do `index.html` (config → dados-exemplo → tv-canvas → app) e compartilham variáveis globais; a ordem importa. Detalhes em `docs/arquitetura.md`.
 
 - **Rotas públicas:**
   - `#inicio`
@@ -44,7 +50,7 @@ O `index.html` é um app de página única, com rotas por `#hash`, JavaScript pu
 - **Menu:** League · Campeonato · Ao vivo · Hall da fama, mais os botões Pré-inscrição e Entrar. O logo leva a `#inicio`.
 - **Dados de exemplo:** gerados no próprio JS com semente fixa (`rng(2027)`). São 8 times, 20 atletas por time e 9 rodadas. A rodada 6 tem Falcões x Lobos "ao vivo". A tabela e a artilharia são calculadas a partir dos jogos.
 - **TV FF:** os vídeos são uma animação em canvas (função `Scene`), no lugar dos vídeos do YouTube. Os melhores momentos abrem em pop-up.
-- **Configuração:** fica no topo do script, `var CONFIG={FORM_ENDPOINT:'…/exec',VERSAO_TERMOS:'2026-09'}`. `FORM_ENDPOINT` é a URL do Apps Script. Vazio, o formulário mostra "As pré-inscrições abrem em breve".
+- **Configuração:** fica em `js/config.js`, `var CONFIG={FORM_ENDPOINT:'…/exec',VERSAO_TERMOS:'2026-09'}`. `FORM_ENDPOINT` é a URL do Apps Script. Vazio, o formulário mostra "As pré-inscrições abrem em breve".
 - **localStorage:** `ffl_user` guarda o login de demonstração e `ffl_pl` guarda que a tarja de pré-lançamento foi fechada. Sempre dentro de try/catch.
 - **Pré-lançamento:**
   - tarja amarela `<div class="prelaunch">`;
@@ -82,13 +88,7 @@ O `index.html` é um app de página única, com rotas por `#hash`, JavaScript pu
 
 ## Próximos passos planejados
 
-1. **Separar o `index.html` em arquivos**, sem mudar nada visualmente:
-   - `css/site.css`
-   - `js/config.js`
-   - `js/dados-exemplo.js`
-   - `js/tv-canvas.js`
-   - `js/app.js`
-   - as imagens em `assets/`
+1. ~~**Separar o `index.html` em arquivos**~~ (feito).
 2. **Banco de dados no Supabase:** Postgres, login e armazenamento de fotos. Trocar o destino da pré-inscrição, com política que só permite inserir (RLS), e importar o CSV da planilha.
 3. **Dados reais:** trocar os dados de exemplo pelos times, atletas e jogos reais, lidos do banco.
 4. **Painel da FF:** aprovar inscrições, montar escalação e minutagem, lançar súmula, subir fotos e publicar avisos.

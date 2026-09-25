@@ -5,14 +5,20 @@ Site oficial da FF Soccer Pro League em fase de **pré-lançamento**.
 - Todas as páginas (campeonato, TV FF, hall da fama, área do atleta) usam **dados de exemplo**.
 - A **pré-inscrição é real**: cada envio vira uma linha numa planilha do Google da FF.
 
-O site é um único arquivo (`index.html`) e não precisa de servidor nem de mensalidade. Ele é publicado de graça pelo **GitHub Pages**.
+O site é feito só de arquivos simples (HTML, CSS e JavaScript) e não precisa de servidor nem de mensalidade. Ele é publicado de graça pelo **GitHub Pages**.
 
 ## O que tem neste repositório
 
 | Arquivo | Para que serve |
 |---|---|
-| `index.html` | O site inteiro |
-| `assets/` | Ícone da aba do navegador e imagem de pré-visualização para WhatsApp |
+| `index.html` | A estrutura da página: cabeçalho, menu, rodapé e aviso de pré-lançamento |
+| `css/site.css` | Todo o visual: cores, fontes, tamanhos |
+| `js/config.js` | Endereço da planilha de pré-inscrição e versão dos termos |
+| `js/dados-exemplo.js` | Times, atletas e jogos de exemplo |
+| `js/tv-canvas.js` | Animação dos vídeos da TV FF |
+| `js/app.js` | As páginas, o menu, a área do atleta e a pré-inscrição |
+| `assets/` | Escudo, letreiro, ícone da aba do navegador e imagem de pré-visualização para WhatsApp |
+| `docs/arquitetura.md` | Explicação técnica de como o site é organizado |
 | `apps-script/Code.gs` | Código que recebe as pré-inscrições na planilha do Google |
 | `.nojekyll` | Arquivo técnico do GitHub Pages. Não apague |
 
@@ -45,9 +51,9 @@ Faça isto uma vez, logado na **conta Google da FF**, para os dados ficarem com 
    - Clique em **Implantar** e autorize o acesso quando o Google pedir.
 6. Copie a **URL do App da Web**. Ela termina em `/exec`.
 7. Para testar, cole essa URL no navegador. Deve aparecer `"Pré-inscrição FF Soccer Pro League funcionando"`.
-8. Abra o `index.html`, procure a linha `var CONFIG={FORM_ENDPOINT:''` e cole a URL entre as aspas. Deve ficar assim:
+8. Abra o arquivo `js/config.js`, procure a linha `var CONFIG={FORM_ENDPOINT:''` e cole a URL entre as aspas. Deve ficar assim:
    `var CONFIG={FORM_ENDPOINT:'https://script.google.com/macros/s/.../exec',VERSAO_TERMOS:'2026-09'};`
-9. Salve o arquivo e suba de novo no GitHub (**Add file → Upload files**, substituindo o `index.html`).
+9. Salve o arquivo e suba de novo no GitHub (dentro da pasta `js`, **Add file → Upload files**, substituindo o `config.js`).
 
 Pronto. Cada pré-inscrição aparece como uma nova linha na aba **Pré-inscrições**, com protocolo e status "Em análise". A equipe FF pode mudar o status direto na planilha.
 
