@@ -1,0 +1,95 @@
+# CLAUDE.md · Site FF Soccer Pro League
+
+Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de qualquer alteração.
+
+## O projeto
+
+- **O que é:** site oficial da **FF Soccer Pro League**, liga de futebol de campo (11 contra 11) para alunos da FF Soccer. Temporadas de 5 a 6 meses, jogos às quartas e sextas à noite, transmissão no YouTube, VAR com 2 desafios por equipe, mínimo de 45 minutos por atleta em cada jogo, registro individual e noite de premiação.
+- **Fase atual:** pré-lançamento. As páginas usam **dados de exemplo**, e só a **pré-inscrição é real**.
+- **Dono do projeto:** Lucas. É um projeto particular, sem vínculo com empresa. Ele **não programa**: explique tudo em português simples, sem jargão, e diga sempre o que ele precisa fazer (se precisar) e o que muda no site.
+- **Site no ar:** https://dekolmj.github.io/ff-soccer-pro-league-site/ (GitHub Pages, branch `main`, pasta raiz).
+
+## Como publicar
+
+- **Publicação automática:** todo push na branch `main` publica o site em 1 a 2 minutos. Não existe etapa de build.
+- **Uma mudança por commit:** mensagem curta em português que diga o que mudou no site (ex.: "Tira a aba Atletas do Campeonato").
+- **Teste antes do push:**
+  - Abra o `index.html` num navegador (Playwright, se disponível) e navegue pelas rotas afetadas.
+  - Confira que não há erro no console.
+  - Confira que nada rola para os lados na largura de celular (390 px).
+- **Nunca quebre a pré-inscrição.** Depois de qualquer mudança, confira que o formulário valida e que o envio monta o JSON esperado.
+
+## Estrutura atual
+
+```
+index.html            site inteiro: CSS + HTML + JS; imagens em data URI
+assets/               favicon.png, apple-touch-icon.png, og-image.jpg
+apps-script/Code.gs   Google Apps Script que recebe a pré-inscrição e grava na planilha
+README.md             passo a passo para o Lucas (publicar e ligar a planilha)
+.nojekyll             necessário para o GitHub Pages
+```
+
+O `index.html` é um app de página única, com rotas por `#hash`, JavaScript puro e sem frameworks.
+
+- **Rotas públicas:**
+  - `#inicio`
+  - `#a-league`
+  - `#campeonato`, `#campeonato-estatisticas`, `#campeonato-times`
+  - `#atletas`, `#atleta-<time>-<numero>`, `#time-<id>`
+  - `#jogos`, `#jogos-<rodada>`, `#jogo-<rodada>-<n>`
+  - `#ao-vivo`
+  - `#hall-da-fama`
+  - `#pre-inscricao`
+- **Área logada (demonstração):** `#entrar`, `#minha-area`, `#minha-area-time`, `#minha-area-inscricao`, `#minha-area-fotos`. O login é de mentira: entra sempre como o atleta de exemplo `falcoes-10`, Marcelo Tavares.
+- **Menu:** League · Campeonato · Ao vivo · Hall da fama, mais os botões Pré-inscrição e Entrar. O logo leva a `#inicio`.
+- **Dados de exemplo:** gerados no próprio JS com semente fixa (`rng(2027)`). São 8 times, 20 atletas por time e 9 rodadas. A rodada 6 tem Falcões x Lobos "ao vivo". A tabela e a artilharia são calculadas a partir dos jogos.
+- **TV FF:** os vídeos são uma animação em canvas (função `Scene`), no lugar dos vídeos do YouTube. Os melhores momentos abrem em pop-up.
+- **Configuração:** fica no topo do script, `var CONFIG={FORM_ENDPOINT:'…/exec',VERSAO_TERMOS:'2026-09'}`. `FORM_ENDPOINT` é a URL do Apps Script. Vazio, o formulário mostra "As pré-inscrições abrem em breve".
+- **localStorage:** `ffl_user` guarda o login de demonstração e `ffl_pl` guarda que a tarja de pré-lançamento foi fechada. Sempre dentro de try/catch.
+- **Pré-lançamento:**
+  - tarja amarela `<div class="prelaunch">`;
+  - `<meta name="robots" content="noindex">`.
+  - Só remova no lançamento oficial, quando o Lucas pedir.
+
+## Pré-inscrição
+
+- **Campos:** nome, e-mail, celular, data de nascimento, unidade FF, posição, tamanho do kit, **número da camisa (1 a 99)** e **nome na camisa (até 12 letras)**.
+- **Aceites obrigatórios:** dois, a autorização de análise de score e histórico (LGPD) e as condições da liga.
+- **Campo-armadilha:** `empresa`, invisível, para barrar robôs.
+- **Sem pagamento no site ou no app.** Depois da aprovação, a FF combina o pagamento direto com o atleta. Não adicione pagamento.
+- **Envio:** `fetch(CONFIG.FORM_ENDPOINT, {method:'POST', body: JSON.stringify(payload)})`, sem Content-Type, para não disparar preflight. A resposta é `{ok, protocolo, duplicado}`.
+- **Code.gs:** grava uma linha por inscrição com protocolo `FF-2027-0001…`, marca e-mail repetido, protege contra fórmulas e valida os campos no servidor. Se mudar o `Code.gs`, avise o Lucas: ele precisa colar o código no Apps Script e criar uma **nova versão** da implantação para manter a mesma URL.
+
+## Identidade visual (não mude sem pedido)
+
+- **Tema:** escuro, único, sem modo claro.
+- **Cores:** fundo `#0A0A09`, cartões `#191915`, texto `#FAF9F5`, texto secundário `#A8A495` e dourado `#F2C14D` como destaque.
+- **Fontes (Google Fonts):**
+  - Big Shoulders Display, para títulos em maiúsculas;
+  - Barlow, para o texto;
+  - Barlow Condensed, para rótulos e números.
+- **Marca:** escudo "FF Soccer Pro League" e letreiro branco e dourado. O nome sempre aparece como **FF Soccer Pro League**.
+- **Idioma:** textos em português do Brasil, diretos e sem floreio.
+
+## Regras
+
+- **Mexa só no pedido.** Não mude layout, cores, textos ou rotas que não foram pedidos.
+- **Nada de segredos no repositório:** senhas, tokens ou chaves privadas. Ele é **público**.
+- **Materiais internos ficam fora deste repositório:** pitch, preços, proposta e logos originais ficam no repositório privado `ff-soccer-pro-league-materiais`.
+- **Dados pessoais de inscritos** nunca entram no código nem em commits.
+- **Sem bibliotecas novas** sem motivo claro. Se precisar, carregue por CDN com versão fixa.
+- **Tamanho:** mantenha o site leve e funcionando no celular.
+
+## Próximos passos planejados
+
+1. **Separar o `index.html` em arquivos**, sem mudar nada visualmente:
+   - `css/site.css`
+   - `js/config.js`
+   - `js/dados-exemplo.js`
+   - `js/tv-canvas.js`
+   - `js/app.js`
+   - as imagens em `assets/`
+2. **Banco de dados no Supabase:** Postgres, login e armazenamento de fotos. Trocar o destino da pré-inscrição, com política que só permite inserir (RLS), e importar o CSV da planilha.
+3. **Dados reais:** trocar os dados de exemplo pelos times, atletas e jogos reais, lidos do banco.
+4. **Painel da FF:** aprovar inscrições, montar escalação e minutagem, lançar súmula, subir fotos e publicar avisos.
+5. **App nas lojas** (Expo/React Native), usando o mesmo banco.
