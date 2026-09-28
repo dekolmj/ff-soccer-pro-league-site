@@ -7,6 +7,7 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 - **O que é:** site oficial da **FF Soccer Pro League**, liga de futebol de campo (11 contra 11) para alunos da FF Soccer. Temporadas de 5 a 6 meses, jogos às quartas e sextas à noite, transmissão no YouTube, VAR com 2 desafios por equipe, mínimo de 45 minutos por atleta em cada jogo, registro individual e noite de premiação.
 - **Fase atual:** pré-lançamento. As páginas usam **dados de exemplo**, lidos do banco (Supabase), e só a **pré-inscrição é real**.
 - **Dono do projeto:** Lucas. É um projeto particular, sem vínculo com empresa. Ele **não programa**: explique tudo em português simples, sem jargão, e diga sempre o que ele precisa fazer (se precisar) e o que muda no site.
+- **Como chamar quem está falando:** se a sessão estiver logada na conta **dekolmj**, chame a pessoa de **Deko**.
 - **Site no ar:** https://dekolmj.github.io/ff-soccer-pro-league-site/ (GitHub Pages, branch `main`, pasta raiz).
 
 ## Como publicar
