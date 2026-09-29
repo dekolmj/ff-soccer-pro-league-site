@@ -53,9 +53,7 @@ function enForm(msg){
   (criar?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>':'')+
   '<div class="err" id="enErr" role="alert"></div>'+(msg?'<div class="notice">'+msg+'</div>':'')+
   '<button class="btn primary" type="submit" style="justify-content:center">'+(criar?'Criar senha':'Entrar')+'</button>'+
-  '<div class="between" style="flex-wrap:wrap"><a class="more" href="#entrar" id="enModo">'+(criar?'Já tenho senha: entrar':'Primeiro acesso? Criar senha')+'</a>'+(criar?'':'<a class="more" href="#entrar" id="enEsqueci">Esqueci a senha</a>')+'</div></form>';
-  document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=criar?'entrar':'criar';enForm();});
-  var esq=document.getElementById('enEsqueci');if(esq)esq.addEventListener('click',function(e){e.preventDefault();toast('Para trocar a senha, fale com o administrador da FF.');});
+  '</form>';
   document.getElementById('enF').addEventListener('submit',function(e){
     e.preventDefault();var em=document.getElementById('enEmail').value.trim(),se=document.getElementById('enSenha').value,er=document.getElementById('enErr');
     if(!/^\S+@\S+\.\S+$/.test(em)||!se){er.textContent='Preencha e-mail e senha.';return;}
