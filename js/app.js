@@ -262,9 +262,12 @@ var CONF=null,RENEW=false,SEL={},NEXTKIT='M';
 function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on');},2600);}
 function login(id){ME=id;try{localStorage.setItem('ffl_user',id);}catch(e){}acct();location.hash='minha-area';}
 function logout(){ME=null;try{localStorage.removeItem('ffl_user');}catch(e){}acct();location.hash='inicio';toast('Você saiu da sua área.');}
+// E-mail de quem está conectado com login real (sessão guardada pelo Supabase neste navegador), ou ''.
+function sessaoEmail(){try{var ref=(CONFIG.SUPABASE_URL||'').split('//')[1].split('.')[0],v=JSON.parse(localStorage.getItem('sb-'+ref+'-auth-token')||'null');return (v&&v.user&&v.user.email)||'';}catch(e){return '';}}
 function acct(){var a=document.getElementById('acct'),d=document.getElementById('drawAcct');
   if(ME){var p=PM[ME];a.className='acct';a.href='#minha-area';a.innerHTML='<span class="av">'+p.n[0]+'</span><span class="nm">'+esc(p.n.split(' ')[0])+'</span>';d.firstChild.textContent='Minha área ';}
-  else{a.className='acct out';a.href='#entrar';a.textContent='Entrar';d.firstChild.textContent='Entrar ';d.href='#entrar';}
+  else if(sessaoEmail()){var em=sessaoEmail();a.className='acct';a.href='#painel';a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+'. Abrir o painel');d.firstChild.textContent='Painel ';d.href='#painel';}
+  else{a.className='acct out';a.href='#entrar';a.textContent='Entrar';a.removeAttribute('title');a.removeAttribute('aria-label');d.firstChild.textContent='Entrar ';d.href='#entrar';}
   if(ME)d.href='#minha-area';}
 function greet(){var h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';}
 function myGames(p){return p.games.map(function(x){var g=GAMES.filter(function(y){return y.id===x.g;})[0];return {x:x,g:g,op:g.h===p.team?g.a:g.h};});}

@@ -33,7 +33,7 @@ function pnIniciar(){
   pnSb(function(){SB.auth.getSession().then(function(r){var s=r.data&&r.data.session;PN.user=s?s.user:null;if(PN.user)pnCarregar();else location.replace('#entrar');});});
 }
 
-function pnSair(){if(PN.canal){SB.removeChannel(PN.canal);PN.canal=null;}SB.auth.signOut().then(function(){PN.user=null;PN.equipe=null;PN.lista=[];location.hash='entrar';toast('Você saiu.');});}
+function pnSair(){if(PN.canal){SB.removeChannel(PN.canal);PN.canal=null;}SB.auth.signOut().then(function(){PN.user=null;PN.equipe=null;PN.lista=[];acct();location.hash='entrar';toast('Você saiu.');});}
 
 /* ================= TELA ENTRAR (#entrar) =================
    Login único: quem é da equipe FF vai para o painel; as outras contas veem um aviso
@@ -76,12 +76,12 @@ function enForm(msg){
 }
 
 function enDestino(user){
-  PN.user=user;
+  PN.user=user;acct();
   SB.from('equipe_ff').select('nome,papel').eq('user_id',user.id).maybeSingle().then(function(r){
-    if(r.data){PN.equipe=r.data;toast('Bem-vindo, '+r.data.nome.split(' ')[0]+'!');location.hash='painel';return;}
+    if(r.data){PN.equipe=r.data;toast('Bem-vindo, '+r.data.nome.split(' ')[0]+'!');acct();location.hash='painel';return;}
     var el=enEl();if(!el)return;
     el.innerHTML='<div style="display:grid;gap:12px;text-align:center"><h3>Acesso ainda não liberado</h3><p class="muted" style="margin:0">Você entrou como <b>'+esc(user.email)+'</b>. A área do atleta com login próprio chega em breve; por enquanto, use a demonstração abaixo. Se você é da equipe FF, peça a liberação ao administrador.</p><button class="btn" id="enSair" style="justify-content:center">Sair</button></div>';
-    document.getElementById('enSair').addEventListener('click',function(){SB.auth.signOut().then(function(){EN.modo='entrar';enForm();});});
+    document.getElementById('enSair').addEventListener('click',function(){SB.auth.signOut().then(function(){EN.modo='entrar';acct();enForm();});});
   });
 }
 
