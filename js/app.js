@@ -560,5 +560,8 @@ setInterval(function(){
 },20000);
 
 aplicarOnda();
-if(ONDA<2)route();  // onda 1 não mostra dados de jogos: não espera o banco
-else carregarBanco(function(){CLR=CUR;ticker();route();});
+// Desenha só depois de todos os scripts (o painel.js vem depois deste arquivo e define o login).
+document.addEventListener('DOMContentLoaded',function(){
+  if(ONDA<2)route();  // onda 1 não mostra dados de jogos: não espera o banco
+  else carregarBanco(function(){CLR=CUR;ticker();route();});
+});
