@@ -240,10 +240,10 @@ P['pre-inscricao']=function(){
   '<label class="fld">Celular com DDD<input id="fCel" type="tel" required placeholder="(11) 90000-0000" autocomplete="tel"></label>'+
   '<label class="fld">Data de nascimento<input id="fNasc" type="date" required></label>'+
   '<label class="fld">Unidade FF<select id="fUnid" required><option value="">Selecione</option>'+UNITS.map(function(u){return '<option>'+u+'</option>';}).join('')+'</select></label></div>'+
-  '<div class="fld">Posição preferida<div class="opts" id="fPos">'+Object.keys(POSN).map(function(k,i){return '<label><input type="radio" name="pos" value="'+k+'"'+(i===4?' checked':'')+'>'+POSN[k]+'</label>';}).join('')+'</div></div>'+
-  '<div class="fld">Personalização da camisa<div class="shirtrow"><label class="fld">Número da camisa<input id="fNum" type="text" inputmode="numeric" maxlength="2" required placeholder="1 a 99"></label><label class="fld">Nome na camisa<input id="fNomeC" maxlength="12" required placeholder="Até 12 letras" style="text-transform:uppercase"></label>'+
+  '<div class="fld">Posições de preferência<div class="tri pos">'+[1,2,3].map(function(n){return '<label class="fld">'+n+'ª opção<select id="fPos'+n+'" required><option value="">Selecione</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></label>';}).join('')+'</div><span class="hint">Escolha três posições diferentes, da que você mais gosta para a menos preferida.</span></div>'+
+  '<div class="fld">Personalização da camisa<div class="tri">'+['fNum','fNum2','fNum3'].map(function(id,i){return '<label class="fld">'+(i+1)+'º número<input id="'+id+'" class="fnum" type="text" inputmode="numeric" maxlength="2" required placeholder="1 a 99"></label>';}).join('')+'</div><div class="shirtrow"><label class="fld">Nome na camisa<input id="fNomeC" maxlength="12" required placeholder="Até 12 letras" style="text-transform:uppercase"></label>'+
   '<div class="shirt" aria-hidden="true"><svg viewBox="0 0 120 130"><path d="M38 6 L20 12 L2 34 L18 48 L26 40 L26 126 L94 126 L94 40 L102 48 L118 34 L100 12 L82 6 Q60 16 38 6 Z" fill="#F2C14D" stroke="#0B0B0A" stroke-width="3"/></svg><span class="sn" id="shN">SEU NOME</span><span class="sm" id="shM">10</span></div></div>'+
-  '<span class="hint">Se o número já estiver em uso no seu time, a FF entra em contato para você escolher outro.</span></div>'+
+  '<span class="hint">A FF tenta o 1º número. Se já estiver em uso no seu time, passa para o 2º e depois para o 3º.</span></div>'+
   '<div class="fld">Tamanho do kit<div class="opts">'+['P','M','G','GG','XG'].map(function(s,i){return '<label><input type="radio" name="kit" value="'+s+'"'+(i===1?' checked':'')+'>'+s+'</label>';}).join('')+'</div></div>'+
   '<input type="text" id="fHp" name="empresa" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">'+
   '<label class="consent"><input type="checkbox" id="fLgpd"><span id="tLgpd">Autorizo a FF Soccer a analisar meu score financeiro e meu histórico comportamental nas unidades e competições FF para avaliar minha pré-inscrição, conforme a LGPD.</span></label>'+
@@ -512,17 +512,20 @@ function bind(page){
   }
   if(page==='pre-inscricao'){
     var fN=document.getElementById('fNum'),fC=document.getElementById('fNomeC');
-    fN.addEventListener('input',function(){fN.value=fN.value.replace(/\D/g,'').slice(0,2);document.getElementById('shM').textContent=fN.value||'10';});
+    document.querySelectorAll('.fnum').forEach(function(el){el.addEventListener('input',function(){el.value=el.value.replace(/\D/g,'').slice(0,2);document.getElementById('shM').textContent=fN.value||'10';});});
     fC.addEventListener('input',function(){fC.value=fC.value.replace(/[^A-Za-zÀ-ÿ .'-]/g,'');document.getElementById('shN').textContent=fC.value.trim().toUpperCase()||'SEU NOME';});
     var fm=document.getElementById('preForm');
     fm.addEventListener('submit',function(e){e.preventDefault();fm.classList.add('tried');
-      var req=['fNome','fEmail','fCel','fNasc','fUnid','fNum','fNomeC'],bad=req.filter(function(id){var el=document.getElementById(id);return !el.value.trim()||(el.type==='email'&&!/^\S+@\S+\.\S+$/.test(el.value))||(id==='fNum'&&!(+el.value>=1&&+el.value<=99));});
+      var req=['fNome','fEmail','fCel','fNasc','fUnid','fPos1','fPos2','fPos3','fNum','fNum2','fNum3','fNomeC'],bad=req.filter(function(id){var el=document.getElementById(id);return !el.value.trim()||(el.type==='email'&&!/^\S+@\S+\.\S+$/.test(el.value))||(/^fNum/.test(id)&&!(+el.value>=1&&+el.value<=99));});
       var err=document.getElementById('fErr');
-      if(bad.length){err.textContent=(bad[0]==='fNum'&&document.getElementById('fNum').value)?'O número da camisa precisa ser de 1 a 99.':'Preencha todos os campos, incluindo número e nome na camisa, para continuar.';document.getElementById(bad[0]).focus();return;}
+      if(bad.length){err.textContent=(/^fNum/.test(bad[0])&&document.getElementById(bad[0]).value)?'Os números da camisa precisam ser de 1 a 99.':'Preencha todos os campos, incluindo as 3 posições, os 3 números e o nome na camisa, para continuar.';document.getElementById(bad[0]).focus();return;}
+      var poss=['fPos1','fPos2','fPos3'].map(function(id){return document.getElementById(id).value;}),nums=['fNum','fNum2','fNum3'].map(function(id){return +document.getElementById(id).value;});
+      if(poss[0]===poss[1]||poss[0]===poss[2]||poss[1]===poss[2]){err.textContent='Escolha três posições diferentes.';document.getElementById('fPos2').focus();return;}
+      if(nums[0]===nums[1]||nums[0]===nums[2]||nums[1]===nums[2]){err.textContent='Escolha três números de camisa diferentes.';document.getElementById('fNum2').focus();return;}
       if(!document.getElementById('fLgpd').checked||!document.getElementById('fTerm').checked){err.textContent='Para enviar, marque a autorização de análise e o aceite das condições.';return;}
       var v=function(id){return document.getElementById(id).value.trim();};
       var chk=function(n){var x=document.querySelector('input[name="'+n+'"]:checked');return x?x.value:'';};
-      var payload={nome:v('fNome'),email:v('fEmail'),celular:v('fCel'),nascimento:v('fNasc'),unidade:v('fUnid'),posicao:POSN[chk('pos')]||chk('pos'),kit:chk('kit'),numero:+v('fNum'),nome_camisa:v('fNomeC').toUpperCase(),
+      var payload={nome:v('fNome'),email:v('fEmail'),celular:v('fCel'),nascimento:v('fNasc'),unidade:v('fUnid'),posicao:poss.map(function(k){return POSN[k];}).join(' · '),posicoes:poss.map(function(k){return POSN[k];}),kit:chk('kit'),numero:nums[0],numeros:nums,nome_camisa:v('fNomeC').toUpperCase(),
         aceite_lgpd:document.getElementById('tLgpd').textContent,aceite_termos:document.getElementById('tTerm').textContent,versao_termos:CONFIG.VERSAO_TERMOS,origem:location.href.split('#')[0],hp:document.getElementById('fHp').value};
       if(!CONFIG.FORM_ENDPOINT){err.textContent='As pré-inscrições abrem em breve. Acompanhe a FF Soccer para saber a data.';return;}
       var btn=document.getElementById('fSend');btn.disabled=true;btn.textContent='Enviando…';err.textContent='';

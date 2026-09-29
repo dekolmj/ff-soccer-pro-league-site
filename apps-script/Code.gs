@@ -17,8 +17,8 @@ const PREFIXO_PROTOCOLO = 'FF-2027-';
 
 const COLUNAS = [
   'Recebido em', 'Protocolo', 'Status', 'Nome completo', 'E-mail', 'Celular',
-  'Data de nascimento', 'Unidade FF', 'Posição', 'Tamanho do kit',
-  'Número da camisa', 'Nome na camisa', 'Autorização LGPD (texto aceito)',
+  'Data de nascimento', 'Unidade FF', 'Posições (1ª, 2ª, 3ª)', 'Tamanho do kit',
+  'Números da camisa (1º, 2º, 3º)', 'Nome na camisa', 'Autorização LGPD (texto aceito)',
   'Condições (texto aceito)', 'Versão dos termos', 'Página de origem', 'Observação'
 ];
 
@@ -44,7 +44,7 @@ function doPost(e) {
         new Date(), protocolo, 'Em análise',
         limpar(d.nome), email, limpar(d.celular), limpar(d.nascimento),
         limpar(d.unidade), limpar(d.posicao), limpar(d.kit),
-        Number(d.numero), limpar(String(d.nome_camisa).toUpperCase()),
+        numeros(d), limpar(String(d.nome_camisa).toUpperCase()),
         limpar(d.aceite_lgpd), limpar(d.aceite_termos), limpar(d.versao_termos),
         limpar(d.origem), duplicado ? 'E-mail já tinha pré-inscrição anterior' : ''
       ]);
@@ -54,8 +54,8 @@ function doPost(e) {
           EMAIL_DE_AVISO,
           'Nova pré-inscrição ' + protocolo + ' · ' + d.nome,
           'Nome: ' + d.nome + '\nE-mail: ' + email + '\nCelular: ' + d.celular +
-          '\nUnidade: ' + d.unidade + '\nPosição: ' + d.posicao +
-          '\nCamisa: ' + d.nome_camisa + ' Nº ' + d.numero + ' · tamanho ' + d.kit +
+          '\nUnidade: ' + d.unidade + '\nPosições: ' + d.posicao +
+          '\nCamisa: ' + d.nome_camisa + ' Nº ' + numeros(d) + ' · tamanho ' + d.kit +
           (duplicado ? '\n\nAtenção: este e-mail já tinha uma pré-inscrição.' : '')
         );
       }
@@ -81,9 +81,15 @@ function validar(d) {
   if (!/^\S+@\S+\.\S+$/.test(String(d.email))) return 'E-mail inválido';
   const n = Number(d.numero);
   if (!(n >= 1 && n <= 99)) return 'Número da camisa fora de 1 a 99';
+  if (Array.isArray(d.numeros) && d.numeros.some(function (x) { return !(Number(x) >= 1 && Number(x) <= 99); })) return 'Número da camisa fora de 1 a 99';
   if (String(d.nome_camisa).length > 12) return 'Nome na camisa com mais de 12 letras';
   if (!d.aceite_lgpd || !d.aceite_termos) return 'Aceites obrigatórios ausentes';
   return '';
+}
+
+// Os 3 números de preferência, em ordem ("10, 7, 11"). Formulário antigo: só o número único.
+function numeros(d) {
+  return Array.isArray(d.numeros) && d.numeros.length ? d.numeros.slice(0, 3).map(Number).join(', ') : Number(d.numero);
 }
 
 function obterAba() {

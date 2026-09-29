@@ -136,7 +136,7 @@ function pnLista(){
   var q=PN.busca.trim().toLowerCase();
   var ls=PN.lista.filter(function(x){return (PN.filtro==='todas'||x.status===PN.filtro)&&(!q||[x.nome,x.email,x.protocolo].join(' ').toLowerCase().indexOf(q)>=0);});
   if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">'+(PN.lista.length?'Nenhuma pré-inscrição neste filtro.':'Ainda não chegou nenhuma pré-inscrição pelo banco. As próximas enviadas pelo site aparecem aqui na hora.')+'</p></div>';return;}
-  var th=['Protocolo','Recebida','Nome','E-mail','Celular','Nascimento','Unidade','Posição','Kit','Camisa','Status',''];
+  var th=['Protocolo','Recebida','Nome','E-mail','Celular','Nascimento','Unidade','Posições','Kit','Camisa · números','Status',''];
   box.innerHTML='<div class="card pntbl" style="padding:0"><div class="tblw"><table class="tbl"><thead><tr>'+th.map(function(h,i){return '<th'+(i===th.length-1?' class="ac"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
   ls.map(function(x){
     var st=PN_ST[x.status]||[x.status,''];
@@ -146,7 +146,7 @@ function pnLista(){
     return '<tr><td>'+esc(x.protocolo)+'</td><td>'+pnData(x.recebido_em).replace(/\/\d{4}/,'')+'</td><td class="nm">'+esc(x.nome)+'</td>'+
       '<td class="em">'+esc(x.email)+(x.duplicado?'<div><span class="chip">repetido</span></div>':'')+'</td><td>'+esc(x.celular)+'</td>'+
       '<td>'+esc(String(x.nascimento||'').split('-').reverse().join('/'))+' <span class="lbl">('+pnIdade(x.nascimento)+')</span></td>'+
-      '<td>'+esc(x.unidade)+'</td><td>'+esc(x.posicao)+'</td><td>'+esc(x.kit)+'</td><td>'+esc(x.nome_camisa)+' · Nº '+esc(x.numero)+'</td>'+
+      '<td>'+esc(x.unidade)+'</td><td>'+esc((x.posicoes&&x.posicoes.length?x.posicoes:[x.posicao]).join(' · '))+'</td><td>'+esc(x.kit)+'</td><td>'+esc(x.nome_camisa)+' · Nº '+esc((x.numeros&&x.numeros.length?x.numeros:[x.numero]).join(' / '))+'</td>'+
       '<td><span class="chip '+st[1]+'">'+st[0]+'</span>'+(x.analisado_em?'<div class="lbl" style="margin-top:4px">'+pnData(x.analisado_em).replace(/\/\d{4}/,'')+'</div>':'')+'</td>'+
       '<td class="ac"><div class="row" style="gap:6px">'+acoes+'</div></td></tr>';
   }).join('')+'</tbody></table></div></div>';
