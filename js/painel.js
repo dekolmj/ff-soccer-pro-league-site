@@ -134,20 +134,28 @@ function pnLista(){
   var q=PN.busca.trim().toLowerCase();
   var ls=PN.lista.filter(function(x){return (PN.filtro==='todas'||x.status===PN.filtro)&&(!q||[x.nome,x.email,x.protocolo].join(' ').toLowerCase().indexOf(q)>=0);});
   if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">'+(PN.lista.length?'Nenhuma pré-inscrição neste filtro.':'Ainda não chegou nenhuma pré-inscrição pelo banco. As próximas enviadas pelo site aparecem aqui na hora.')+'</p></div>';return;}
-  var th=['Protocolo','Recebida','Nome','E-mail','Celular','Nascimento','Unidade','Posições','Kit','Camisa · números','Status',''];
-  box.innerHTML='<div class="card pntbl" style="padding:0"><div class="tblw"><table class="tbl"><thead><tr>'+th.map(function(h,i){return '<th'+(i===th.length-1?' class="ac"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
+  var th=['Protocolo','Recebida','Nome','E-mail','Celular','Nascimento','Unidade','Posições','Kit','Camisa','Status',''];
+  var SV={ok:'<path d="M4 10.5l4 4 8-9"/>',espera:'<path d="M7 4v12M13 4v12"/>',no:'<path d="M5 5l10 10M15 5L5 15"/>',volta:'<path d="M4 10a6 6 0 1 0 2-4.5M4 3v4h4"/>'};
+  var ico=function(k){return '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+SV[k]+'</svg>';};
+  var bt=function(id,s,ic,nome,cl){return '<button class="pnic '+cl+'" data-id="'+id+'" data-s="'+s+'" title="'+nome+'" aria-label="'+nome+'">'+ic+'<span>'+nome+'</span></button>';};
+  box.innerHTML='<div class="card pntbl" style="padding:0"><table class="tbl"><thead><tr>'+th.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
   ls.map(function(x){
     var st=PN_ST[x.status]||[x.status,''];
+    var pos=(x.posicoes&&x.posicoes.length?x.posicoes:[x.posicao]),nums=(x.numeros&&x.numeros.length?x.numeros:[x.numero]);
     var acoes=x.status==='em_analise'
-      ?'<button class="btn primary sm" data-id="'+x.id+'" data-s="aprovada">✓ Aprovar</button><button class="btn sm" data-id="'+x.id+'" data-s="lista_espera">Espera</button><button class="btn sm" data-id="'+x.id+'" data-s="recusada">✕ Recusar</button>'
-      :'<button class="btn sm" data-id="'+x.id+'" data-s="em_analise">↺ Reabrir</button>';
-    return '<tr><td>'+esc(x.protocolo)+'</td><td>'+pnData(x.recebido_em).replace(/\/\d{4}/,'')+'</td><td class="nm">'+esc(x.nome)+'</td>'+
-      '<td class="em">'+esc(x.email)+(x.duplicado?'<div><span class="chip">repetido</span></div>':'')+'</td><td>'+esc(x.celular)+'</td>'+
-      '<td>'+esc(String(x.nascimento||'').split('-').reverse().join('/'))+' <span class="lbl">('+pnIdade(x.nascimento)+')</span></td>'+
-      '<td>'+esc(x.unidade)+'</td><td>'+esc((x.posicoes&&x.posicoes.length?x.posicoes:[x.posicao]).join(' · '))+'</td><td>'+esc(x.kit)+'</td><td>'+esc(x.nome_camisa)+' · Nº '+esc((x.numeros&&x.numeros.length?x.numeros:[x.numero]).join(' / '))+'</td>'+
-      '<td><span class="chip '+st[1]+'">'+st[0]+'</span>'+(x.analisado_em?'<div class="lbl" style="margin-top:4px">'+pnData(x.analisado_em).replace(/\/\d{4}/,'')+'</div>':'')+'</td>'+
-      '<td class="ac"><div class="row" style="gap:6px">'+acoes+'</div></td></tr>';
-  }).join('')+'</tbody></table></div></div>';
+      ?bt(x.id,'aprovada',ico('ok'),'Aprovar','ok')+bt(x.id,'lista_espera',ico('espera'),'Lista de espera','')+bt(x.id,'recusada',ico('no'),'Recusar','no')
+      :bt(x.id,'em_analise',ico('volta'),'Voltar para análise','');
+    return '<tr><td data-l="Protocolo" class="pr">'+esc(x.protocolo)+'</td><td data-l="Recebida">'+pnData(x.recebido_em).replace(/\/\d{4}/,'').replace(' ','<br>')+'</td>'+
+      '<td data-l="Nome" class="nm">'+esc(x.nome)+'</td>'+
+      '<td data-l="E-mail" class="em">'+esc(x.email)+(x.duplicado?'<div><span class="chip">repetido</span></div>':'')+'</td><td data-l="Celular">'+esc(x.celular)+'</td>'+
+      '<td data-l="Nascimento">'+esc(String(x.nascimento||'').split('-').reverse().join('/'))+'<div class="lbl">'+pnIdade(x.nascimento)+' anos</div></td>'+
+      '<td data-l="Unidade" class="wr">'+esc(x.unidade)+'</td>'+
+      '<td data-l="Posições" class="ls">'+pos.map(function(v,i){return '<div><span class="lbl">'+(i+1)+'ª</span> '+esc(v)+'</div>';}).join('')+'</td>'+
+      '<td data-l="Kit">'+esc(x.kit)+'</td>'+
+      '<td data-l="Camisa" class="ls"><div>'+esc(x.nome_camisa)+'</div><div class="lbl">Nº '+esc(nums.join(' · '))+'</div></td>'+
+      '<td data-l="Status"><span class="chip '+st[1]+'">'+st[0]+'</span>'+(x.analisado_em?'<div class="lbl" style="margin-top:4px">'+pnData(x.analisado_em).replace(/\/\d{4}/,'')+'</div>':'')+'</td>'+
+      '<td class="ac"><div class="pnacoes">'+acoes+'</div></td></tr>';
+  }).join('')+'</tbody></table></div>';
   box.querySelectorAll('button[data-s]').forEach(function(b){b.addEventListener('click',function(){pnDecidir(b.dataset.id,b.dataset.s,b);});});
 }
 
