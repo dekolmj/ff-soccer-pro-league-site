@@ -250,7 +250,7 @@ P['pre-inscricao']=function(){
   '<label class="consent"><input type="checkbox" id="fTerm"><span id="tTerm">Li e concordo com as condições da FF Soccer Pro League, incluindo a possibilidade de ajustes pontuais no calendário e no formato.</span></label>'+
   '<div class="err" id="fErr" role="alert"></div><button class="btn primary" id="fSend" type="submit" style="justify-content:center">Enviar pré-inscrição</button><span class="hint">Seus dados são usados só pela FF Soccer para analisar sua pré-inscrição e falar com você sobre a League.</span></form>'+
   '<div style="display:grid;gap:14px"><div class="card" style="display:grid;gap:12px"><h3>Como funciona</h3><div class="agenda"><div class="between"><span>1 · Pré-inscrição</span><span class="lbl">você envia</span></div><div class="between"><span>2 · Análise da FF</span><span class="lbl">score e histórico</span></div><div class="between"><span>3 · Aprovação</span><span class="lbl">a FF entra em contato</span></div><div class="between"><span>4 · Vaga confirmada</span><span class="lbl">kit e Festival FF</span></div></div></div>'+
-  '<div class="card" style="display:grid;gap:10px;border-color:var(--gold2)"><div class="lbl" style="color:var(--gold)">Benefícios de quem entra na abertura</div><div class="row"><span class="chip gold">50%</span>Desconto na Copa FF de dezembro</div><div class="row"><span class="chip ok">Grátis</span>Festival FF, o esquenta da League</div><div class="row"><span class="chip">🔒</span>Prioridade na temporada seguinte</div></div>'+
+  
   '<div class="notice"><b>Sobre o pagamento.</b> A inscrição tem valor único para a temporada. Depois da aprovação, a FF orienta o pagamento diretamente com você.</div></div></div></div>';
 };
 
