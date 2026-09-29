@@ -1,5 +1,13 @@
 /* Páginas, menu, área logada (demonstração), pop-up de vídeo, roteador e pré-inscrição. */
-var LOGO='assets/escudo.webp';
+var LOGO='assets/escudo.webp';
+/* ================= ONDAS DE LANÇAMENTO =================
+   CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
+var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
+function ondaDaPagina(pg){return ({'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3,'hall-da-fama':4})[pg]||(/^minha-area/.test(pg)?4:2);}
+function aplicarOnda(){
+  document.querySelectorAll('[data-onda]').forEach(function(el){if(+el.dataset.onda>ONDA)el.hidden=true;});
+  if(!DEMO)document.querySelectorAll('[data-demo]').forEach(function(el){el.hidden=true;});
+}
 /* ================= HELPERS ================= */
 function badge(tid,cls){var t=TM[tid];return '<span class="badge '+(cls||'')+'" style="background:'+t.c+'">'+t.n[0]+'</span>';}
 function tn(tid){return TM[tid].n;}
@@ -249,6 +257,7 @@ P['pre-inscricao']=function(){
 
 /* ================= ÁREA LOGADA ================= */
 var ME=null;try{if(localStorage.getItem('ffl_user'))ME=localStorage.getItem('ffl_user');}catch(e){}
+if(ONDA<4)ME=null;  // área do atleta de demonstração só a partir da onda 4
 var CONF=null,RENEW=false,SEL={},NEXTKIT='M';
 function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on');},2600);}
 function login(id){ME=id;try{localStorage.setItem('ffl_user',id);}catch(e){}acct();location.hash='minha-area';}
@@ -334,7 +343,7 @@ P['minha-area-time']=function(){
 P.entrar=function(){
   return '<div class="wrap"><div class="login"><div style="text-align:center;display:grid;gap:10px;justify-items:center"><img src="'+LOGO+'" width="76" height="76" alt="" style="object-fit:contain"><h1 style="font-size:44px">Entrar</h1><p class="muted" style="margin:0">Atletas e equipe FF entram por aqui. O site leva cada um para a sua área.</p></div>'+
   '<div class="card" id="entrarF"><p class="muted" style="margin:0">Carregando…</p></div>'+
-  '<div class="demo"><div class="lbl" style="color:var(--gold)">Protótipo · atleta de demonstração</div><div class="row"><div class="avatar" style="width:42px;height:42px;'+avBg('falcoes-10')+'"></div><div><b style="font-family:var(--cond);text-transform:uppercase;font-size:17px">André Marques</b><div class="lbl">Meia · Falcões · Nº 10</div></div></div><button class="btn primary sm" id="demoBtn" type="button" style="justify-content:center">Entrar como André</button></div>'+
+  (ONDA>=4?'<div class="demo"><div class="lbl" style="color:var(--gold)">Protótipo · atleta de demonstração</div><div class="row"><div class="avatar" style="width:42px;height:42px;'+avBg('falcoes-10')+'"></div><div><b style="font-family:var(--cond);text-transform:uppercase;font-size:17px">André Marques</b><div class="lbl">Meia · Falcões · Nº 10</div></div></div><button class="btn primary sm" id="demoBtn" type="button" style="justify-content:center">Entrar como André</button></div>':'')+
   '<p class="muted" style="text-align:center;font-size:14px;margin:0">Ainda não é atleta da League? <a class="more" href="#pre-inscricao">Fazer pré-inscrição</a></p></div></div>';
 };
 P['minha-area']=function(){
@@ -447,6 +456,7 @@ function route(){
   if(/^minha-area/.test(page)&&!ME){page='entrar';}
   if(page==='entrar'&&ME){page='minha-area';}
   if(!P[page])page='inicio';
+  if(ondaDaPagina(page)>ONDA){page='a-league';arg=null;try{history.replaceState(null,'',location.pathname+location.search+'#a-league');}catch(e){}}
   app.innerHTML=P[page](arg);
   var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
   document.getElementById('acct').classList.toggle('on',/^minha-area|entrar/.test(page));
@@ -469,7 +479,7 @@ function bind(page){
   }
   if(page==='ao-vivo'){var cf=document.getElementById('chatF'),ci=document.getElementById('chatIn'),ch=document.getElementById('chat');cf.addEventListener('submit',function(e){e.preventDefault();var v=ci.value.trim();if(!v)return;var d=document.createElement('div');d.innerHTML='<b>Você</b>';d.appendChild(document.createTextNode(v));ch.appendChild(d);ch.scrollTop=ch.scrollHeight;ci.value='';});}
   if(page==='entrar'){
-    document.getElementById('demoBtn').addEventListener('click',function(){login('falcoes-10');toast('Bem-vindo, André!');});
+    var db=document.getElementById('demoBtn');if(db)db.addEventListener('click',function(){login('falcoes-10');toast('Bem-vindo, André!');});
     if(window.entrarIniciar)entrarIniciar();
   }
   if(/^minha-area/.test(page)){var lo=document.getElementById('doLogout');lo.addEventListener('click',function(e){e.preventDefault();logout();});}
@@ -549,4 +559,6 @@ setInterval(function(){
     ticker();}
 },20000);
 
-carregarBanco(function(){CLR=CUR;ticker();route();});
+aplicarOnda();
+if(ONDA<2)route();  // onda 1 não mostra dados de jogos: não espera o banco
+else carregarBanco(function(){CLR=CUR;ticker();route();});

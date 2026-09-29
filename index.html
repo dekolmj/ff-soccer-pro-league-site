@@ -21,16 +21,16 @@
 <body>
 
 
-<div class="prelaunch" id="prelaunch"><div class="wrap"><span><b>Pré-lançamento.</b> Jogos, tabela e atletas deste site são exemplos. A pré-inscrição é real.</span><a class="more" href="#pre-inscricao">Fazer pré-inscrição ›</a><button id="plClose" aria-label="Fechar aviso">×</button></div></div>
-<div class="ticker"><div class="wrap" id="ticker"></div></div>
+<div class="prelaunch" id="prelaunch" data-demo><div class="wrap"><span><b>Pré-lançamento.</b> Jogos, tabela e atletas deste site são exemplos. A pré-inscrição é real.</span><a class="more" href="#pre-inscricao">Fazer pré-inscrição ›</a><button id="plClose" aria-label="Fechar aviso">×</button></div></div>
+<div class="ticker" data-onda="2"><div class="wrap" id="ticker"></div></div>
 <header class="hdr">
   <div class="wrap">
     <a class="brand" href="#inicio" aria-label="FF Soccer Pro League · início"><img class="shield" src="assets/escudo.webp" width="44" height="50" alt=""><img class="wm" src="assets/letreiro.webp" alt="FF Soccer Pro League" height="34"></a>
     <nav class="nav" id="nav">
       <a href="#a-league" data-r="a-league">League</a>
-      <a href="#campeonato" data-r="campeonato">Campeonato</a>
-      <a href="#ao-vivo" data-r="ao-vivo"><span class="dot"></span>Ao vivo</a>
-      <a href="#hall-da-fama" data-r="hall-da-fama">Hall da fama</a>
+      <a href="#campeonato" data-r="campeonato" data-onda="2">Campeonato</a>
+      <a href="#ao-vivo" data-r="ao-vivo" data-onda="3"><span class="dot"></span>Ao vivo</a>
+      <a href="#hall-da-fama" data-r="hall-da-fama" data-onda="4">Hall da fama</a>
     </nav>
     <a class="btn primary sm cta" href="#pre-inscricao">Pré-inscrição</a>
     <a class="acct out" id="acct" href="#entrar">Entrar</a>
@@ -38,7 +38,7 @@
   </div>
 </header>
 <div class="drawer" id="drawer" hidden>
-  <a href="#inicio">Início <span>›</span></a><a href="#a-league">League <span>›</span></a><a href="#campeonato">Campeonato <span>›</span></a><a href="#ao-vivo">Ao vivo <span class="live">agora</span></a><a href="#hall-da-fama">Hall da fama <span>›</span></a>
+  <a href="#inicio" data-onda="2">Início <span>›</span></a><a href="#a-league">League <span>›</span></a><a href="#campeonato" data-onda="2">Campeonato <span>›</span></a><a href="#ao-vivo" data-onda="3">Ao vivo <span class="live">agora</span></a><a href="#hall-da-fama" data-onda="4">Hall da fama <span>›</span></a>
   <a href="#minha-area" id="drawAcct">Minha área <span>›</span></a>
   <a class="btn primary" href="#pre-inscricao">Pré-inscrição</a>
 </div>
@@ -54,11 +54,11 @@
         <a class="brand" href="#inicio" aria-label="FF Soccer Pro League"><img class="shield" src="assets/escudo.webp" width="64" height="73" alt=""><span style="display:grid;gap:6px"><img class="wm" src="assets/letreiro.webp" alt="FF Soccer Pro League" height="40"><small>Futebol de campo · 11 contra 11</small></span></a>
         <span>Uma temporada de futebol de verdade para os alunos FF Soccer.</span>
       </div>
-      <div><h4>A League</h4><a href="#a-league">Como funciona</a><a href="#a-league">Regulamento</a><a href="#pre-inscricao">Pré-inscrição</a><a href="#hall-da-fama">Hall da fama</a></div>
-      <div><h4>Campeonato</h4><a href="#campeonato">Tabela e jogos</a><a href="#campeonato-estatisticas">Estatísticas</a><a href="#campeonato-times">Times</a></div>
-      <div><h4>Acompanhe</h4><a href="#ao-vivo">TV FF · ao vivo</a><span>Canal oficial no YouTube</span><span>Instagram da FF Soccer</span></div>
+      <div><h4>A League</h4><a href="#a-league">Como funciona</a><a href="#a-league">Regulamento</a><a href="#pre-inscricao">Pré-inscrição</a><a href="#hall-da-fama" data-onda="4">Hall da fama</a></div>
+      <div data-onda="2"><h4>Campeonato</h4><a href="#campeonato">Tabela e jogos</a><a href="#campeonato-estatisticas">Estatísticas</a><a href="#campeonato-times">Times</a></div>
+      <div><h4>Acompanhe</h4><a href="#ao-vivo" data-onda="3">TV FF · ao vivo</a><span>Canal oficial no YouTube</span><span>Instagram da FF Soccer</span></div>
     </div>
-    <div class="legal"><span>© 2027 FF Soccer Pro League. Todos os direitos reservados.</span><span>Protótipo em desenvolvimento · dados fictícios</span></div>
+    <div class="legal"><span>© 2027 FF Soccer Pro League. Todos os direitos reservados.</span><span data-demo>Protótipo em desenvolvimento · dados fictícios</span></div>
   </div>
 </footer>
 
