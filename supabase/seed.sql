@@ -7,5 +7,8 @@ values ('Temporada 2027', 'inscricoes', 2, 45)
 on conflict (nome) do nothing;
 
 insert into public.unidades (nome) values
-  ('Moema'), ('Tatuapé'), ('Santana'), ('Pinheiros'), ('Mooca'), ('Vila Mariana')
-on conflict (nome) do nothing;
+  ('Morumbi Town'), ('Guarulhos'), ('Campo Belo'), ('Mooca'), ('Barra Funda'), ('Tucuruvi'), ('Villa Lobos'), ('Vila Mariana')
+on conflict (nome) do update set ativa = true;
+-- Unidades antigas, usadas só pelos atletas de exemplo, ficam desativadas.
+update public.unidades set ativa = false
+ where nome not in ('Morumbi Town','Guarulhos','Campo Belo','Mooca','Barra Funda','Tucuruvi','Villa Lobos','Vila Mariana');

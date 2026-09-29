@@ -64,7 +64,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 
 ## Pré-inscrição
 
-- **Campos:** nome, e-mail, celular, data de nascimento, unidade FF, **3 posições de preferência** (diferentes, em ordem), tamanho do kit, **3 números de camisa de preferência** (1 a 99, diferentes, em ordem) e **nome na camisa (até 12 letras)**.
+- **Campos:** nome, e-mail, celular, data de nascimento, unidade FF (lista em `CONFIG.UNIDADES`, no `js/config.js`; os atletas de exemplo usam outra lista, `UNITS`), **3 posições de preferência** (diferentes, em ordem), tamanho do kit, **3 números de camisa de preferência** (1 a 99, diferentes, em ordem) e **nome na camisa (até 12 letras)**.
 - **Formato enviado:** `posicao` = as 3 posições juntas ("Meia · Volante · Atacante"), `posicoes` = lista das 3, `numero` = 1º número, `numeros` = lista dos 3. `posicao` e `numero` continuam existindo para o Apps Script antigo não quebrar. No banco, `posicao`/`numero` guardam a 1ª opção e `posicoes`/`numeros` as três (migração `20260929000009_tres_opcoes.sql`).
 - **Aceites obrigatórios:** dois, a autorização de análise de score e histórico (LGPD) e as condições da liga.
 - **Campo-armadilha:** `empresa`, invisível, para barrar robôs.
