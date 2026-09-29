@@ -266,7 +266,7 @@ function logout(){ME=null;try{localStorage.removeItem('ffl_user');}catch(e){}acc
 function sessaoEmail(){try{var ref=(CONFIG.SUPABASE_URL||'').split('//')[1].split('.')[0],v=JSON.parse(localStorage.getItem('sb-'+ref+'-auth-token')||'null');return (v&&v.user&&v.user.email)||'';}catch(e){return '';}}
 function acct(){var a=document.getElementById('acct'),d=document.getElementById('drawAcct');
   if(ME){var p=PM[ME];a.className='acct';a.href='#minha-area';a.innerHTML='<span class="av">'+p.n[0]+'</span><span class="nm">'+esc(p.n.split(' ')[0])+'</span>';d.firstChild.textContent='Minha área ';}
-  else if(sessaoEmail()){var em=sessaoEmail();a.className='acct';a.href='#painel';a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+'. Abrir o painel');d.firstChild.textContent='Painel ';d.href='#painel';}
+  else if(sessaoEmail()){var em=sessaoEmail();a.className='acct so';a.href='#painel';a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+'. Abrir o painel');d.firstChild.textContent='Painel ';d.href='#painel';}
   else{a.className='acct out';a.href='#entrar';a.textContent='Entrar';a.removeAttribute('title');a.removeAttribute('aria-label');d.firstChild.textContent='Entrar ';d.href='#entrar';}
   if(ME)d.href='#minha-area';}
 function greet(){var h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';}
