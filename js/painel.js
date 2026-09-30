@@ -118,11 +118,19 @@ function pnPainel(){
   el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+' · '+(PN.equipe.papel==='admin'?'administrador':'editor')+'</div><h1>Pré-inscrições</h1></div><button class="btn sm" id="pnSair">Sair</button></div>'+
   '<p class="muted" style="margin:-6px 0 16px">Atualiza sozinho: pré-inscrições novas e decisões de outras pessoas da equipe aparecem na hora.</p>'+
   '<div class="days" id="pnFilt" style="flex-wrap:wrap"></div>'+
-  '<label class="fld" style="margin:14px 0 18px;max-width:420px">Buscar<input id="pnBusca" placeholder="Nome, e-mail ou protocolo" value="'+esc(PN.busca)+'"></label>'+
+  '<div class="pnbusca"><label class="fld">Buscar<input id="pnBusca" placeholder="Nome, e-mail ou protocolo" value="'+esc(PN.busca)+'"></label>'+
+  '<button class="btn sm" id="pnExcel" title="Baixa a lista que está na tela (filtro e busca) num arquivo do Excel"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v10M5.5 8.5L10 13l4.5-4.5M4 17h12"/></svg>Baixar Excel</button></div>'+
   '<div id="pnLista" style="display:grid;gap:14px"></div>';
   document.getElementById('pnSair').addEventListener('click',pnSair);
+  document.getElementById('pnExcel').addEventListener('click',pnExcel);
   document.getElementById('pnBusca').addEventListener('input',function(){PN.busca=this.value;pnLista();});
   pnLista();
+}
+
+// Pré-inscrições que estão na tela: filtro escolhido + busca.
+function pnFiltrada(){
+  var q=PN.busca.trim().toLowerCase();
+  return PN.lista.filter(function(x){return (PN.filtro==='todas'||x.status===PN.filtro)&&(!q||[x.nome,x.email,x.protocolo].join(' ').toLowerCase().indexOf(q)>=0);});
 }
 
 function pnLista(){
@@ -131,8 +139,8 @@ function pnLista(){
   f.innerHTML=[['em_analise','Em análise'],['aprovada','Aprovadas'],['lista_espera','Lista de espera'],['recusada','Recusadas'],['todas','Todas']].map(function(b){
     return '<button data-f="'+b[0]+'" class="'+(PN.filtro===b[0]?'on':'')+'">'+b[1]+' · '+(cont[b[0]]||0)+'</button>';}).join('');
   f.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){PN.filtro=b.dataset.f;pnLista();});});
-  var q=PN.busca.trim().toLowerCase();
-  var ls=PN.lista.filter(function(x){return (PN.filtro==='todas'||x.status===PN.filtro)&&(!q||[x.nome,x.email,x.protocolo].join(' ').toLowerCase().indexOf(q)>=0);});
+  var ls=pnFiltrada();
+  var ex=document.getElementById('pnExcel');if(ex)ex.disabled=!ls.length;
   if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">'+(PN.lista.length?'Nenhuma pré-inscrição neste filtro.':'Ainda não chegou nenhuma pré-inscrição pelo banco. As próximas enviadas pelo site aparecem aqui na hora.')+'</p></div>';return;}
   var th=['Protocolo','Recebida','Nome','E-mail','Celular','Nascimento','Unidade','Posições','Kit','Camisa','Status',''];
   var SV={ok:'<path d="M4 10.5l4 4 8-9"/>',espera:'<path d="M7 4v12M13 4v12"/>',no:'<path d="M5 5l10 10M15 5L5 15"/>',volta:'<path d="M4 10a6 6 0 1 0 2-4.5M4 3v4h4"/>'};
@@ -168,6 +176,68 @@ function pnDecidir(id,s,bt){
     toast({aprovada:'Pré-inscrição aprovada.',recusada:'Pré-inscrição recusada.',lista_espera:'Movida para a lista de espera.',em_analise:'Voltou para análise.'}[s]);
     pnLista();
   });
+}
+
+/* ====== BAIXAR EXCEL ======
+   Monta um .xlsx de verdade no navegador (sem biblioteca): uma planilha com a lista que está na tela,
+   empacotada num zip simples (sem compressão), que o Excel, o Google Planilhas e o Numbers abrem. */
+function pnExcel(){
+  var ls=pnFiltrada();if(!ls.length)return;
+  var dia=function(d){return d?String(d).split('-').reverse().join('/'):'';};
+  var cab=['Protocolo','Recebida em','Status','Nome','E-mail','E-mail repetido','Celular','Nascimento','Idade','Unidade','Posição 1','Posição 2','Posição 3','Kit','Nome na camisa','Número 1','Número 2','Número 3','Analisada em'];
+  var larg=[15,17,15,30,32,10,17,12,7,16,13,13,13,6,15,10,10,10,17];
+  var linhas=ls.map(function(x){
+    var pos=(x.posicoes&&x.posicoes.length?x.posicoes:[x.posicao]),nums=(x.numeros&&x.numeros.length?x.numeros:[x.numero]);
+    return [x.protocolo,pnData(x.recebido_em),(PN_ST[x.status]||[x.status])[0],x.nome,x.email,x.duplicado?'Sim':'',x.celular,dia(x.nascimento),pnIdade(x.nascimento),x.unidade,
+      pos[0],pos[1],pos[2],x.kit,x.nome_camisa,nums[0],nums[1],nums[2],pnData(x.analisado_em)];
+  });
+  var xe=function(v){return String(v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
+  var col=function(i){var s='';i++;while(i){var m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=(i-m-1)/26;}return s;};
+  var cel=function(v,c,r,cab){var ref=col(c)+r,st=cab?' s="1"':'';
+    if(v==null||v==='')return '';
+    if(typeof v==='number'&&isFinite(v))return '<c r="'+ref+'"'+st+'><v>'+v+'</v></c>';
+    return '<c r="'+ref+'" t="inlineStr"'+st+'><is><t xml:space="preserve">'+xe(v)+'</t></is></c>';};
+  var fim=col(cab.length-1)+(linhas.length+1);
+  var planilha='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'+
+    '<cols>'+larg.map(function(w,i){return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';}).join('')+'</cols><sheetData>'+
+    [cab].concat(linhas).map(function(l,r){return '<row r="'+(r+1)+'">'+l.map(function(v,c){return cel(v,c,r+1,r===0);}).join('')+'</row>';}).join('')+
+    '</sheetData><autoFilter ref="A1:'+fim+'"/></worksheet>';
+  var arq={
+    '[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+    '_rels/.rels':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+    'xl/workbook.xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Pré-inscrições" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">\'Pré-inscrições\'!$A$1:$'+col(cab.length-1)+'$'+(linhas.length+1)+'</definedName></definedNames></workbook>',
+    'xl/_rels/workbook.xml.rels':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+    'xl/styles.xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2C14D"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>',
+    'xl/worksheets/sheet1.xml':planilha
+  };
+  var nomeF={em_analise:'em-analise',aprovada:'aprovadas',lista_espera:'lista-de-espera',recusada:'recusadas',todas:'todas'}[PN.filtro]||'lista';
+  var h=new Date(),hoje=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+  var blob=new Blob([pnZip(arq)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pre-inscricoes-'+nomeF+'-'+hoje+'.xlsx';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+  toast(ls.length+(ls.length===1?' pré-inscrição baixada.':' pré-inscrições baixadas.'));
+}
+
+// Zip sem compressão (método "stored"): suficiente para o .xlsx e sem biblioteca.
+function pnZip(arq){
+  var T=pnZip.t;if(!T){T=pnZip.t=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;T[n]=c>>>0;}}
+  var crc=function(b){var c=-1;for(var i=0;i<b.length;i++)c=T[(c^b[i])&255]^(c>>>8);return (c^-1)>>>0;};
+  var enc=new TextEncoder(),d=new Date();
+  var hora=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),data=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  var partes=[],central=[],pos=0;
+  var cab=function(tam){var b=new Uint8Array(tam);return {b:b,v:new DataView(b.buffer)};};
+  Object.keys(arq).forEach(function(nome){
+    var nm=enc.encode(nome),dd=enc.encode(arq[nome]),c=crc(dd);
+    var l=cab(30);l.v.setUint32(0,0x04034b50,true);l.v.setUint16(4,20,true);l.v.setUint16(6,0x0800,true);l.v.setUint16(10,hora,true);l.v.setUint16(12,data,true);
+    l.v.setUint32(14,c,true);l.v.setUint32(18,dd.length,true);l.v.setUint32(22,dd.length,true);l.v.setUint16(26,nm.length,true);
+    var g=cab(46);g.v.setUint32(0,0x02014b50,true);g.v.setUint16(4,20,true);g.v.setUint16(6,20,true);g.v.setUint16(8,0x0800,true);g.v.setUint16(12,hora,true);g.v.setUint16(14,data,true);
+    g.v.setUint32(16,c,true);g.v.setUint32(20,dd.length,true);g.v.setUint32(24,dd.length,true);g.v.setUint16(28,nm.length,true);g.v.setUint32(42,pos,true);
+    partes.push(l.b,nm,dd);central.push(g.b,nm);pos+=30+nm.length+dd.length;
+  });
+  var tamC=central.reduce(function(s,b){return s+b.length;},0),n=Object.keys(arq).length;
+  var e=cab(22);e.v.setUint32(0,0x06054b50,true);e.v.setUint16(8,n,true);e.v.setUint16(10,n,true);e.v.setUint32(12,tamC,true);e.v.setUint32(16,pos,true);
+  return new Blob(partes.concat(central,[e.b]));
 }
 
 window.addEventListener('hashchange',function(){if(PN.canal&&location.hash!=='#painel'){SB.removeChannel(PN.canal);PN.canal=null;}});
