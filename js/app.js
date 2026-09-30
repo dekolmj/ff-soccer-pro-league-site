@@ -530,12 +530,11 @@ function bind(page){
       var chk=function(n){var x=document.querySelector('input[name="'+n+'"]:checked');return x?x.value:'';};
       var payload={nome:v('fNome'),email:v('fEmail'),celular:v('fCel'),nascimento:v('fNasc'),unidade:v('fUnid'),posicao:poss.map(function(k){return POSN[k];}).join(' · '),posicoes:poss.map(function(k){return POSN[k];}),kit:chk('kit'),numero:nums[0],numeros:nums,nome_camisa:v('fNomeC').toUpperCase(),
         aceite_lgpd:document.getElementById('tLgpd').textContent,aceite_termos:document.getElementById('tTerm').textContent,versao_termos:CONFIG.VERSAO_TERMOS,origem:location.href.split('#')[0],hp:document.getElementById('fHp').value};
-      if(!CONFIG.FORM_ENDPOINT){err.textContent='As pré-inscrições abrem em breve. Acompanhe a FF Soccer para saber a data.';return;}
+      if(!CONFIG.SUPABASE_URL||!CONFIG.SUPABASE_KEY){err.textContent='As pré-inscrições abrem em breve. Acompanhe a FF Soccer para saber a data.';return;}
       var btn=document.getElementById('fSend');btn.disabled=true;btn.textContent='Enviando…';err.textContent='';
-      fetch(CONFIG.FORM_ENDPOINT,{method:'POST',body:JSON.stringify(payload)}).then(function(r){return r.json();}).then(function(res){
+      // grava direto no banco (função enviar_pre_inscricao), que devolve {ok, protocolo, duplicado}
+      fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/enviar_pre_inscricao',{method:'POST',headers:{apikey:CONFIG.SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({dados:payload})}).then(function(r){return r.json();}).then(function(res){
         if(!res||!res.ok)throw new Error(res&&res.erro||'falha');
-        // cópia no banco, com o mesmo protocolo da planilha; se falhar, a planilha já recebeu
-        if(CONFIG.SUPABASE_URL)try{fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/enviar_pre_inscricao',{method:'POST',keepalive:true,headers:{apikey:CONFIG.SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({dados:Object.assign({},payload,{protocolo:res.protocolo})})}).catch(function(){});}catch(e){}
         fm.innerHTML='<div class="okbox"><span class="ck">✓</span><h2>Pré-inscrição recebida</h2><p class="muted" style="margin:0;max-width:44ch">Obrigado, '+esc(payload.nome.split(' ')[0])+'. Sua pré-inscrição entrou na fila de análise da FF. Você recebe o retorno por e-mail ou WhatsApp.</p><span class="chip">Camisa: '+esc(payload.nome_camisa)+' · Nº '+payload.numero+'</span><span class="chip gold">Protocolo '+esc(res.protocolo||'')+'</span>'+(res.duplicado?'<span class="hint">Já tínhamos uma pré-inscrição com este e-mail. Registramos esta como atualização.</span>':'')+'<a class="btn" href="#inicio">Voltar ao início</a></div>';
         window.scrollTo(0,0);
       }).catch(function(){btn.disabled=false;btn.textContent='Enviar pré-inscrição';err.textContent='Não conseguimos enviar agora. Confira sua internet e tente de novo em alguns minutos.';});

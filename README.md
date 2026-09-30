@@ -3,7 +3,7 @@
 Site oficial da FF Soccer Pro League em fase de **pré-lançamento**.
 
 - Todas as páginas (campeonato, TV FF, hall da fama, área do atleta) usam **dados de exemplo**.
-- A **pré-inscrição é real**: cada envio vira uma linha numa planilha do Google da FF.
+- A **pré-inscrição é real**: cada envio é gravado no banco de dados (Supabase) e aparece na hora no **painel da equipe FF** (botão Entrar).
 
 O site é feito só de arquivos simples (HTML, CSS e JavaScript) e não precisa de servidor nem de mensalidade. Ele é publicado de graça pelo **GitHub Pages**.
 
@@ -13,13 +13,13 @@ O site é feito só de arquivos simples (HTML, CSS e JavaScript) e não precisa 
 |---|---|
 | `index.html` | A estrutura da página: cabeçalho, menu, rodapé e aviso de pré-lançamento |
 | `css/site.css` | Todo o visual: cores, fontes, tamanhos |
-| `js/config.js` | Endereço da planilha de pré-inscrição e versão dos termos |
+| `js/config.js` | Endereço do banco, versão dos termos, onda de lançamento e unidades FF |
 | `js/dados-exemplo.js` | Times, atletas e jogos de exemplo |
 | `js/tv-canvas.js` | Animação dos vídeos da TV FF |
 | `js/app.js` | As páginas, o menu, a área do atleta e a pré-inscrição |
 | `assets/` | Escudo, letreiro, ícone da aba do navegador e imagem de pré-visualização para WhatsApp |
 | `docs/arquitetura.md` | Explicação técnica de como o site é organizado |
-| `apps-script/Code.gs` | Código que recebe as pré-inscrições na planilha do Google |
+| `apps-script/Code.gs` | **Desativado.** Código antigo que gravava as pré-inscrições numa planilha do Google |
 | `.nojekyll` | Arquivo técnico do GitHub Pages. Não apague |
 
 ---
@@ -36,38 +36,20 @@ Para usar um domínio próprio, como `ffsoccerproleague.com.br`: em **Settings �
 
 ---
 
-## 2. Conectar a pré-inscrição à planilha
+## 2. Pré-inscrição (planilha desativada)
 
-Faça isto uma vez, logado na **conta Google da FF**, para os dados ficarem com a FF.
+Desde 30/09/2026 a pré-inscrição **não usa mais a planilha do Google**. Cada envio vai direto para o banco de dados e aparece no **painel da equipe FF**: clique em **Entrar** no site e use seu e-mail e senha.
 
-1. Crie uma planilha nova em [sheets.google.com](https://sheets.google.com), com o nome **Pré-inscrições FF Soccer Pro League**.
-2. Na planilha, clique em **Extensões → Apps Script**.
-3. Apague o que estiver no editor, cole todo o conteúdo do arquivo `apps-script/Code.gs` e clique em **Salvar** (ícone de disquete).
-4. *Opcional:* para receber um e-mail a cada inscrição, preencha a linha `const EMAIL_DE_AVISO = '';` com o e-mail entre as aspas.
-5. Clique em **Implantar → Nova implantação**.
-   - Na engrenagem, escolha o tipo **App da Web**.
-   - Em **Executar como**, deixe **Eu**.
-   - Em **Quem pode acessar**, escolha **Qualquer pessoa**.
-   - Clique em **Implantar** e autorize o acesso quando o Google pedir.
-6. Copie a **URL do App da Web**. Ela termina em `/exec`.
-7. Para testar, cole essa URL no navegador. Deve aparecer `"Pré-inscrição FF Soccer Pro League funcionando"`.
-8. Abra o arquivo `js/config.js`, procure a linha `var CONFIG={FORM_ENDPOINT:''` e cole a URL entre as aspas. Deve ficar assim:
-   `var CONFIG={FORM_ENDPOINT:'https://script.google.com/macros/s/.../exec',VERSAO_TERMOS:'2026-09'};`
-9. Salve o arquivo e suba de novo no GitHub (dentro da pasta `js`, **Add file → Upload files**, substituindo o `config.js`).
-
-Pronto. Cada pré-inscrição aparece como uma nova linha na aba **Pré-inscrições**, com protocolo e status "Em análise". A equipe FF pode mudar o status direto na planilha.
-
-Enquanto a URL estiver vazia, o formulário mostra "As pré-inscrições abrem em breve" e não envia nada.
-
-> Se um dia você alterar o `Code.gs`, faça **Implantar → Gerenciar implantações → editar → Nova versão**. Assim a URL continua a mesma.
+- As pré-inscrições **FF-2027-0001 a 0005** foram feitas antes do banco e ficaram **só na planilha antiga**.
+- O script `apps-script/Code.gs` ficou no repositório só como histórico. Se quiser, desative a implantação no Apps Script (**Implantar → Gerenciar implantações → Arquivar**).
 
 ---
 
 ## 3. Cuidados com os dados (LGPD)
 
-- **Acesso à planilha:** compartilhe só com quem da FF precisa analisar as inscrições.
-- **Registro do aceite:** a planilha guarda o texto exato que o atleta aceitou e a versão dos termos.
-- **Pedido de exclusão:** se um atleta pedir, apague a linha dele.
+- **Acesso às inscrições:** só quem é da equipe FF (convidado e com login) vê as pré-inscrições no painel.
+- **Registro do aceite:** o banco guarda o texto exato que o atleta aceitou e a versão dos termos.
+- **Pedido de exclusão:** se um atleta pedir, peça para apagar a inscrição dele do banco.
 
 ---
 

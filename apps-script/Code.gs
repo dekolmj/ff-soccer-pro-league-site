@@ -1,4 +1,7 @@
 /**
+ * DESATIVADO em 30/09/2026: a pré-inscrição agora vai direto para o banco (Supabase).
+ * Este arquivo fica só como histórico.
+ *
  * FF Soccer Pro League · Recebimento das pré-inscrições
  *
  * Este script recebe o formulário de pré-inscrição do site e grava cada envio

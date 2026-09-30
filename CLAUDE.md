@@ -25,17 +25,17 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 ```
 index.html            estrutura da página (cabeçalho, menu, rodapé, <main id="app">)
 css/site.css          todo o visual
-js/config.js          CONFIG: endereço da pré-inscrição e versão dos termos
+js/config.js          CONFIG: banco (Supabase), versão dos termos, onda e unidades FF
 js/dados-exemplo.js   times, atletas e jogos de exemplo (reserva, se o banco não responder)
 js/banco.js           lê times, atletas e jogos do Supabase e monta as mesmas variáveis
 js/tv-canvas.js       animação da TV FF (Scene, initCanvases)
 js/app.js             páginas, roteador, menu, área logada, vídeo em pop-up, pré-inscrição
 js/painel.js          login único (#entrar) e painel da equipe FF (#painel): pré-inscrições em tempo real
 assets/               escudo.webp, letreiro.webp, favicon.png, apple-touch-icon.png, og-image.jpg
-apps-script/Code.gs   Google Apps Script que recebe a pré-inscrição e grava na planilha
+apps-script/Code.gs   DESATIVADO: script antigo da planilha do Google (só histórico)
 supabase/             estrutura do banco (migrations/) e gerador dos dados de exemplo (exemplo/)
 docs/arquitetura.md   desenho da estrutura e decisões técnicas
-README.md             passo a passo para o Lucas (publicar e ligar a planilha)
+README.md             passo a passo para o Lucas
 .nojekyll             necessário para o GitHub Pages
 ```
 
@@ -56,7 +56,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 - **Dados de exemplo:** gerados com semente fixa (`rng(2027)`) em `js/dados-exemplo.js` e copiados para o banco com a marca `exemplo = true` (`node supabase/exemplo/gerar.js` gera o SQL). São 8 times, 20 atletas por time e 9 rodadas. A rodada 6 tem Falcões x Lobos "ao vivo". A tabela e a artilharia são calculadas a partir dos jogos.
 - **Banco:** o site lê do Supabase ao abrir (`js/banco.js`) e só desenha a página depois (até 4 s). Se o banco falhar, demorar ou não tiver jogo ao vivo, usa os dados de `dados-exemplo.js`. O que a equipe editar no banco aparece no site.
 - **TV FF:** os vídeos são uma animação em canvas (função `Scene`), no lugar dos vídeos do YouTube. Os melhores momentos abrem em pop-up.
-- **Configuração:** fica em `js/config.js`, `var CONFIG={FORM_ENDPOINT:'…/exec',VERSAO_TERMOS:'2026-09'}`. `FORM_ENDPOINT` é a URL do Apps Script. `SUPABASE_URL` e `SUPABASE_KEY` apontam para o banco; a chave é a pública de leitura (pode ficar no site; a `service_role` nunca). Vazio, o formulário mostra "As pré-inscrições abrem em breve".
+- **Configuração:** fica em `js/config.js` (`VERSAO_TERMOS`, `SUPABASE_URL`, `SUPABASE_KEY`, `ONDA`, `UNIDADES`). A chave é a pública (pode ficar no site; a `service_role` nunca). Sem `SUPABASE_URL`/`SUPABASE_KEY`, o formulário mostra "As pré-inscrições abrem em breve".
 - **localStorage:** `ffl_user` guarda o login de demonstração e `ffl_pl` guarda que a tarja de pré-lançamento foi fechada. Sempre dentro de try/catch.
 - **Pré-lançamento:**
   - tarja amarela `<div class="prelaunch">`: agora só aparece com `?demo` (`data-demo`);
@@ -65,13 +65,12 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 ## Pré-inscrição
 
 - **Campos:** nome, e-mail, celular, data de nascimento, unidade FF (lista em `CONFIG.UNIDADES`, no `js/config.js`; os atletas de exemplo usam outra lista, `UNITS`), **3 posições de preferência** (diferentes, em ordem), tamanho do kit, **3 números de camisa de preferência** (1 a 99, diferentes, em ordem) e **nome na camisa (até 12 letras)**.
-- **Formato enviado:** `posicao` = as 3 posições juntas ("Meia · Volante · Atacante"), `posicoes` = lista das 3, `numero` = 1º número, `numeros` = lista dos 3. `posicao` e `numero` continuam existindo para o Apps Script antigo não quebrar. No banco, `posicao`/`numero` guardam a 1ª opção e `posicoes`/`numeros` as três (migração `20260929000009_tres_opcoes.sql`).
+- **Formato enviado:** `posicao` = as 3 posições juntas ("Meia · Volante · Atacante"), `posicoes` = lista das 3, `numero` = 1º número, `numeros` = lista dos 3. No banco, `posicao`/`numero` guardam a 1ª opção e `posicoes`/`numeros` as três (migração `20260929000009_tres_opcoes.sql`).
 - **Aceites obrigatórios:** dois, a autorização de análise de score e histórico (LGPD) e as condições da liga.
 - **Campo-armadilha:** `empresa`, invisível, para barrar robôs.
 - **Sem pagamento no site ou no app.** Depois da aprovação, a FF combina o pagamento direto com o atleta. Não adicione pagamento.
-- **Envio:** `fetch(CONFIG.FORM_ENDPOINT, {method:'POST', body: JSON.stringify(payload)})`, sem Content-Type, para não disparar preflight. A resposta é `{ok, protocolo, duplicado}`.
-- **Cópia no banco:** depois que a planilha responde ok, o site chama `rpc/enviar_pre_inscricao` com o mesmo payload e o protocolo da planilha. Se falhar, não atrapalha o atleta. É dela que o painel lê.
-- **Code.gs:** grava uma linha por inscrição com protocolo `FF-2027-0001…`, marca e-mail repetido, protege contra fórmulas e valida os campos no servidor. Se mudar o `Code.gs`, avise o Lucas: ele precisa colar o código no Apps Script e criar uma **nova versão** da implantação para manter a mesma URL.
+- **Envio:** direto para o banco: `fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/enviar_pre_inscricao', {method:'POST', headers:{apikey, 'Content-Type':'application/json'}, body: JSON.stringify({dados: payload})})`. A resposta é `{ok, protocolo, duplicado}`. A função valida os campos, marca e-mail repetido e **gera sempre** o protocolo `FF-2027-0008…` (ignora protocolo vindo de fora). O painel lê daí em tempo real.
+- **Planilha do Google: desativada** em 30/09/2026, a pedido do Lucas. As pré-inscrições FF-2027-0001 a 0005 existem só na planilha antiga (anteriores ao banco).
 
 ## Identidade visual (não mude sem pedido)
 
@@ -96,7 +95,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 ## Próximos passos planejados
 
 1. ~~**Separar o `index.html` em arquivos**~~ (feito).
-2. **Banco de dados no Supabase:** estrutura criada (pasta `supabase/`) e aplicada no projeto **FF Soccer Project** (`xsbmuzaensxrkeqwzfkp`, São Paulo, organização FF Soccer). O site ainda não usa o banco. Falta: Postgres, login e armazenamento de fotos. Trocar o destino da pré-inscrição, com política que só permite inserir (RLS), e importar o CSV da planilha.
+2. **Banco de dados no Supabase:** estrutura criada (pasta `supabase/`) e aplicada no projeto **FF Soccer Project** (`xsbmuzaensxrkeqwzfkp`, São Paulo, organização FF Soccer). O site ainda não usa o banco. Falta: Postgres, login e armazenamento de fotos. ~~Trocar o destino da pré-inscrição~~ (feito: só banco). Falta importar da planilha as inscrições FF-2027-0001 a 0005, se forem reais.
 3. **Dados reais:** o site já lê do banco. Falta trocar os dados de exemplo (`exemplo = true`) pelos times, atletas e jogos reais e, no lançamento, apagar os exemplos.
 4. **Painel da FF:** ~~login da equipe e aprovar inscrições~~ (feito, `#painel`). Falta: súmula ao vivo em tempo real, escalação e minutagem, fotos e avisos.
 5. **App nas lojas** (Expo/React Native), usando o mesmo banco.
