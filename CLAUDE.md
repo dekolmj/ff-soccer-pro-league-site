@@ -8,7 +8,7 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 - **Fase atual:** lançamento em **ondas**. No ar para o público está a **Onda 1** (League e Pré-inscrição, mais Entrar e painel da equipe). O resto do site usa **dados de exemplo** e só aparece com `?demo` no endereço.
 - **Ondas (`CONFIG.ONDA` em `js/config.js`):** 1 = League e Pré-inscrição · 2 = + Campeonato (início, tabela, times, atletas, jogos, faixa de resultados) · 3 = + Ao vivo · 4 = + Hall da fama e área do atleta. Páginas acima da onda somem do menu e do rodapé (`data-onda` no `index.html`) e as rotas levam para `#a-league` (`ondaDaPagina()` no `app.js`). Na onda 1 o site não consulta o banco ao abrir. Com `?demo` (ex.: `…/?demo#inicio`) tudo aparece, com a tarja de pré-lançamento, para apresentações. Para liberar uma onda, é só trocar o número.
 - **Dono do projeto:** Lucas. É um projeto particular, sem vínculo com empresa. Ele **não programa**: explique tudo em português simples, sem jargão, e diga sempre o que ele precisa fazer (se precisar) e o que muda no site.
-- **Site no ar:** endereço principal **https://ffproleague.vercel.app** (Vercel). Também respondem https://ff-soccer-pro-league-site.vercel.app e https://dekolmj.github.io/ff-soccer-pro-league-site/ (GitHub Pages). Todos publicam a branch `main`, pasta raiz.
+- **Site no ar:** endereço principal **https://ffproleague.vercel.app** (Vercel). Os endereços antigos https://ff-soccer-pro-league-site.vercel.app e https://dekolmj.github.io/ff-soccer-pro-league-site/ (GitHub Pages) levam automaticamente para o novo (script no topo do `<head>` do `index.html`). Todos publicam a branch `main`, pasta raiz.
 
 ## Como publicar
 
