@@ -4,9 +4,12 @@ var LOGO='assets/escudo.webp';
    CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
 var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
 function ondaDaPagina(pg){return ({'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3,'hall-da-fama':4})[pg]||(/^minha-area/.test(pg)?4:2);}
+// CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
+function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
 function aplicarOnda(){
   document.querySelectorAll('[data-onda]').forEach(function(el){if(+el.dataset.onda>ONDA)el.hidden=true;});
   if(!DEMO)document.querySelectorAll('[data-demo]').forEach(function(el){el.hidden=true;});
+  if(semBotoes())document.querySelectorAll('[data-pre]').forEach(function(el){el.hidden=true;});
 }
 /* ================= HELPERS ================= */
 function badge(tid,cls){var t=TM[tid];return '<span class="badge '+(cls||'')+'" style="background:'+t.c+'">'+t.n[0]+'</span>';}
@@ -268,7 +271,8 @@ function acct(){var a=document.getElementById('acct'),d=document.getElementById(
   if(ME){var p=PM[ME];a.className='acct';a.href='#minha-area';a.innerHTML='<span class="av">'+p.n[0]+'</span><span class="nm">'+esc(p.n.split(' ')[0])+'</span>';d.firstChild.textContent='Minha área ';}
   else if(sessaoEmail()){var em=sessaoEmail();a.className='acct so';a.href='#painel';a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+'. Abrir o painel');d.firstChild.textContent='Painel ';d.href='#painel';}
   else{a.className='acct out';a.href='#entrar';a.textContent='Entrar';a.removeAttribute('title');a.removeAttribute('aria-label');d.firstChild.textContent='Entrar ';d.href='#entrar';}
-  if(ME)d.href='#minha-area';}
+  if(ME)d.href='#minha-area';
+  a.hidden=d.hidden=semBotoes()&&!ME&&!sessaoEmail();}
 function greet(){var h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';}
 function myGames(p){return p.games.map(function(x){var g=GAMES.filter(function(y){return y.id===x.g;})[0];return {x:x,g:g,op:g.h===p.team?g.a:g.h};});}
 function myShots(p){

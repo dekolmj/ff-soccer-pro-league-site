@@ -7,5 +7,8 @@ var CONFIG={VERSAO_TERMOS:'2026-09',
   /* Lançamento em ondas: 1 = League e Pré-inscrição · 2 = + Campeonato (tabela, times, atletas, jogos, início)
      · 3 = + Ao vivo · 4 = + Hall da fama e área do atleta. Com ?demo no endereço, o site aparece completo. */
   ONDA:1,
+  /* false esconde os botões Pré-inscrição e Entrar do menu e do rodapé (true mostra de novo).
+     Os endereços #pre-inscricao e #entrar continuam abrindo para quem tiver o link. */
+  BOTOES_PRE_E_ENTRAR:false,
   /* Unidades que aparecem no campo "Unidade FF" da pré-inscrição, em ordem alfabética. */
   UNIDADES:['Barra Funda','Campo Belo','Guarulhos','Mooca','Morumbi Town','Tucuruvi','Vila Mariana','Villa Lobos']};
