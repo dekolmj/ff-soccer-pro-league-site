@@ -1,6 +1,6 @@
 # Arquitetura do site FF Soccer Pro League
 
-Como o site é organizado hoje e como ele vai crescer. Escrito para quem vai mexer no código; o passo a passo para o Lucas fica no `README.md`.
+Como o site é organizado hoje e como ele vai crescer. Escrito para quem vai mexer no código; o passo a passo para o Deko fica no `README.md`.
 
 ## Hoje: site estático no GitHub Pages
 
@@ -49,7 +49,7 @@ Mudar essa ordem quebra o site.
 
 ### Decisões
 
-- **JavaScript puro, sem framework nem build:** o Lucas publica com um push, e o site continua funcionando só com arquivos.
+- **JavaScript puro, sem framework nem build:** o Deko publica com um push, e o site continua funcionando só com arquivos.
 - **Envio da pré-inscrição sem `Content-Type`:** o navegador manda como `text/plain`, e o Apps Script aceita sem a verificação extra (preflight) que ele não suporta.
 - **Imagens em arquivo, não embutidas:** o `index.html` caiu de ~387 KB para ~5 KB, e o navegador guarda escudo e letreiro em cache entre visitas.
 - **localStorage só para conforto** (`ffl_user`, `ffl_pl`), sempre em `try/catch`.
