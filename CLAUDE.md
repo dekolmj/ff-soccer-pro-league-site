@@ -7,7 +7,7 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 - **O que é:** site oficial da **FF Soccer Pro League**, liga de futebol de campo (11 contra 11) para alunos da FF Soccer. Temporadas de 6 meses (janeiro a junho e agosto a dezembro), jogos às quartas e sextas à noite, transmissão no YouTube, VAR com 2 desafios por equipe, mínimo de 45 minutos por atleta em cada jogo, registro individual e noite de premiação.
 - **Fase atual:** lançamento em **ondas**. No ar para o público está a **Onda 1** (League e Pré-inscrição, mais Entrar e painel da equipe). O resto do site usa **dados de exemplo** e só aparece com `?demo` no endereço.
 - **Ondas (`CONFIG.ONDA` em `js/config.js`):** 1 = League e Pré-inscrição · 2 = + Campeonato (início, tabela, times, atletas, jogos, faixa de resultados) · 3 = + Ao vivo · 4 = + Hall da fama e área do atleta. Páginas acima da onda somem do menu e do rodapé (`data-onda` no `index.html`) e as rotas levam para `#a-league` (`ondaDaPagina()` no `app.js`). Na onda 1 o site não consulta o banco ao abrir. Com `?demo` (ex.: `…/?demo#inicio`) tudo aparece, com a tarja de pré-lançamento, para apresentações. Para liberar uma onda, é só trocar o número.
-- **Dono do projeto:** Lucas. É um projeto particular, sem vínculo com empresa. Ele **não programa**: explique tudo em português simples, sem jargão, e diga sempre o que ele precisa fazer (se precisar) e o que muda no site.
+- **Dono do projeto:** Deko (o projeto começou na conta do Lucas e foi trazido para a do Deko; chame sempre de Deko). É um projeto particular, sem vínculo com empresa. O Deko **não programa**: explique tudo em português simples, sem jargão, e diga sempre o que o Deko precisa fazer (se precisar) e o que muda no site.
 - **Site no ar:** endereço principal **https://ffproleague.vercel.app** (Vercel). Os endereços antigos https://ff-soccer-pro-league-site.vercel.app e https://dekolmj.github.io/ff-soccer-pro-league-site/ (GitHub Pages) levam automaticamente para o novo (script no topo do `<head>` do `index.html`). Todos publicam a branch `main`, pasta raiz.
 
 ## Como publicar
@@ -35,7 +35,7 @@ assets/               escudo.webp, letreiro.webp, favicon.png, apple-touch-icon.
 apps-script/Code.gs   DESATIVADO: script antigo da planilha do Google (só histórico)
 supabase/             estrutura do banco (migrations/) e gerador dos dados de exemplo (exemplo/)
 docs/arquitetura.md   desenho da estrutura e decisões técnicas
-README.md             passo a passo para o Lucas
+README.md             passo a passo para o Deko
 .nojekyll             necessário para o GitHub Pages
 ```
 
@@ -50,10 +50,10 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
   - `#ao-vivo`
   - `#hall-da-fama`
   - `#pre-inscricao`
-- **Login único:** o botão **Entrar** (`#entrar`) tem login real com e-mail e senha (Supabase Auth, biblioteca `supabase-js@2.117.2` baixada por CDN só no Entrar e no painel). Quem é da equipe FF vai para o **painel** (`#painel`, fora do menu; sem login, ele manda para `#entrar`). Outras contas veem "Acesso ainda não liberado", porque a área do atleta com login próprio ainda não existe. A tela Entrar tem só e-mail, senha e o botão Entrar: **não há "Criar senha" nem "Esqueci a senha"** (o Lucas pediu para tirar; o código de criar senha em `painel.js` ficou desligado). Contas novas da equipe e troca de senha: pelo painel do Supabase (Authentication → Add user, marcando o e-mail como confirmado), depois do convite. Só vira equipe quem está em `privado.convites_equipe` **e** confirmou o e-mail; convide pelo SQL do topo de `supabase/migrations/20260925000008_painel_equipe.sql`. E-mails da equipe ficam só no banco, nunca no código.
+- **Login único:** o botão **Entrar** (`#entrar`) tem login real com e-mail e senha (Supabase Auth, biblioteca `supabase-js@2.117.2` baixada por CDN só no Entrar e no painel). Quem é da equipe FF vai para o **painel** (`#painel`, fora do menu; sem login, ele manda para `#entrar`). Outras contas veem "Acesso ainda não liberado", porque a área do atleta com login próprio ainda não existe. A tela Entrar tem só e-mail, senha e o botão Entrar: **não há "Criar senha" nem "Esqueci a senha"** (o Deko pediu para tirar; o código de criar senha em `painel.js` ficou desligado). Contas novas da equipe e troca de senha: pelo painel do Supabase (Authentication → Add user, marcando o e-mail como confirmado), depois do convite. Só vira equipe quem está em `privado.convites_equipe` **e** confirmou o e-mail; convide pelo SQL do topo de `supabase/migrations/20260925000008_painel_equipe.sql`. E-mails da equipe ficam só no banco, nunca no código.
 - **Área do atleta (demonstração):** botão "Entrar como André" na tela Entrar; rotas `#minha-area`, `#minha-area-time`, `#minha-area-inscricao`, `#minha-area-fotos`, `#minha-area-campeonatos`. O login é de mentira: entra sempre como o atleta de exemplo `falcoes-10`, André Marques.
 - **Menu:** League · Campeonato · Ao vivo · Hall da fama, mais os botões Pré-inscrição e Entrar. O logo leva a `#inicio`.
-- **Botões Pré-inscrição e Entrar escondidos** (`CONFIG.BOTOES_PRE_E_ENTRAR:false`, pedido do Lucas em 05/10/2026): somem do topo, do menu do celular e do rodapé (`data-pre` no `index.html`, `semBotoes()` no `app.js`). Os endereços `#pre-inscricao` e `#entrar` continuam abrindo para quem tiver o link (a equipe entra por `ffproleague.vercel.app/#entrar`). Logado, a bolinha com a inicial aparece. Com `?demo`, tudo aparece. `true` mostra de novo.
+- **Botões Pré-inscrição e Entrar escondidos** (`CONFIG.BOTOES_PRE_E_ENTRAR:false`, pedido do Deko em 05/10/2026): somem do topo, do menu do celular e do rodapé (`data-pre` no `index.html`, `semBotoes()` no `app.js`). Os endereços `#pre-inscricao` e `#entrar` continuam abrindo para quem tiver o link (a equipe entra por `ffproleague.vercel.app/#entrar`). Logado, a bolinha com a inicial aparece. Com `?demo`, tudo aparece. `true` mostra de novo.
 - **Dados de exemplo:** gerados com semente fixa (`rng(2027)`) em `js/dados-exemplo.js` e copiados para o banco com a marca `exemplo = true` (`node supabase/exemplo/gerar.js` gera o SQL). São 8 times, 20 atletas por time e 9 rodadas. A rodada 6 tem Falcões x Lobos "ao vivo". A tabela e a artilharia são calculadas a partir dos jogos.
 - **Banco:** o site lê do Supabase ao abrir (`js/banco.js`) e só desenha a página depois (até 4 s). Se o banco falhar, demorar ou não tiver jogo ao vivo, usa os dados de `dados-exemplo.js`. O que a equipe editar no banco aparece no site.
 - **TV FF:** os vídeos são uma animação em canvas (função `Scene`), no lugar dos vídeos do YouTube. Os melhores momentos abrem em pop-up.
@@ -61,7 +61,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 - **localStorage:** `ffl_user` guarda o login de demonstração e `ffl_pl` guarda que a tarja de pré-lançamento foi fechada. Sempre dentro de try/catch.
 - **Pré-lançamento:**
   - tarja amarela `<div class="prelaunch">`: agora só aparece com `?demo` (`data-demo`);
-  - `<meta name="robots" content="noindex">`: **continua**. O Lucas pediu para não liberar o site no Google ainda. Só remova quando ele pedir.
+  - `<meta name="robots" content="noindex">`: **continua**. O Deko pediu para não liberar o site no Google ainda. Só remova quando o Deko pedir.
 
 ## Pré-inscrição
 
@@ -71,7 +71,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 - **Campo-armadilha:** `empresa`, invisível, para barrar robôs.
 - **Sem pagamento no site ou no app.** Depois da aprovação, a FF combina o pagamento direto com o atleta. Não adicione pagamento.
 - **Envio:** direto para o banco: `fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/enviar_pre_inscricao', {method:'POST', headers:{apikey, 'Content-Type':'application/json'}, body: JSON.stringify({dados: payload})})`. A resposta é `{ok, protocolo, duplicado}`. A função valida os campos, marca e-mail repetido e **gera sempre** o protocolo `FF-2027-0008…` (ignora protocolo vindo de fora). O painel lê daí em tempo real.
-- **Planilha do Google: desativada** em 30/09/2026, a pedido do Lucas. As pré-inscrições FF-2027-0001 a 0005 existem só na planilha antiga (anteriores ao banco).
+- **Planilha do Google: desativada** em 30/09/2026, a pedido do Deko. As pré-inscrições FF-2027-0001 a 0005 existem só na planilha antiga (anteriores ao banco).
 
 ## Identidade visual (não mude sem pedido)
 
