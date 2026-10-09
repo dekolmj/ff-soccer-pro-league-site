@@ -58,6 +58,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 - **Banco:** o site lê do Supabase ao abrir (`js/banco.js`) e só desenha a página depois (até 4 s). Se o banco falhar, demorar ou não tiver jogo ao vivo, usa os dados de `dados-exemplo.js`. O que a equipe editar no banco aparece no site.
 - **TV FF:** os vídeos são uma animação em canvas (função `Scene`), no lugar dos vídeos do YouTube. Os melhores momentos abrem em pop-up.
 - **Configuração:** fica em `js/config.js` (`VERSAO_TERMOS`, `SUPABASE_URL`, `SUPABASE_KEY`, `ONDA`, `BOTOES_PRE_E_ENTRAR`, `UNIDADES`). A chave é a pública (pode ficar no site; a `service_role` nunca). Sem `SUPABASE_URL`/`SUPABASE_KEY`, o formulário mostra "As pré-inscrições abrem em breve".
+- **Visitas (Vercel Web Analytics):** ligado em 09/10/2026. O contador fica no fim do `<head>` do `index.html` e só carrega em endereços `.vercel.app` (sem cookies). Os números ficam na aba Analytics do projeto no Vercel e podem ser consultados pela ferramenta do Vercel (contagem de visualizações). O site usa rotas por `#`, então as visitas aparecem todas na página `/`.
 - **localStorage:** `ffl_user` guarda o login de demonstração e `ffl_pl` guarda que a tarja de pré-lançamento foi fechada. Sempre dentro de try/catch.
 - **Pré-lançamento:**
   - tarja amarela `<div class="prelaunch">`: agora só aparece com `?demo` (`data-demo`);
