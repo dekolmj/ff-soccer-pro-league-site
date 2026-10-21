@@ -209,8 +209,7 @@ P['ao-vivo']=function(){
 // Destaques da temporada (antigo Hall da fama): aparecem no Campeonato, abaixo da tabela.
 function destaquesHTML(){
   var big=GAMES.filter(function(g){return g.st==='encerrado';}).sort(function(a,b){return Math.abs(b.gh-b.ga)-Math.abs(a.gh-a.ga)||(b.gh+b.ga)-(a.gh+a.ga);})[0];
-  return '<section class="blk" style="margin-top:34px"><div class="sec-h"><div><div class="eyebrow">A história da League</div><h2>Destaques da temporada</h2></div></div>'+
-  '<div class="card" style="display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;margin-bottom:18px"><img src="'+LOGO+'" width="80" height="80" alt="" style="object-fit:contain"><div><div class="lbl">Campeões</div><h2 style="font-size:30px;margin-top:4px">1ª Temporada em disputa</h2><p class="muted" style="margin:6px 0 0">A final acontece em junho de 2027, com troféu e medalhas entregues em campo.</p></div></div>'+
+  return '<section class="blk" style="margin-top:34px"><div class="sec-h"><div><h2>Destaques da temporada</h2></div></div>'+
   '<div class="grid2"><div class="card"><h3>Artilheiros</h3>'+scorersHTML(SCORERS,5)+'</div><div class="card"><h3>Mais MVPs</h3>'+scorersHTML(MVPS,5,'mvp')+'</div></div>'+
   '<div class="grid2" style="margin-top:18px"><a class="card" href="#'+big.id+'"><div class="lbl">Maior vitória da temporada</div><h2 style="font-size:32px;margin-top:6px">'+tn(big.h)+' '+big.gh+' x '+big.ga+' '+tn(big.a)+'</h2><p class="muted" style="margin:6px 0 0">Rodada '+big.r+' · '+fmtD(big.date)+'</p></a><div class="card"><div class="lbl">Noite de premiação</div><h2 style="font-size:32px;margin-top:6px">MVP · Artilheiro · Destaques</h2><p class="muted" style="margin:6px 0 0">Os prêmios individuais da temporada são entregues no evento de encerramento.</p></div></div></section>';
 }
