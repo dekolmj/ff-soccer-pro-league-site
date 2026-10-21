@@ -162,7 +162,7 @@ function libGruposHTML(){
 }
 
 function camp(tab,body){
-  var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas'],['times','Times','campeonato-times']];
+  var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas']];
   // Divisão por competição: Libertadores FF (ainda sem dados) e FF Pro League (tudo o que já existe)
   var lib=tab.indexOf('libertadores')===0,comps=[['libertadores','Libertadores FF','campeonato-libertadores'],['pro','FF Pro League','campeonato']];
   return '<div class="wrap"><div class="phead"><div class="eyebrow">'+(lib?'Libertadores FF · Fut7':'1ª Temporada · primeira fase')+'</div><h1>Campeonato</h1><p class="lead">'+(lib?'Fase de grupos da Libertadores FF: 3 grupos de 4 times.':'Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.')+'</p></div>'+
@@ -184,9 +184,6 @@ P.campeonato=function(tab){
     '<div class="grid2" style="margin-top:18px"><div class="card"><h3>Cartões amarelos</h3>'+scorersHTML(yc,5,'ca')+'</div><div class="card" style="display:grid;gap:12px;align-content:start"><h3>Times</h3>'+
     '<a class="between" href="#time-'+att.t.id+'"><span class="row">'+badge(att.t.id,'sm')+'<span>Melhor ataque<small class="lbl" style="display:block">'+att.t.n+'</small></span></span><b class="num" style="font-size:26px;font-family:var(--disp)">'+att.gp+'</b></a>'+
     '<a class="between" href="#time-'+def.t.id+'"><span class="row">'+badge(def.t.id,'sm')+'<span>Melhor defesa<small class="lbl" style="display:block">'+def.t.n+' · gols sofridos</small></span></span><b class="num" style="font-size:26px;font-family:var(--disp)">'+def.gc+'</b></a></div></div>');
-  }
-  if(tab==='times'){
-    return camp('times','<div class="tcards">'+ST.map(function(x,i){return '<a class="tcard" href="#time-'+x.t.id+'"><div class="top">'+badge(x.t.id,'lg')+'<b>'+x.t.n+'</b><span class="ps">'+(i+1)+'º</span></div><div class="nums"><div><b>'+x.pts+'</b><span>Pts</span></div><div><b>'+x.v+'</b><span>Vit.</span></div><div><b>'+x.gp+'</b><span>Gols</span></div><div><b>'+(x.sg>0?'+':'')+x.sg+'</b><span>SG</span></div></div><div class="between"><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'"></i>';}).join('')+'</span><span class="more">Elenco e jogos ›</span></div></a>';}).join('')+'</div>');
   }
   if(tab==='atletas'){
     return camp('atletas','<div class="filters"><input id="aq" type="search" placeholder="Buscar por nome ou número"><select id="at"><option value="">Todos os times</option>'+TEAMS.map(function(t){return '<option value="'+t.id+'">'+t.n+'</option>';}).join('')+'</select><select id="ap"><option value="">Todas as posições</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></div><div class="athletes" id="alist"></div>');
@@ -449,7 +446,7 @@ var app=document.getElementById('app');
 var ALIAS={'':'inicio'};
 function route(){
   var h=(location.hash||'').replace('#','')||'a-league',page=h,arg=null;
-  if(h==='classificacao'||h==='hall-da-fama')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='campeonato-atletas')h='atletas';page=h;
+  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
   if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
