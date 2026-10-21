@@ -110,11 +110,17 @@ P.classificacao=function(){
 
 function camp(tab,body){
   var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas'],['times','Times','campeonato-times']];
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">1ª Temporada · primeira fase</div><h1>Campeonato</h1><p class="lead">Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.</p></div>'+
-  '<nav class="ctabs">'+tabs.map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+body+'</div>';
+  // Divisão por competição: Libertadores FF (ainda sem dados) e FF Pro League (tudo o que já existe)
+  var lib=tab==='libertadores',comps=[['libertadores','Libertadores FF','campeonato-libertadores'],['pro','FF Pro League','campeonato']];
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">'+(lib?'Libertadores FF · Fut7':'1ª Temporada · primeira fase')+'</div><h1>Campeonato</h1><p class="lead">'+(lib?'Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.':'Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.')+'</p></div>'+
+  '<nav class="comps" aria-label="Competição">'+comps.map(function(c){return '<a href="#'+c[2]+'" class="'+((c[0]==='libertadores')===lib?'on':'')+'">'+c[1]+'</a>';}).join('')+'</nav>'+(lib?'':
+  '<nav class="ctabs">'+tabs.map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>')+body+'</div>';
 }
 P.campeonato=function(tab){
   tab=tab||'tabela';
+  if(tab==='libertadores'){
+    return camp('libertadores','<div class="card" style="text-align:center;padding:44px 20px;margin-bottom:40px"><h3>Ainda sem jogos</h3><p class="muted" style="margin:8px auto 0;max-width:46ch">A tabela, os jogos e as estatísticas da Libertadores FF aparecem aqui assim que a competição começar.</p><a class="more" href="#libertadores" style="display:inline-block;margin-top:14px">Saiba mais sobre a Libertadores FF ›</a></div>');
+  }
   if(tab==='estatisticas'){
     var yc=PLAYERS.filter(function(p){return p.ca>0;}).sort(function(a,b){return b.ca-a.ca;});
     var att=ST.slice().sort(function(a,b){return b.gp-a.gp;})[0],def=ST.slice().sort(function(a,b){return a.gc-b.gc;})[0];
