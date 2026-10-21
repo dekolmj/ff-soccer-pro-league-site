@@ -533,6 +533,8 @@ details p{color:var(--mute);margin:10px 0 0}
 .acct.out{padding:8px 14px}
 
 @media (max-width:1180px){.acct{margin-left:auto}.acct .nm{display:none}.acct{padding:5px}.acct.out{padding:8px 12px}.burger{margin-left:0}}
+/* com o Entrar escondido (BOTOES_PRE_E_ENTRAR:false), o ☰ vai para a direita sozinho */
+@media (max-width:1180px){.acct[hidden]+.burger{margin-left:auto}}
 
 .login{max-width:460px;margin:40px auto 0;display:grid;gap:16px}
 
