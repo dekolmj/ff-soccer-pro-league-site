@@ -108,18 +108,55 @@ P.classificacao=function(){
   '<div class="grid3" style="margin-top:18px"><div class="card"><h3>Artilharia</h3>'+scorersHTML(SCORERS,10)+'</div><div class="card"><h3>Assistências</h3>'+scorersHTML(PLAYERS.filter(function(p){return p.a>0;}).sort(function(a,b){return b.a-a.a||b.g-a.g;}),10,'a')+'</div><div class="card"><h3>MVPs</h3>'+scorersHTML(MVPS,10,'mvp')+'</div></div></div>';
 };
 
+/* ================= LIBERTADORES FF: fase de grupos (DADOS DE EXEMPLO) =================
+   3 grupos com 4 times (nenhum brasileiro). Ida e volta: 6 rodadas, 2 jogos por rodada.
+   A tabela é calculada a partir dos placares abaixo, como na FF Pro League. Trocar pelos dados reais quando houver. */
+var LIB_GRUPOS=[
+  {g:'A',t:[['River Plate','#E2463F'],['Peñarol','#F2C14D'],['Colo-Colo','#CFCFCF'],['Barcelona SC','#F08A3C']],
+   r:[[2,0],[1,1],[3,1],[0,0],[1,0],[2,2],[1,1],[2,1],[0,2],[1,0],[1,2],[3,0]]},
+  {g:'B',t:[['Boca Juniors','#3B6FD6'],['Nacional','#8FB8E8'],['Olimpia','#B9B9B9'],['Atlético Nacional','#3FA34D']],
+   r:[[1,1],[2,0],[0,1],[3,2],[2,2],[1,0],[0,2],[1,1],[2,1],[0,0],[1,3],[2,0]]},
+  {g:'C',t:[['Estudiantes','#D9534F'],['LDU Quito','#E9E3D0'],['Cerro Porteño','#C0392B'],['Universitario','#E8D9A8']],
+   r:[[3,0],[1,2],[2,1],[0,1],[1,1],[2,0],[0,1],[3,1],[1,2],[2,2],[0,2],[1,0]]}];
+// confrontos de cada rodada (índices dos times): 1º turno e returno
+var LIB_JOGOS=[[0,1],[2,3],[0,2],[1,3],[0,3],[1,2],[1,0],[3,2],[2,0],[3,1],[3,0],[2,1]];
+function libTabela(G,ate){
+  var s=G.t.map(function(t,i){return {i:i,n:t[0],c:t[1],pts:0,j:0,v:0,e:0,d:0,gp:0,gc:0,f:[]};});
+  LIB_JOGOS.slice(0,ate).forEach(function(m,k){var a=s[m[0]],b=s[m[1]],x=G.r[k][0],y=G.r[k][1];
+    a.j++;b.j++;a.gp+=x;a.gc+=y;b.gp+=y;b.gc+=x;
+    if(x>y){a.v++;a.pts+=3;b.d++;a.f.push('V');b.f.push('D');}else if(x<y){b.v++;b.pts+=3;a.d++;a.f.push('D');b.f.push('V');}else{a.e++;b.e++;a.pts++;b.pts++;a.f.push('E');b.f.push('E');}});
+  s.forEach(function(x){x.sg=x.gp-x.gc;});
+  return s.sort(function(a,b){return b.pts-a.pts||b.v-a.v||b.sg-a.sg||b.gp-a.gp||a.n.localeCompare(b.n);});
+}
+function libGrupoHTML(G){
+  var st=libTabela(G,12),antes={};libTabela(G,10).forEach(function(x,i){antes[x.i]=i;});
+  var cols=['P','J','V','E','D','GP','GC','SG','%'];
+  var h='<div class="tblw"><table class="ctbl libt"><colgroup><col style="width:40px"><col style="width:30%"><col style="width:52px">'+cols.map(function(){return '<col>';}).join('')+'<col style="width:120px"></colgroup><thead><tr><th class="l" colspan="3">Classificação</th>'+cols.map(function(c,i){return '<th class="'+(i%2?'c-odd':'')+'">'+c+'</th>';}).join('')+'<th>Últ. jogos</th></tr></thead><tbody>';
+  st.forEach(function(x,i){
+    var d=antes[x.i]-i,mv=d>0?'<span class="up">▲</span> '+d:d<0?'<span class="dn">▼</span> '+(-d):'<span>■</span> 0';
+    var vals=[x.pts,x.j,x.v,x.e,x.d,x.gp,x.gc,(x.sg>0?'+':'')+x.sg,x.j?Math.round(x.pts/(x.j*3)*100):0];
+    h+='<tr class="'+(i<2?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><span class="row" style="gap:10px"><span class="badge sm" style="background:'+x.c+'">'+x.n[0]+'</span>'+esc(x.n)+'</span></td><td class="mv">'+mv+'</td>'+
+    vals.map(function(v,k){return '<td class="'+(k===0?'pts':(k%2?'c-odd':''))+'">'+v+'</td>';}).join('')+
+    '<td><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'" title="'+({V:'Vitória',E:'Empate',D:'Derrota'})[f]+'"></i>';}).join('')+'</span></td></tr>';
+  });
+  return '<div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Grupo '+G.g+'</h2>'+h+'</tbody></table></div></div>';
+}
+function libGruposHTML(){
+  return '<div style="display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-bottom:12px">'+LIB_GRUPOS.map(libGrupoHTML).join('')+'</div>'+
+  '<div class="legend" style="margin-bottom:40px"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Os 2 primeiros de cada grupo avançam</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span><span>Dados de exemplo</span></div>';
+}
 function camp(tab,body){
   var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas'],['times','Times','campeonato-times']];
   // Divisão por competição: Libertadores FF (ainda sem dados) e FF Pro League (tudo o que já existe)
   var lib=tab==='libertadores',comps=[['libertadores','Libertadores FF','campeonato-libertadores'],['pro','FF Pro League','campeonato']];
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">'+(lib?'Libertadores FF · Fut7':'1ª Temporada · primeira fase')+'</div><h1>Campeonato</h1><p class="lead">'+(lib?'Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.':'Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.')+'</p></div>'+
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">'+(lib?'Libertadores FF · Fut7':'1ª Temporada · primeira fase')+'</div><h1>Campeonato</h1><p class="lead">'+(lib?'Fase de grupos da Libertadores FF: 3 grupos de 4 times.':'Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.')+'</p></div>'+
   '<nav class="comps" aria-label="Competição">'+comps.map(function(c){return '<a href="#'+c[2]+'" class="'+((c[0]==='libertadores')===lib?'on':'')+'">'+c[1]+'</a>';}).join('')+'</nav>'+(lib?'':
   '<nav class="ctabs">'+tabs.map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>')+body+'</div>';
 }
 P.campeonato=function(tab){
   tab=tab||'tabela';
   if(tab==='libertadores'){
-    return camp('libertadores','<div class="card" style="text-align:center;padding:44px 20px;margin-bottom:40px"><h3>Ainda sem jogos</h3><p class="muted" style="margin:8px auto 0;max-width:46ch">A tabela, os jogos e as estatísticas da Libertadores FF aparecem aqui assim que a competição começar.</p><a class="more" href="#libertadores" style="display:inline-block;margin-top:14px">Saiba mais sobre a Libertadores FF ›</a></div>');
+    return camp('libertadores',libGruposHTML());
   }
   if(tab==='estatisticas'){
     var yc=PLAYERS.filter(function(p){return p.ca>0;}).sort(function(a,b){return b.ca-a.ca;});

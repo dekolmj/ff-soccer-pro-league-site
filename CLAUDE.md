@@ -45,7 +45,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
   - `#inicio`
   - `#libertadores` (Libertadores FF, criada em 21/10/2026; vale na onda 1): resumo da última Copa FF em Fut7 antes do calendário 2027, com 5 cartões (times de 10 a 12 atletas, uniforme, fotos, final ao vivo, e muito mais)
   - `#a-league`
-  - `#campeonato`, `#campeonato-estatisticas`, `#campeonato-times` (FF Pro League) e `#campeonato-libertadores` (Libertadores FF, ainda vazia: "Ainda sem jogos"). Desde 21/10/2026 a página tem a escolha de competição no topo (`.comps`, em `camp()` no `app.js`); quando a Libertadores tiver dados, montar as abas dela ali.
+  - `#campeonato`, `#campeonato-estatisticas`, `#campeonato-times` (FF Pro League) e `#campeonato-libertadores` (Libertadores FF: fase de grupos com **dados de exemplo**, 3 grupos de 4 times sem brasileiros, em `LIB_GRUPOS` no `app.js`; a tabela é calculada dos placares, 2 primeiros avançam; trocar pelos times e jogos reais quando houver). Desde 21/10/2026 a página tem a escolha de competição no topo (`.comps`, em `camp()` no `app.js`); quando a Libertadores tiver dados, montar as abas dela ali.
   - `#atletas`, `#atleta-<time>-<numero>`, `#time-<id>`
   - `#jogos`, `#jogos-<rodada>`, `#jogo-<rodada>-<n>`
   - `#ao-vivo`
