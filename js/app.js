@@ -3,7 +3,7 @@ var LOGO='assets/escudo.webp';
 /* ================= ONDAS DE LANÇAMENTO =================
    CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
 var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
-function ondaDaPagina(pg){return ({libertadores:1,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3,'hall-da-fama':4})[pg]||(/^minha-area/.test(pg)?4:2);}
+function ondaDaPagina(pg){return ({libertadores:1,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?4:2);}
 // CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
 function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
 function aplicarOnda(){
@@ -127,7 +127,7 @@ P.campeonato=function(tab){
   if(tab==='atletas'){
     return camp('atletas','<div class="filters"><input id="aq" type="search" placeholder="Buscar por nome ou número"><select id="at"><option value="">Todos os times</option>'+TEAMS.map(function(t){return '<option value="'+t.id+'">'+t.n+'</option>';}).join('')+'</select><select id="ap"><option value="">Todas as posições</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></div><div class="athletes" id="alist"></div>');
   }
-  return camp('tabela','<div class="clsgrid"><div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Tabela</h2>'+classTable()+'</div><div class="card" style="padding:20px"><h2 class="blkh">Jogos</h2><div id="rbox">'+roundBox(CLR)+'</div></div></div>');
+  return camp('tabela','<div class="clsgrid"><div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Tabela</h2>'+classTable()+'</div><div class="card" style="padding:20px"><h2 class="blkh">Jogos</h2><div id="rbox">'+roundBox(CLR)+'</div></div></div>'+destaquesHTML());
 };
 
 var CLR=CUR;
@@ -206,13 +206,14 @@ P['ao-vivo']=function(){
   '<div class="card agenda"><div class="lbl" style="margin-bottom:4px">Próximas transmissões</div>'+up.map(function(g){return '<a class="between" href="#'+g.id+'"><span>'+tn(g.h)+' x '+tn(g.a)+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span></a>';}).join('')+'</div></div></div></div>';
 };
 
-P['hall-da-fama']=function(){
+// Destaques da temporada (antigo Hall da fama): aparecem no Campeonato, abaixo da tabela.
+function destaquesHTML(){
   var big=GAMES.filter(function(g){return g.st==='encerrado';}).sort(function(a,b){return Math.abs(b.gh-b.ga)-Math.abs(a.gh-a.ga)||(b.gh+b.ga)-(a.gh+a.ga);})[0];
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">A história da League</div><h1>Hall da fama</h1><p class="lead">Os números de todas as temporadas ficam registrados aqui. Temporada após temporada.</p></div>'+
+  return '<section class="blk" style="margin-top:34px"><div class="sec-h"><div><div class="eyebrow">A história da League</div><h2>Destaques da temporada</h2></div></div>'+
   '<div class="card" style="display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;margin-bottom:18px"><img src="'+LOGO+'" width="80" height="80" alt="" style="object-fit:contain"><div><div class="lbl">Campeões</div><h2 style="font-size:30px;margin-top:4px">1ª Temporada em disputa</h2><p class="muted" style="margin:6px 0 0">A final acontece em junho de 2027, com troféu e medalhas entregues em campo.</p></div></div>'+
   '<div class="grid2"><div class="card"><h3>Artilheiros</h3>'+scorersHTML(SCORERS,5)+'</div><div class="card"><h3>Mais MVPs</h3>'+scorersHTML(MVPS,5,'mvp')+'</div></div>'+
-  '<div class="grid2" style="margin-top:18px"><a class="card" href="#'+big.id+'"><div class="lbl">Maior vitória da temporada</div><h2 style="font-size:32px;margin-top:6px">'+tn(big.h)+' '+big.gh+' x '+big.ga+' '+tn(big.a)+'</h2><p class="muted" style="margin:6px 0 0">Rodada '+big.r+' · '+fmtD(big.date)+'</p></a><div class="card"><div class="lbl">Noite de premiação</div><h2 style="font-size:32px;margin-top:6px">MVP · Artilheiro · Destaques</h2><p class="muted" style="margin:6px 0 0">Os prêmios individuais da temporada são entregues no evento de encerramento.</p></div></div></div>';
-};
+  '<div class="grid2" style="margin-top:18px"><a class="card" href="#'+big.id+'"><div class="lbl">Maior vitória da temporada</div><h2 style="font-size:32px;margin-top:6px">'+tn(big.h)+' '+big.gh+' x '+big.ga+' '+tn(big.a)+'</h2><p class="muted" style="margin:6px 0 0">Rodada '+big.r+' · '+fmtD(big.date)+'</p></a><div class="card"><div class="lbl">Noite de premiação</div><h2 style="font-size:32px;margin-top:6px">MVP · Artilheiro · Destaques</h2><p class="muted" style="margin:6px 0 0">Os prêmios individuais da temporada são entregues no evento de encerramento.</p></div></div></section>';
+}
 
 P['libertadores']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">A última edição da nossa tradicional Copa FF no formato Fut7 antes do novo calendário de competições de 2027.</p></div>'+
@@ -392,7 +393,7 @@ var app=document.getElementById('app');
 var ALIAS={'':'inicio'};
 function route(){
   var h=(location.hash||'').replace('#','')||'a-league',page=h,arg=null;
-  if(h==='classificacao')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='campeonato-atletas')h='atletas';page=h;
+  if(h==='classificacao'||h==='hall-da-fama')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
   if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}

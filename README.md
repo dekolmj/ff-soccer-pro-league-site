@@ -2,7 +2,7 @@
 
 Site oficial da FF Soccer Pro League em fase de **pré-lançamento**.
 
-- Todas as páginas (campeonato, TV FF, hall da fama, área do atleta) usam **dados de exemplo**.
+- Todas as páginas (campeonato, TV FF, área do atleta) usam **dados de exemplo**.
 - A **pré-inscrição é real**: cada envio é gravado no banco de dados (Supabase) e aparece na hora no **painel da equipe FF** (botão Entrar).
 
 O site é feito só de arquivos simples (HTML, CSS e JavaScript) e não precisa de servidor nem de mensalidade. Ele é publicado de graça pelo **GitHub Pages**.
