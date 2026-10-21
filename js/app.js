@@ -172,17 +172,22 @@ P.atletas=function(){
 };
 function athCard(p){return '<a class="ath" href="#atleta-'+p.id+'"><span class="n">'+p.num+'</span><div class="row"><div class="avatar" style="width:44px;height:44px;'+avBg(p.id)+'"></div><div><b>'+esc(p.n)+'</b><div class="lbl" style="margin-top:3px">'+tn(p.team)+' · '+POSN[p.pos]+'</div></div></div><div class="st"><span><b>'+p.j+'</b>jogos</span><span><b>'+p.g+'</b>gols</span><span><b>'+p.mvp+'</b>MVP</span></div></a>';}
 
-P.atleta=function(id){
+P.atleta=function(id,dentro){
   var p=PM[id];if(!p)return P.atletas();var t=TM[p.team];
   var rows=p.games.map(function(x){var g=GAMES.filter(function(y){return y.id===x.g;})[0],home=g.h===p.team,op=home?g.a:g.h,my=home?g.gh:g.ga,th=home?g.ga:g.gh,res=my>th?'V':my<th?'D':'E';
     return '<tr><td class="l">'+g.r+'</td><td class="l"><a href="#'+g.id+'" class="row" style="gap:8px">'+badge(op,'sm')+tn(op)+'</a></td><td><span class="form"><i class="'+res+'">'+res+'</i></span> '+my+' x '+th+'</td><td>'+(x.gl||'–')+'</td><td>'+(g.mvp===p.id?'⭐':'')+'</td></tr>';}).join('');
   var mvpR=GAMES.filter(function(g){return g.mvp===p.id;}).map(function(g){return '<span class="chip gold">⭐ MVP · rodada '+g.r+'</span>';}).join('');
-  return '<div class="wrap"><div class="phead"><a class="more" href="#campeonato-atletas">‹ Atletas</a></div>'+
-  '<div class="prof" data-n="'+p.num+'"><div class="avatar'+(FOTOS[p.id]?' ret':'')+'" style="'+avBg(p.id)+'"></div><div style="display:grid;gap:8px;position:relative"><span class="k">'+POSN[p.pos]+' · '+t.n+' · Nº '+p.num+'</span><h1>'+esc(p.n)+'</h1><div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Unidade '+p.unit+'</span><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Atleta FF desde 2026</span></div></div></div>'+
+  var corpo='<div class="prof" data-n="'+p.num+'"><div class="avatar'+(FOTOS[p.id]?' ret':'')+'" style="'+avBg(p.id)+'"></div><div style="display:grid;gap:8px;position:relative"><span class="k">'+POSN[p.pos]+' · '+t.n+' · Nº '+p.num+'</span><h1>'+esc(p.n)+'</h1><div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Unidade '+p.unit+'</span><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Atleta FF desde 2026</span></div></div></div>'+
   '<div class="lbl" style="margin:26px 0 10px">1ª Temporada</div><div class="stats" style="grid-template-columns:repeat(4,1fr)"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div>'+
   '<div class="grid2" style="margin-top:18px"><div class="card"><h3 style="margin-bottom:6px">Jogos na temporada</h3>'+(rows?'<div class="tblw"><table class="tbl"><thead><tr><th class="l">Rod.</th><th class="l">Adversário</th><th>Placar</th><th>Gols</th><th>MVP</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">Ainda sem jogos.</p>')+'</div>'+
   '<div style="display:grid;gap:18px;align-content:start"><div class="card" style="display:grid;gap:10px"><h3>Conquistas</h3><div class="row" style="flex-wrap:wrap;gap:6px">'+(mvpR||'')+'<span class="chip ok">✓ 1ª Temporada</span><span class="chip ok">✓ Festival FF</span><span class="chip">🔒 Campeão</span><span class="chip">🔒 Artilheiro</span></div></div>'+
-  '<div class="card" style="display:grid;gap:10px"><h3>Carreira FF</h3><div class="agenda"><div class="between"><span>Temporadas</span><b class="num">1</b></div><div class="between"><span>Títulos</span><b class="num">0</b></div><div class="between"><span>Copa FF 2026</span><span class="chip">Participou</span></div></div></div></div></div></div>';
+  '<div class="card" style="display:grid;gap:10px"><h3>Carreira FF</h3><div class="agenda"><div class="between"><span>Temporadas</span><b class="num">1</b></div><div class="between"><span>Títulos</span><b class="num">0</b></div><div class="between"><span>Copa FF 2026</span><span class="chip">Participou</span></div></div></div></div></div>';
+  // dentro = mostrado na área do atleta (Meu perfil público), sem o “‹ Atletas” do Campeonato
+  if(dentro)return corpo;
+  return '<div class="wrap"><div class="phead"><a class="more" href="#campeonato-atletas">‹ Atletas</a></div>'+corpo+'</div>';
+};
+P['minha-area-perfil']=function(){
+  return area('perfil','<div class="ahead"><div><div class="eyebrow">Como os outros atletas veem você</div><h1>Meu perfil público</h1></div></div>'+P.atleta(ME,1));
 };
 
 P.time=function(id){
@@ -272,7 +277,7 @@ function area(tab,body){
   '<a href="#minha-area-time" class="'+(tab==='time'?'on':'')+'">⚽ Meu time<em>Escalação</em></a>'+
   '<a href="#minha-area-inscricao" class="'+(tab==='insc'?'on':'')+'">📋 Inscrição e kit</a>'+
   '<a href="#minha-area-campeonatos" class="'+(tab==='camp'?'on':'')+'">🏆 Meus campeonatos</a>'+
-  '<a href="#atleta-'+p.id+'">👤 Meu perfil público</a>'+
+  '<a href="#minha-area-perfil" class="'+(tab==='perfil'?'on':'')+'">👤 Meu perfil público</a>'+
   '<a href="#sair" id="doLogout">↩ Sair</a></nav><div>'+body+'</div></div></div>';
 }
 
@@ -343,7 +348,7 @@ P['minha-area']=function(){
   (nx?'<div class="card next" style="margin-bottom:16px"><div style="display:grid;gap:10px"><div class="lbl" style="color:var(--gold)">Seu próximo jogo · daqui a '+days+' dias</div><div class="vs">'+badge(nx.h)+tn(nx.h)+'<i>x</i>'+tn(nx.a)+badge(nx.a)+'</div><div class="lbl">Rodada '+nx.r+' · '+fmtD(nx.date)+' · '+nx.time+' · '+nx.field+' · chegar 30 min antes</div></div>'+
    '<div style="display:grid;gap:8px"><span class="lbl">Você foi convocado. Confirma presença?</span><div class="conf"><button class="yes'+(CONF==='sim'?' on':'')+'" data-conf="sim">✓ Vou jogar</button><button class="no'+(CONF==='nao'?' on':'')+'" data-conf="nao">✕ Não vou</button></div></div></div>':'')+
   '<div class="grid2"><div style="display:grid;gap:16px;align-content:start">'+
-   '<div class="card"><div class="between" style="margin-bottom:10px"><h3>Meus números</h3><a class="more" href="#atleta-'+p.id+'">Perfil público ›</a></div><div class="stats" style="grid-template-columns:repeat(4,1fr)"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div></div>'+
+   '<div class="card"><div class="between" style="margin-bottom:10px"><h3>Meus números</h3><a class="more" href="#minha-area-perfil">Perfil público ›</a></div><div class="stats" style="grid-template-columns:repeat(4,1fr)"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div></div>'+
   '</div><div style="display:grid;gap:16px;align-content:start">'+
    '<a class="card between" href="#minha-area-time"><div class="row">'+badge(p.team,'lg')+'<div><div class="lbl">Meu time</div><b style="font-family:var(--disp);font-size:28px;text-transform:uppercase">'+t.n+'</b></div></div><div style="text-align:right"><b class="num" style="font-size:30px;font-family:var(--disp)">'+(pos+1)+'º</b><div class="lbl">'+s.pts+' pts</div></div></a>'+
    '<div class="card notices"><div class="between" style="margin-bottom:4px"><h3>Avisos da FF</h3><span class="lbl">2 novos</span></div>'+
