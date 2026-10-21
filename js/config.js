@@ -10,5 +10,8 @@ var CONFIG={VERSAO_TERMOS:'2026-09',
   /* false esconde os botões Pré-inscrição e Entrar do menu e do rodapé (true mostra de novo).
      Os endereços #pre-inscricao e #entrar continuam abrindo para quem tiver o link. */
   BOTOES_PRE_E_ENTRAR:false,
+  /* false esconde tudo da pré-inscrição (botões, links, página, pergunta frequente), também com ?demo.
+     A pré-inscrição está sendo feita pela planilha. Nada foi apagado: true traz tudo de volta. */
+  PRE_INSCRICAO:false,
   /* Unidades que aparecem no campo "Unidade FF" da pré-inscrição, em ordem alfabética. */
   UNIDADES:['Barra Funda','Campo Belo','Guarulhos','Mooca','Morumbi Town','Tucuruvi','Vila Mariana','Villa Lobos']};

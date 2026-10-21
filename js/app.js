@@ -6,10 +6,12 @@ var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
 function ondaDaPagina(pg){return ({libertadores:1,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?4:2);}
 // CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
 function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
+// CONFIG.PRE_INSCRICAO = false esconde tudo da pré-inscrição (botões, links, página, pergunta frequente), inclusive com ?demo. Nada é apagado.
+function preOn(){return CONFIG.PRE_INSCRICAO!==false;}
 function aplicarOnda(){
   document.querySelectorAll('[data-onda]').forEach(function(el){if(+el.dataset.onda>ONDA)el.hidden=true;});
   if(!DEMO)document.querySelectorAll('[data-demo]').forEach(function(el){el.hidden=true;});
-  if(semBotoes())document.querySelectorAll('[data-pre]').forEach(function(el){el.hidden=true;});
+  if(semBotoes()||!preOn())document.querySelectorAll('[data-pre]').forEach(function(el){el.hidden=true;});
 }
 /* ================= HELPERS ================= */
 function badge(tid,cls){var t=TM[tid];return '<span class="badge '+(cls||'')+'" style="background:'+t.c+'">'+t.n[0]+'</span>';}
@@ -65,7 +67,7 @@ P.inicio=function(){
   '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Calendário FF 2027</div><h2>Uma temporada inteira</h2></div><a class="more" href="#a-league">Como funciona ›</a></div>'+
   '<div class="season"><div class="now"><b>Fev → Jun</b><span>FF Soccer Pro League · 1ª Temporada · em andamento</span></div><div><b>Julho</b><span>Copa FF</span></div><div><b>Ago → Dez</b><span>FF Soccer Pro League · 2ª Temporada</span></div></div></div></section>'+
 
-  '<section class="blk"><div class="wrap"><div class="renew"><img src="'+LOGO+'" width="90" height="90" alt="" style="object-fit:contain"><div style="display:grid;gap:8px"><div class="eyebrow">Vagas limitadas</div><h2>2ª Temporada · agosto a dezembro</h2><p class="muted" style="margin:0">Quem joga a 1ª Temporada tem prioridade para continuar. Novas vagas só abrem se sobrarem.</p></div><a class="btn primary" href="#pre-inscricao">Fazer pré-inscrição</a></div></div></section>'+
+  '<section class="blk"><div class="wrap"><div class="renew"><img src="'+LOGO+'" width="90" height="90" alt="" style="object-fit:contain"><div style="display:grid;gap:8px"><div class="eyebrow">Vagas limitadas</div><h2>2ª Temporada · agosto a dezembro</h2><p class="muted" style="margin:0">Quem joga a 1ª Temporada tem prioridade para continuar. Novas vagas só abrem se sobrarem.</p></div>'+(preOn()?'<a class="btn primary" href="#pre-inscricao">Fazer pré-inscrição</a>':'')+'</div></div></section>'+
 
   '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Parceiros da League</div><h2>Patrocinadores</h2></div></div><div class="sponsors"><div>Seu logo aqui</div><div>Seu logo aqui</div><div>Seu logo aqui</div><div>Seu logo aqui</div><div>Seu logo aqui</div></div></div></section>';
 };
@@ -219,7 +221,7 @@ P['a-league']=function(){
   '<div style="display:grid;gap:14px;align-content:start"><h2>Quando são os jogos</h2><div class="card agenda"><div class="between"><span>Quartas-feiras</span><span class="chip gold">Principal · noite</span></div><div class="between"><span>Sextas-feiras</span><span class="chip gold">Principal · noite</span></div><div class="between"><span>Domingos</span><span class="chip">Quando o calendário pedir</span></div><div class="between"><span>Segundas-feiras</span><span class="chip">Quando o calendário pedir</span></div></div>'+
   '<h2 style="margin-top:14px">Calendário</h2><div class="card agenda"><div class="between"><span>1ª Temporada</span><span>Janeiro a junho</span></div><div class="between"><span>Copa FF</span><span>Julho</span></div><div class="between"><span>2ª Temporada</span><span>Agosto a dezembro</span></div></div></div></div></section>'+
   '<section class="blk"><h2 style="margin-bottom:10px">Perguntas frequentes</h2>'+
-  [['Como funciona o VAR?','Cada equipe tem até dois pedidos de desafio por partida, para lances definidos pela organização: pênaltis, impedimentos e agressões ou situações disciplinares específicas.'],['A pré-inscrição garante minha vaga?','Não. A pré-inscrição passa por uma análise da FF, que considera o histórico de pontualidade nos pagamentos e o histórico comportamental nas unidades e competições FF.'],['Quem joga a 1ª Temporada tem prioridade?','Sim. Os participantes da 1ª Temporada têm prioridade para continuar na 2ª. Novas vagas só abrem se sobrarem.'],['As fotos são pagas?','Não. Sempre que houver cobertura fotográfica, as fotos são disponibilizadas gratuitamente aos participantes.']].map(function(x){return '<details><summary>'+x[0]+'</summary><p>'+x[1]+'</p></details>';}).join('')+
+  [['Como funciona o VAR?','Cada equipe tem até dois pedidos de desafio por partida, para lances definidos pela organização: pênaltis, impedimentos e agressões ou situações disciplinares específicas.'],['A pré-inscrição garante minha vaga?','Não. A pré-inscrição passa por uma análise da FF, que considera o histórico de pontualidade nos pagamentos e o histórico comportamental nas unidades e competições FF.'],['Quem joga a 1ª Temporada tem prioridade?','Sim. Os participantes da 1ª Temporada têm prioridade para continuar na 2ª. Novas vagas só abrem se sobrarem.'],['As fotos são pagas?','Não. Sempre que houver cobertura fotográfica, as fotos são disponibilizadas gratuitamente aos participantes.']].filter(function(x){return preOn()||!/pré-inscrição/i.test(x[0]);}).map(function(x){return '<details><summary>'+x[0]+'</summary><p>'+x[1]+'</p></details>';}).join('')+
   '<div class="notice" style="margin-top:24px"><b>Pré-lançamento.</b> Datas, horários, locais, formato de disputa e número de partidas podem ter ajustes pontuais até a divulgação do regulamento oficial.</div></section></div>';
 };
 
@@ -298,7 +300,7 @@ P.entrar=function(){
   return '<div class="wrap"><div class="login"><div style="text-align:center;display:grid;gap:10px;justify-items:center"><img src="'+LOGO+'" width="76" height="76" alt="" style="object-fit:contain"><h1 style="font-size:44px">Entrar</h1><p class="muted" style="margin:0">Atletas e equipe FF entram por aqui. O site leva cada um para a sua área.</p></div>'+
   '<div class="card" id="entrarF"><p class="muted" style="margin:0">Carregando…</p></div>'+
   (ONDA>=4?'<div class="demo"><div class="lbl" style="color:var(--gold)">Protótipo · atleta de demonstração</div><div class="row"><div class="avatar" style="width:42px;height:42px;'+avBg('falcoes-10')+'"></div><div><b style="font-family:var(--cond);text-transform:uppercase;font-size:17px">André Marques</b><div class="lbl">Meia · Falcões · Nº 10</div></div></div><button class="btn primary sm" id="demoBtn" type="button" style="justify-content:center">Entrar como André</button></div>':'')+
-  '<p class="muted" style="text-align:center;font-size:14px;margin:0">Ainda não é atleta da League? <a class="more" href="#pre-inscricao">Fazer pré-inscrição</a></p></div></div>';
+  (preOn()?'<p class="muted" style="text-align:center;font-size:14px;margin:0">Ainda não é atleta da League? <a class="more" href="#pre-inscricao">Fazer pré-inscrição</a></p>':'')+'</div></div>';
 };
 P['minha-area']=function(){
   var p=PM[ME],t=TM[p.team],pos=ST.map(function(x){return x.t.id;}).indexOf(p.team),s=ST[pos];
@@ -325,7 +327,7 @@ P['minha-area-inscricao']=function(){
   '<div class="ahead"><div><div class="eyebrow">Inscrição, kit e bônus</div><h1>Minha inscrição</h1></div></div>'+
   '<div class="grid2"><div style="display:grid;gap:16px;align-content:start">'+
    '<div class="card"><div class="between" style="margin-bottom:14px"><h3>1ª Temporada</h3><span class="chip ok">✓ Ativa</span></div><div class="steps">'+
-   '<div class="s"><span class="d">✓</span><div><b>Pré-inscrição enviada</b><small>12/10/2026 · posição Meia · unidade '+p.unit+'</small></div><span class="lbl">Feito</span></div>'+
+   (preOn()?'<div class="s"><span class="d">✓</span><div><b>Pré-inscrição enviada</b><small>12/10/2026 · posição Meia · unidade '+p.unit+'</small></div><span class="lbl">Feito</span></div>':'')+
    '<div class="s"><span class="d">✓</span><div><b>Análise da FF</b><small>Score financeiro e histórico comportamental aprovados</small></div><span class="lbl">Feito</span></div>'+
    '<div class="s"><span class="d">✓</span><div><b>Vaga confirmada</b><small>Confirmada pela FF em 28/10/2026</small></div><span class="lbl">Feito</span></div>'+
    '<div class="s"><span class="d">✓</span><div><b>Kit retirado</b><small>Camisa, shorts, meião e mochila · tamanho M · unidade '+p.unit+' em 22/01/2027</small></div><span class="lbl">Feito</span></div></div></div>'+
@@ -395,7 +397,7 @@ function route(){
   if(/^minha-area/.test(page)&&!ME){page='entrar';}
   if(page==='entrar'&&ME){page='minha-area';}
   if(!P[page])page='inicio';
-  if(ondaDaPagina(page)>ONDA){page='a-league';arg=null;try{history.replaceState(null,'',location.pathname+location.search+'#a-league');}catch(e){}}
+  if(ondaDaPagina(page)>ONDA||(page==='pre-inscricao'&&!preOn())){page='a-league';arg=null;try{history.replaceState(null,'',location.pathname+location.search+'#a-league');}catch(e){}}
   app.innerHTML=P[page](arg);
   var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
   document.getElementById('acct').classList.toggle('on',/^minha-area|entrar/.test(page));
