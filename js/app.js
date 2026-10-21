@@ -158,7 +158,7 @@ function libJogosBox(G){
 document.addEventListener('click',function(e){var b=e.target.closest('button.lnav');if(!b||b.disabled)return;var g=b.dataset.g;LR[g]=Math.min(6,Math.max(1,LR[g]+(+b.dataset.d)));
   var G=LIB_GRUPOS.filter(function(x){return x.g===g;})[0];document.getElementById('lbox-'+g).innerHTML=libJogosBox(G);});
 function libGruposHTML(){
-  return '<div style="display:grid;gap:18px">'+LIB_GRUPOS.map(function(G){return '<div class="clsgrid">'+libGrupoHTML(G)+
+  return '<div style="display:grid;gap:18px">'+LIB_GRUPOS.map(function(G){return '<div class="clsgrid" style="align-items:stretch">'+libGrupoHTML(G)+
     '<div class="card" style="padding:20px"><h2 class="blkh">Jogos · Grupo '+G.g+'</h2><div id="lbox-'+G.g+'">'+libJogosBox(G)+'</div></div></div>';}).join('')+'</div>'+
   '<div class="legend" style="margin-bottom:40px"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Próxima fase</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div>';
 }
