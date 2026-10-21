@@ -514,7 +514,10 @@ function bind(page){
   }
 }
 var SEARCH='';
-document.getElementById('burger').addEventListener('click',function(){var d=document.getElementById('drawer');d.hidden=!d.hidden;this.setAttribute('aria-expanded',String(!d.hidden));});
+document.getElementById('burger').addEventListener('click',function(){var d=document.getElementById('drawer');d.hidden=!d.hidden;
+  // o menu do celular abre logo abaixo do cabeçalho (com ?demo, a tarja amarela empurra o cabeçalho para baixo)
+  if(!d.hidden){var hb=document.querySelector('.hdr').getBoundingClientRect().bottom;d.style.top=Math.max(0,Math.round(hb))+'px';}
+  this.setAttribute('aria-expanded',String(!d.hidden));});
 window.addEventListener('hashchange',route);
 
 /* ticker + live clock */
