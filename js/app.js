@@ -3,7 +3,7 @@ var LOGO='assets/escudo.webp';
 /* ================= ONDAS DE LANÇAMENTO =================
    CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
 var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
-function ondaDaPagina(pg){return ({'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3,'hall-da-fama':4})[pg]||(/^minha-area/.test(pg)?4:2);}
+function ondaDaPagina(pg){return ({libertadores:1,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3,'hall-da-fama':4})[pg]||(/^minha-area/.test(pg)?4:2);}
 // CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
 function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
 function aplicarOnda(){
@@ -212,6 +212,10 @@ P['hall-da-fama']=function(){
   '<div class="grid2" style="margin-top:18px"><a class="card" href="#'+big.id+'"><div class="lbl">Maior vitória da temporada</div><h2 style="font-size:32px;margin-top:6px">'+tn(big.h)+' '+big.gh+' x '+big.ga+' '+tn(big.a)+'</h2><p class="muted" style="margin:6px 0 0">Rodada '+big.r+' · '+fmtD(big.date)+'</p></a><div class="card"><div class="lbl">Noite de premiação</div><h2 style="font-size:32px;margin-top:6px">MVP · Artilheiro · Destaques</h2><p class="muted" style="margin:6px 0 0">Os prêmios individuais da temporada são entregues no evento de encerramento.</p></div></div></div>';
 };
 
+P['libertadores']=function(){
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">As informações da Libertadores FF chegam em breve: formato, datas, times e regulamento.</p></div>'+
+  '<div class="notice" style="margin:8px 0 64px"><b>Em breve.</b> Estamos preparando os detalhes da competição. Enquanto isso, conheça a <a class="more" href="#a-league">FF Soccer Pro League ›</a></div></div>';
+};
 P['a-league']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Uma nova era começa agora</div><h1>A Pro League</h1><p class="lead">Mais do que um campeonato, a FF Soccer Pro League é uma experiência de temporada. Você vive cada momento: time fixo, uniforme personalizado, jogos transmitidos ao vivo, seus números registrados rodada a rodada e, claro, VAR.</p></div>'+
   '<div class="feat"><div><span class="big">11×11</span><b>Futebol de campo</b><p>Cerca de 20 atletas por equipe.</p></div><div><span class="big">Turno único</span><b>Todos contra todos</b><p>Sem contar as fases finais.</p></div><div><span class="big">6 meses</span><b>Temporada completa</b><p>Do primeiro jogo até as finais.</p></div></div>'+
