@@ -239,6 +239,9 @@ footer .brand img.wm{height:40px}
 /* Libertadores FF: tabelas dos grupos com as mesmas colunas (alinhadas entre si) */
 .libt{table-layout:fixed;min-width:640px}
 .libt td.team{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+@media (max-width:1000px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.grid4{grid-template-columns:minmax(0,1fr)}}
 
 .games{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
 
