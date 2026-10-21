@@ -298,7 +298,7 @@ P['minha-area-time']=function(){
    (CONF?'':'<div class="conf"><button class="yes" data-conf2="sim">✓ Vou jogar</button><button class="no" data-conf2="nao">✕ Não vou</button></div>')+'</div>'+
    '<div class="card agenda"><h3 style="margin-bottom:4px">Agenda do time</h3>'+next3.map(function(g){var op=g.h===p.team?g.a:g.h;return '<a class="between" href="#'+g.id+'"><span class="row">'+badge(op,'sm')+'x '+tn(op)+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+' · '+g.field+'</span></a>';}).join('')+'</div>'+
   '</div>'+
-  '<div class="card" style="margin-top:16px"><div class="between"><h3>Elenco</h3><a class="more" href="#time-'+p.team+'">Página pública do time ›</a></div><div class="rost">'+rost+'</div></div>');
+  '<div class="card" style="margin-top:16px"><h3 style="margin-bottom:4px">Elenco</h3><div class="rost">'+rost+'</div></div>');
 };
 
 P.entrar=function(){
