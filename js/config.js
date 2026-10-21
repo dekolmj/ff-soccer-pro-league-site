@@ -13,5 +13,8 @@ var CONFIG={VERSAO_TERMOS:'2026-09',
   /* false esconde tudo da pré-inscrição (botões, links, página, pergunta frequente), também com ?demo.
      A pré-inscrição está sendo feita pela planilha. Nada foi apagado: true traz tudo de volta. */
   PRE_INSCRICAO:false,
+  /* true = FF Pro League do zero: nenhum jogo disputado, tabela, estatísticas e números dos atletas zerados
+     (o 1º jogo fica ao vivo, 0x0). false volta a mostrar os jogos de exemplo com placares. */
+  TEMPORADA_ZERADA:true,
   /* Unidades que aparecem no campo "Unidade FF" da pré-inscrição, em ordem alfabética. */
   UNIDADES:['Barra Funda','Campo Belo','Guarulhos','Mooca','Morumbi Town','Tucuruvi','Vila Mariana','Villa Lobos']};

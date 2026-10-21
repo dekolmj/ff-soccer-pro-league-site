@@ -30,7 +30,7 @@ function tableHTML(rows,full){
   rows.forEach(function(x,i){h+='<tr><td class="pos l'+(i<4?' q':'')+'">'+(i+1)+'</td><td class="l"><a class="row" style="gap:8px" href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+x.t.n+'</a></td><td class="pts">'+x.pts+'</td><td>'+x.j+'</td><td>'+x.v+'</td>'+(full?'<td>'+x.e+'</td><td>'+x.d+'</td><td>'+x.gp+'</td><td>'+x.gc+'</td>':'')+'<td>'+(x.sg>0?'+':'')+x.sg+'</td>'+(full?'<td class="l"><span class="form">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'">'+f+'</i>';}).join('')+'</span></td>':'')+'</tr>';});
   return h+'</tbody></table></div>';
 }
-function scorersHTML(list,n,key){key=key||'g';return '<div class="list">'+list.slice(0,n).map(function(p,i){return '<a class="it" href="#atleta-'+p.id+'"><span class="p">'+(i+1)+'</span><span class="row" style="gap:10px">'+badge(p.team,'sm')+'<span>'+esc(p.n)+'<small>'+tn(p.team)+' · '+POSN[p.pos]+'</small></span></span><b class="v">'+p[key]+'</b></a>';}).join('')+'</div>';}
+function scorersHTML(list,n,key){key=key||'g';if(!list.length)return '<p class="muted" style="margin:10px 0 0">Nenhum registro ainda.</p>';return '<div class="list">'+list.slice(0,n).map(function(p,i){return '<a class="it" href="#atleta-'+p.id+'"><span class="p">'+(i+1)+'</span><span class="row" style="gap:10px">'+badge(p.team,'sm')+'<span>'+esc(p.n)+'<small>'+tn(p.team)+' · '+POSN[p.pos]+'</small></span></span><b class="v">'+p[key]+'</b></a>';}).join('')+'</div>';}
 function playerBox(opts){
   return '<div class="player"'+(opts.id?' id="'+opts.id+'"':'')+'><canvas class="bc" data-seed="'+(opts.seed||11)+'"'+(opts.st?' data-static="1"':'')+'></canvas>'+(opts.bug||'')+(opts.live?'<span class="live">Ao vivo</span>':'')+(opts.tag?'<span class="tag">'+opts.tag+'</span>':'')+(opts.bar?'<div class="ytbar"><div class="prog"></div><div class="ctl"><span>● Ao vivo</span><span>'+opts.bar+'</span><span class="sp">HD · ⛶</span></div></div>':'')+(opts.dur?'<span class="dur">'+opts.dur+'</span>':'')+(opts.play?'<span class="play"><i><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z" fill="#fff"/></svg></i></span>':'')+'</div>';
 }
@@ -45,8 +45,8 @@ P.inicio=function(){
   '<section class="hero"><div class="wrap">'+
    '<div class="hero-txt"><div class="eyebrow">1ª Temporada · Rodada '+CUR+'</div>'+
    '<h1>'+tn(LIVE.h)+' e '+tn(LIVE.a)+'<span> ao vivo agora</span></h1>'+
-   '<p class="lead">'+tn(lead.t.id)+' lidera com '+lead.pts+' pontos depois de '+lead.j+' jogos. Hoje, '+tn(LIVE.h)+' e '+tn(LIVE.a)+' fazem o jogo da rodada no '+LIVE.field+'.</p>'+
-   '<div class="card" style="padding:18px"><div class="sb"><div class="t">'+badge(LIVE.h,'lg')+tn(LIVE.h)+'</div><div class="s">'+LIVE.gh+'<i>:</i>'+LIVE.ga+'</div><div class="t">'+badge(LIVE.a,'lg')+tn(LIVE.a)+'</div></div><div class="between" style="margin-top:10px"><span class="live" data-livepill>2º tempo · '+LIVE.min+"'</span><a class=\"more\" href=\"#"+LIVE.id+'">Lances e VAR ›</a></div></div>'+
+   '<p class="lead">'+(lead.j?tn(lead.t.id)+' lidera com '+lead.pts+' pontos depois de '+lead.j+' jogos. ':'A temporada começa agora. ')+'Hoje, '+tn(LIVE.h)+' e '+tn(LIVE.a)+' fazem o jogo da rodada no '+LIVE.field+'.</p>'+
+   '<div class="card" style="padding:18px"><div class="sb"><div class="t">'+badge(LIVE.h,'lg')+tn(LIVE.h)+'</div><div class="s">'+LIVE.gh+'<i>:</i>'+LIVE.ga+'</div><div class="t">'+badge(LIVE.a,'lg')+tn(LIVE.a)+'</div></div><div class="between" style="margin-top:10px"><span class="live" data-livepill>'+(LIVE.min<=45?'1º':'2º')+' tempo · '+LIVE.min+"'</span><a class=\"more\" href=\"#"+LIVE.id+'">Lances e VAR ›</a></div></div>'+
    '<div class="cta-row"><a class="btn primary" href="#ao-vivo">▶ Assistir ao vivo</a><a class="btn" href="#campeonato">Tabela e jogos</a></div></div>'+
    '<a href="#ao-vivo">'+playerBox({seed:11,bug:liveBug(),live:1,tag:'Canal oficial FF Soccer · YouTube',bar:'<span data-viewers>186</span> assistindo'})+'</a>'+
   '</div></section>'+
@@ -188,6 +188,17 @@ P.campeonato=function(tab){
   return camp('tabela','<div class="clsgrid"><div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Tabela</h2>'+classTable()+'</div><div class="card" style="padding:20px"><h2 class="blkh">Jogos</h2><div id="rbox">'+roundBox(CLR)+'</div></div></div>');
 };
 
+/* Temporada do zero (CONFIG.TEMPORADA_ZERADA, pedido do Deko em 22/10/2026): nenhum jogo disputado na FF Pro League.
+   Vale para os dados de exemplo e para os do banco: placares, eventos, MVPs e números dos atletas zerados.
+   O 1º jogo da 1ª rodada fica "ao vivo" começando (0x0), porque o Ao vivo e a faixa do topo precisam de um jogo. */
+function zerarTemporada(){
+  if(!CONFIG.TEMPORADA_ZERADA)return;
+  GAMES.forEach(function(g){g.st='agendado';g.gh=null;g.ga=null;g.ev=[];g.mvp=null;g.varH=2;g.varA=2;delete g.min;});
+  PLAYERS.forEach(function(p){p.g=0;p.a=0;p.mvp=0;p.ca=0;p.j=0;p.min=0;p.games=[];});
+  var ini=GAMES.filter(function(g){return g.r===1;}).sort(function(a,b){return a.i-b.i;})[0];
+  ini.st='ao vivo';ini.gh=0;ini.ga=0;ini.min=1;ini.min0=1;LIVE=ini;CUR=1;
+  ST=standings();SCORERS=[];MVPS=[];
+}
 var CLR=CUR;
 function prevPositions(){
   var fin=GAMES.filter(function(g){return g.st==='encerrado';}),last=CUR-1;
@@ -260,7 +271,7 @@ P['ao-vivo']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Canal oficial FF Soccer · YouTube</div><h1>TV FF Soccer</h1></div>'+
   '<div class="livegrid"><div style="display:grid;gap:14px;align-content:start">'+playerBox({seed:11,bug:liveBug(),live:1,tag:'Transmissão oferecida por · espaço do patrocinador',bar:'<span data-viewers>186</span> assistindo'})+
   '<div class="between wrapm" style="flex-wrap:wrap"><div style="min-width:0"><h2 style="font-size:32px">'+tn(LIVE.h)+' x '+tn(LIVE.a)+'</h2><div class="lbl" style="margin-top:6px">Rodada '+LIVE.r+' · '+LIVE.field+' · <span data-viewers>186</span> assistindo agora</div></div><div class="row"><a class="btn sm" href="#'+LIVE.id+'">Lances e VAR</a><span class="btn primary sm">Inscrever-se no canal</span></div></div></div>'+
-  '<div style="display:grid;gap:14px;align-content:start"><div class="card"><div class="between" style="margin-bottom:10px"><span class="lbl">Chat da torcida</span><span class="lbl">moderado pela FF</span></div><div class="chat" id="chat"><div><b>Cláudia Tavares</b>VAI FILHO!!! Que gol ⚽</div><div><b>Ju Sampaio</b>Diego jogando muito hoje</div><div><b>Carlos · Lobos</b>Era pênalti, o VAR foi generoso 😅</div><div><b>Tio Beto</b>Assistindo de Campinas, bora Falcões</div><div class="ff"><b>FF Soccer</b>O replay do gol já está na TV FF Soccer.</div></div><form id="chatF"><input class="chat-in" id="chatIn" type="text" placeholder="Mande sua mensagem para a torcida" maxlength="140"></form></div>'+
+  '<div style="display:grid;gap:14px;align-content:start"><div class="card"><div class="between" style="margin-bottom:10px"><span class="lbl">Chat da torcida</span><span class="lbl">moderado pela FF</span></div><div class="chat" id="chat">'+(CONFIG.TEMPORADA_ZERADA?'<div><b>Cláudia Tavares</b>Começou a temporada! ⚽</div><div><b>Ju Sampaio</b>Bora '+tn(LIVE.h)+'!</div><div><b>Carlos · '+tn(LIVE.a)+'</b>Hoje é nosso, '+tn(LIVE.a)+' 💪</div><div><b>Tio Beto</b>Assistindo de Campinas</div><div class="ff"><b>FF Soccer</b>Bem-vindos à 1ª rodada da FF Soccer Pro League!</div>':'<div><b>Cláudia Tavares</b>VAI FILHO!!! Que gol ⚽</div><div><b>Ju Sampaio</b>Diego jogando muito hoje</div><div><b>Carlos · Lobos</b>Era pênalti, o VAR foi generoso 😅</div><div><b>Tio Beto</b>Assistindo de Campinas, bora Falcões</div><div class="ff"><b>FF Soccer</b>O replay do gol já está na TV FF Soccer.</div>')+'</div><form id="chatF"><input class="chat-in" id="chatIn" type="text" placeholder="Mande sua mensagem para a torcida" maxlength="140"></form></div>'+
   '<div class="card agenda"><div class="lbl" style="margin-bottom:4px">Próximas transmissões</div>'+up.map(function(g){return '<a class="between" href="#'+g.id+'"><span>'+tn(g.h)+' x '+tn(g.a)+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span></a>';}).join('')+'</div></div></div></div>';
 };
 
@@ -362,11 +373,11 @@ P['minha-area']=function(){
   var p=PM[ME],t=TM[p.team],pos=ST.map(function(x){return x.t.id;}).indexOf(p.team),s=ST[pos];
   var nx=GAMES.filter(function(g){return g.st==='agendado'&&(g.h===p.team||g.a===p.team);})[0];
   var live=LIVE.h===p.team||LIVE.a===p.team;
-  var days=nx?Math.round((nx.date-new Date(2027,2,17))/864e5):0;
+  var days=nx?Math.round((nx.date-LIVE.date)/864e5):0;
   return area('painel',
   '<div class="ahead"><div><div class="eyebrow">'+greet()+', '+esc(p.n.split(' ')[0])+'</div><h1>Meu painel</h1></div><span class="chip ok">✓ Atleta confirmado · 1ª Temporada</span></div>'+
   (live?'<a class="card livecard" href="#ao-vivo" style="border-color:#5E2724;margin-bottom:16px"><div class="row"><span class="live">Ao vivo · <span data-livemin2>'+LIVE.min+"'</span></span><b style=\"font-family:var(--cond);font-size:18px;text-transform:uppercase\">Seu time está em campo: "+tn(LIVE.h)+' '+LIVE.gh+' x '+LIVE.ga+' '+tn(LIVE.a)+'</b></div><span class="more">Assistir ›</span></a>':'')+
-  (nx?'<div class="card next" style="margin-bottom:16px"><div style="display:grid;gap:10px"><div class="lbl" style="color:var(--gold)">Seu próximo jogo · daqui a '+days+' dias</div><div class="vs">'+badge(nx.h)+tn(nx.h)+'<i>x</i>'+tn(nx.a)+badge(nx.a)+'</div><div class="lbl">Rodada '+nx.r+' · '+fmtD(nx.date)+' · '+nx.time+' · '+nx.field+' · chegar 30 min antes</div></div>'+
+  (nx?'<div class="card next" style="margin-bottom:16px"><div style="display:grid;gap:10px"><div class="lbl" style="color:var(--gold)">Seu próximo jogo · '+(days>1?'daqui a '+days+' dias':days===1?'amanhã':'hoje')+'</div><div class="vs">'+badge(nx.h)+tn(nx.h)+'<i>x</i>'+tn(nx.a)+badge(nx.a)+'</div><div class="lbl">Rodada '+nx.r+' · '+fmtD(nx.date)+' · '+nx.time+' · '+nx.field+' · chegar 30 min antes</div></div>'+
    '<div style="display:grid;gap:8px"><span class="lbl">Você foi convocado. Confirma presença?</span><div class="conf"><button class="yes'+(CONF==='sim'?' on':'')+'" data-conf="sim">✓ Vou jogar</button><button class="no'+(CONF==='nao'?' on':'')+'" data-conf="nao">✕ Não vou</button></div></div></div>':'')+
   '<div class="grid2"><div style="display:grid;gap:16px;align-content:start">'+
    '<div class="card"><div class="between" style="margin-bottom:10px"><h3>Meus números</h3><a class="more" href="#minha-area-perfil">Perfil público ›</a></div><div class="stats" style="grid-template-columns:repeat(4,1fr)"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div></div>'+
@@ -374,7 +385,7 @@ P['minha-area']=function(){
    '<a class="card between" href="#minha-area-time"><div class="row">'+badge(p.team,'lg')+'<div><div class="lbl">Meu time</div><b style="font-family:var(--disp);font-size:28px;text-transform:uppercase">'+t.n+'</b></div></div><div style="text-align:right"><b class="num" style="font-size:30px;font-family:var(--disp)">'+(pos+1)+'º</b><div class="lbl">'+s.pts+' pts</div></div></a>'+
    '<div class="card notices"><div class="between" style="margin-bottom:4px"><h3>Avisos da FF</h3><span class="lbl">1 novo</span></div>'+
    '<div class="n new"><span class="ic">🔒</span><div><b>Renovação prioritária</b><div class="muted" style="font-size:14px">A renovação da 2ª Temporada abre em 20/05 para quem já joga.</div><small>12/03</small></div></div>'+
-   '<div class="n"><span class="ic">🎥</span><div><b>Transmissão da rodada 6</b><div class="muted" style="font-size:14px">Todos os jogos ao vivo no canal oficial.</div><small>10/03</small></div></div></div>'+
+   '<div class="n"><span class="ic">🎥</span><div><b>Transmissão da rodada '+LIVE.r+'</b><div class="muted" style="font-size:14px">Todos os jogos ao vivo no canal oficial.</div><small>10/03</small></div></div></div>'+
   '</div></div>');
 };
 P['minha-area-inscricao']=function(){
@@ -539,8 +550,8 @@ ticker();
 setInterval(function(){
   if(LIVE.min<90){LIVE.min++;
     document.querySelectorAll('[data-livemin],[data-livemin2]').forEach(function(e){e.textContent=LIVE.min+"'";});
-    document.querySelectorAll('[data-livepill]').forEach(function(e){e.textContent='2º tempo · '+LIVE.min+"'";});
-    var v=186+Math.floor((LIVE.min-67)*2.3);document.querySelectorAll('[data-viewers]').forEach(function(e){e.textContent=v;});
+    document.querySelectorAll('[data-livepill]').forEach(function(e){e.textContent=(LIVE.min<=45?'1º':'2º')+' tempo · '+LIVE.min+"'";});
+    var v=186+Math.floor((LIVE.min-(LIVE.min0||67))*2.3);document.querySelectorAll('[data-viewers]').forEach(function(e){e.textContent=v;});
     ticker();}
 },20000);
 
@@ -548,5 +559,5 @@ aplicarOnda();
 // Desenha só depois de todos os scripts (o painel.js vem depois deste arquivo e define o login).
 document.addEventListener('DOMContentLoaded',function(){
   if(ONDA<2)route();  // onda 1 não mostra dados de jogos: não espera o banco
-  else carregarBanco(function(){CLR=CUR;ticker();route();});
+  else carregarBanco(function(){zerarTemporada();CLR=CUR;ticker();route();});
 });
