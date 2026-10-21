@@ -57,12 +57,9 @@ P.inicio=function(){
     (cr?'<a class="craque" data-n="'+cr.p.num+'" href="#atleta-'+cr.p.id+'"><span class="k">Craque da rodada '+(CUR-1)+'</span><span class="nm">'+esc(cr.p.n).replace(' ','<br>')+'</span><span class="sub">'+tn(cr.p.team)+' · '+cr.gl+' gol'+(cr.gl===1?'':'s')+' contra '+tn(cr.g.h===cr.p.team?cr.g.a:cr.g.h)+'</span><span class="by">Apresentado por · espaço do patrocinador</span></a>':'')+
   '</div></section>'+
 
-  '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Rodada '+(CUR-1)+' · fotos gratuitas</div><h2>Fotos da rodada</h2></div><span class="chip ok">Grátis para os atletas</span></div>'+
-  '<div class="photos">'+['Gol da rodada','Comemoração','Time titular','Disputa de bola','Pré-jogo','Torcida','Defesa','Entrada em campo','Apito final'].map(function(c,i){return '<div class="ph'+(i===0?' w':'')+'"><canvas class="bc" data-seed="'+(21+i*7)+'" data-static="1"></canvas><span>'+c+'</span></div>';}).join('')+'</div></div></section>'+
-
   '<section class="blk"><div class="wrap grid2">'+
    '<div class="card"><div class="between" style="margin-bottom:6px"><h3>Próxima rodada</h3><span class="lbl">Rodada '+(CUR+1)+'</span></div><div class="agenda">'+nextG.map(function(g){return '<a class="between" href="#'+g.id+'"><span class="row">'+badge(g.h,'sm')+tn(g.h)+' <span class="muted">x</span> '+tn(g.a)+badge(g.a,'sm')+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span></a>';}).join('')+'</div></div>'+
-   '<div class="card" style="display:grid;gap:12px;align-content:start"><h3>Encontre seu perfil</h3><p class="muted" style="margin:0">Gols, MVPs, minutos jogados e fotos de cada atleta, temporada após temporada.</p><form id="homeSearch" class="row"><input id="homeQ" type="search" placeholder="Nome do atleta" style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:11px 14px;color:var(--ink);min-width:0"><button class="btn primary sm" type="submit">Buscar</button></form></div>'+
+   '<div class="card" style="display:grid;gap:12px;align-content:start"><h3>Encontre seu perfil</h3><p class="muted" style="margin:0">Gols, MVPs e minutos jogados de cada atleta, temporada após temporada.</p><form id="homeSearch" class="row"><input id="homeQ" type="search" placeholder="Nome do atleta" style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:11px 14px;color:var(--ink);min-width:0"><button class="btn primary sm" type="submit">Buscar</button></form></div>'+
   '</div></section>'+
 
   '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Calendário FF 2027</div><h2>Uma temporada inteira</h2></div><a class="more" href="#a-league">Como funciona ›</a></div>'+
@@ -267,21 +264,13 @@ function acct(){var a=document.getElementById('acct'),d=document.getElementById(
   a.hidden=d.hidden=semBotoes()&&!ME&&!sessaoEmail();}
 function greet(){var h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';}
 function myGames(p){return p.games.map(function(x){var g=GAMES.filter(function(y){return y.id===x.g;})[0];return {x:x,g:g,op:g.h===p.team?g.a:g.h};});}
-function myShots(p){
-  var out=[],i=0;
-  p.games.forEach(function(x){var g=GAMES.filter(function(y){return y.id===x.g;})[0],op=tn(g.h===p.team?g.a:g.h);
-    out.push({k:'foto',t:'Em ação contra '+op,r:g.r,seed:100+i++});out.push({k:'foto',t:(x.gl?'Comemoração do gol':'Disputa de bola'),r:g.r,seed:100+i++});});
-  var gl=[];GAMES.forEach(function(g){g.ev.forEach(function(e){if(e.t==='gol'&&e.p===p.id)gl.push({g:g,e:e});});});
-  gl.forEach(function(o){out.unshift({k:'video',t:'Seu gol contra '+tn(o.g.h===p.team?o.g.a:o.g.h)+' · '+o.e.m+"'",r:o.g.r,seed:200+i++,dur:'0:'+(30+o.e.m%25)});});
-  return out.slice(0,12);
-}
 function area(tab,body){
-  var p=PM[ME],nPh=myShots(p).filter(function(s){return s.k==='foto';}).length;
+  var p=PM[ME];
   return '<div class="wrap"><div class="area"><nav class="side"><div class="me"><div class="avatar'+(FOTOS[p.id]?' ret':'')+'" style="width:52px;height:52px;border:2px solid #0B0B0A;'+avBg(p.id)+'"></div><b>'+esc(p.n).replace(' ','<br>')+'</b><span>'+POSN[p.pos]+' · '+tn(p.team)+' · Nº '+p.num+'</span></div>'+
   '<a href="#minha-area" class="'+(tab==='painel'?'on':'')+'">🏠 Meu painel</a>'+
   '<a href="#minha-area-time" class="'+(tab==='time'?'on':'')+'">⚽ Meu time<em>Escalação</em></a>'+
   '<a href="#minha-area-inscricao" class="'+(tab==='insc'?'on':'')+'">📋 Inscrição e kit</a>'+
-  '<a href="#minha-area-fotos" class="'+(tab==='fotos'?'on':'')+'">📸 Fotos e vídeos<em>'+nPh+'</em></a>'+  '<a href="#minha-area-campeonatos" class="'+(tab==='camp'?'on':'')+'">🏆 Meus campeonatos</a>'+
+  '<a href="#minha-area-campeonatos" class="'+(tab==='camp'?'on':'')+'">🏆 Meus campeonatos</a>'+
   '<a href="#atleta-'+p.id+'">👤 Meu perfil público</a>'+
   '<a href="#sair" id="doLogout">↩ Sair</a></nav><div>'+body+'</div></div></div>';
 }
@@ -295,8 +284,7 @@ function teamPosts(p){
   POSTS=[
    {id:1,pin:1,who:'Coordenação FF',role:'Equipe FF · Falcões',av:'FF',c:'#F2C14D',t:'Qua 24/03 contra os Corvos. Chegada às 19h no Campo 1, aquecimento às 19h10. Escalação e minutos já estão na aba ao lado. Quem não puder ir, marque "Não vou" até segunda.',ago:'há 2 h',r:{'👍':14,'🔥':6}},
    {id:2,who:byN[9].n,role:'Atacante · Nº 9',av:byN[9].n[0],c:'#5AA9E6',t:'Que virada contra os Lobos! Semana que vem é pra somar mais três. Bora, Falcões! 🦅',ago:'há 5 h',r:{'🔥':11,'⚽':4}},
-   {id:3,who:byN[1].n,role:'Goleiro · Nº 1',av:byN[1].n[0],c:'#5AA9E6',t:'Alguém de Moema quer dividir carona na quarta? Tenho 3 lugares.',ago:'ontem',r:{'👍':5}},
-   {id:4,who:'Coordenação FF',role:'Equipe FF · Falcões',av:'FF',c:'#F2C14D',t:'As fotos da rodada 5 já estão na aba Fotos e vídeos de cada um. Todas gratuitas.',ago:'2 dias',r:{'👍':9,'📸':3}}];
+   {id:3,who:byN[1].n,role:'Goleiro · Nº 1',av:byN[1].n[0],c:'#5AA9E6',t:'Alguém de Moema quer dividir carona na quarta? Tenho 3 lugares.',ago:'ontem',r:{'👍':5}}];
   return POSTS;
 }
 function postHTML(o){
@@ -362,12 +350,13 @@ P['minha-area']=function(){
    '<div class="card"><div class="between" style="margin-bottom:10px"><h3>Meus números</h3><a class="more" href="#atleta-'+p.id+'">Perfil público ›</a></div><div class="stats" style="grid-template-columns:repeat(4,1fr)"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div></div>'+
   '</div><div style="display:grid;gap:16px;align-content:start">'+
    '<a class="card between" href="#minha-area-time"><div class="row">'+badge(p.team,'lg')+'<div><div class="lbl">Meu time</div><b style="font-family:var(--disp);font-size:28px;text-transform:uppercase">'+t.n+'</b></div></div><div style="text-align:right"><b class="num" style="font-size:30px;font-family:var(--disp)">'+(pos+1)+'º</b><div class="lbl">'+s.pts+' pts</div></div></a>'+
-   '<div class="card notices"><div class="between" style="margin-bottom:4px"><h3>Avisos da FF</h3><span class="lbl">3 novos</span></div>'+
+   '<div class="card notices"><div class="between" style="margin-bottom:4px"><h3>Avisos da FF</h3><span class="lbl">2 novos</span></div>'+
    '<div class="n new"><span class="ic">📋</span><div><b>Escalação da rodada 7 publicada</b><div class="muted" style="font-size:14px">Você começa jogando o 1º tempo contra os Corvos. <a class="more" href="#minha-area-time">Ver escalação</a></div><small>Hoje · 18:02</small></div></div>'+
-   '<div class="n new"><span class="ic">📸</span><div><b>Suas fotos da rodada 5</b><div class="muted" style="font-size:14px">Você foi marcado em novas fotos. <a class="more" href="#minha-area-fotos">Ver</a></div><small>Ontem · 10:15</small></div></div>'+
    '<div class="n new"><span class="ic">🔒</span><div><b>Renovação prioritária</b><div class="muted" style="font-size:14px">A renovação da 2ª Temporada abre em 20/05 para quem já joga.</div><small>12/03</small></div></div>'+
    '<div class="n"><span class="ic">🎥</span><div><b>Transmissão da rodada 6</b><div class="muted" style="font-size:14px">Todos os jogos ao vivo no canal oficial.</div><small>10/03</small></div></div></div>'+
-  '</div></div>');
+  '</div></div>'+
+  '<section class="blk" style="margin-top:34px"><div class="share"><div class="scard" data-n="'+p.num+'"><div style="display:grid;gap:6px;position:relative"><span class="k">FF Soccer Pro League · 1ª Temporada</span><span class="nm">'+esc(p.n).replace(' ','<br>')+'</span><span class="k">'+POSN[p.pos]+' · '+tn(p.team)+' · Nº '+p.num+'</span></div><div class="nums"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div><div class="ft"><img src="'+LOGO+'" width="28" height="28" alt="" style="object-fit:contain">ffsoccerproleague.com.br</div></div>'+
+  '<div style="display:grid;gap:12px"><div class="eyebrow">Para postar</div><h2>Meu card da temporada</h2><p class="muted" style="margin:0">Atualizado a cada jogo. Pronto para o story do Instagram e para o status do WhatsApp.</p><div class="row" style="flex-wrap:wrap"><button class="btn primary" id="shareBtn">Compartilhar card</button><button class="btn" id="copyBtn">Copiar link do perfil</button></div></div></div></section>');
 };
 P['minha-area-inscricao']=function(){
   var p=PM[ME];
@@ -387,16 +376,6 @@ P['minha-area-inscricao']=function(){
    '<div class="card"><div class="between" style="margin-bottom:8px"><h3>Meus dados</h3><button class="btn sm" id="editBtn">Atualizar</button></div><div class="kv"><div class="between"><span>E-mail</span><span>andre.m•••@email.com</span></div><div class="between"><span>Celular</span><span>(11) 9••••-4821</span></div><div class="between"><span>Unidade FF</span><span>'+p.unit+'</span></div><div class="between"><span>Posição</span><span>'+POSN[p.pos]+'</span></div><div class="between"><span>Camisa</span><span>'+esc(p.n.split(' ').slice(-1)[0].toUpperCase())+' · Nº '+p.num+'</span></div></div></div>'+
    '<div class="card"><h3 style="margin-bottom:8px">Termos e autorizações</h3><div class="kv"><div class="between"><span>Autorização de análise (LGPD)</span><span class="lbl">12/10/2026</span></div><div class="between"><span>Condições da FF Soccer Pro League</span><span class="lbl">12/10/2026</span></div><div class="between"><span>Uso de imagem nas transmissões</span><span class="lbl">12/10/2026</span></div></div></div>'+
   '</div></div>');
-};
-P['minha-area-fotos']=function(){
-  var p=PM[ME],sh=myShots(p);
-  var c=0,grid=sh.map(function(o,i){return '<div class="it'+(SEL[i]?' sel':'')+'" data-i="'+i+'" data-k="'+o.k+'"><canvas class="bc" data-seed="'+o.seed+'" data-static="1"></canvas><span class="tagme">'+(o.k==='video'?'▶ '+o.dur:'Você está aqui')+'</span><span class="ck">'+(SEL[i]?'✓':'')+'</span><div class="cap">'+o.t+'<small>Rodada '+o.r+' · '+(o.k==='video'?'vídeo':'foto')+'</small></div></div>';}).join('');
-  return area('fotos',
-  '<div class="ahead"><div><div class="eyebrow">Gratuitas · marcadas pela equipe FF</div><h1>Fotos e vídeos</h1></div><div class="days" id="gfilt" style="margin:0"><button class="on" data-f="">Tudo</button><button data-f="foto">Fotos</button><button data-f="video">Meus lances</button></div></div>'+
-  '<div class="gal" id="gal">'+grid+'</div>'+
-  '<div class="selbar" id="selbar"><span id="selN" class="lbl">Toque nas fotos para selecionar</span><div class="row"><button class="btn sm" id="selAll">Selecionar tudo</button><button class="btn primary sm" id="dl">Baixar</button></div></div>'+
-  '<section class="blk" style="margin-top:34px"><div class="share"><div class="scard" data-n="'+p.num+'"><div style="display:grid;gap:6px;position:relative"><span class="k">FF Soccer Pro League · 1ª Temporada</span><span class="nm">'+esc(p.n).replace(' ','<br>')+'</span><span class="k">'+POSN[p.pos]+' · '+tn(p.team)+' · Nº '+p.num+'</span></div><div class="nums"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div><div class="ft"><img src="'+LOGO+'" width="28" height="28" alt="" style="object-fit:contain">ffsoccerproleague.com.br</div></div>'+
-  '<div style="display:grid;gap:12px"><div class="eyebrow">Para postar</div><h2>Meu card da temporada</h2><p class="muted" style="margin:0">Atualizado a cada jogo. Pronto para o story do Instagram e para o status do WhatsApp.</p><div class="row" style="flex-wrap:wrap"><button class="btn primary" id="shareBtn">Compartilhar card</button><button class="btn" id="copyBtn">Copiar link do perfil</button></div></div></div></section>');
 };
 P['minha-area-campeonatos']=function(){  var p=PM[ME],t=TM[p.team],pos=ST.map(function(x){return x.t.id;}).indexOf(p.team),s=ST[pos];  var list=[   {n:'FF Soccer Pro League · 1ª Temporada',per:'Jan → jun 2027',time:badge(p.team)+t.n,posn:POSN[p.pos],cls:(pos+1)+'º de '+ST.length+' · '+s.pts+' pts',st:'<span class="chip gold">Em andamento</span>',atual:1},   {n:'Copa FF Soccer',per:'Nov → dez 2025',time:'Fulham',posn:'Zagueiro',cls:'🥈 Vice-campeão · Série Prata',st:'<span class="chip">Encerrado</span>',top:2}];  var tit=list.filter(function(c){return c.top===1;}).length,pod=list.filter(function(c){return c.top;}).length;  return area('camp',  '<div class="ahead"><div><div class="eyebrow">Sua história na FF</div><h1>Meus campeonatos</h1></div></div>'+  '<div class="card" style="margin-bottom:16px"><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div><b>'+list.length+'</b><span>Campeonatos</span></div><div><b>'+tit+'</b><span>Títulos</span></div><div><b>'+pod+'</b><span>Pódios</span></div></div></div>'+  '<div class="grid2 camps">'+list.map(function(c){return '<div class="card"'+(c.atual?' style="border-color:var(--gold2)"':'')+'><div class="between" style="margin-bottom:8px;gap:10px;align-items:flex-start"><h3>'+c.n+'</h3>'+c.st+'</div><div class="kv">'+   '<div class="between"><span>Período</span><span>'+c.per+'</span></div>'+   '<div class="between"><span>Meu time</span><span class="row" style="gap:8px">'+c.time+'</span></div>'+   '<div class="between"><span>Minha posição</span><span>'+c.posn+'</span></div>'+   '<div class="between"><span>Classificação</span><span style="text-align:right">'+c.cls+'</span></div></div>'+   '</div>';}).join('')+'</div>');};
 
@@ -445,7 +424,7 @@ var app=document.getElementById('app');
 var ALIAS={'':'inicio'};
 function route(){
   var h=(location.hash||'').replace('#','')||'a-league',page=h,arg=null;
-  if(h==='classificacao')h='campeonato';if(h==='campeonato-atletas')h='atletas';page=h;
+  if(h==='classificacao')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
   if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
@@ -498,16 +477,9 @@ function bind(page){
     var rb=document.getElementById('renewBtn');rb.addEventListener('click',function(){if(RENEW)return;RENEW=true;rb.className='btn';rb.textContent='✓ Interesse registrado · avisaremos em 20/05';toast('Interesse registrado. Sua vaga prioritária está garantida até 20/05.');});
     document.getElementById('editBtn').addEventListener('click',function(){toast('No site final, abre a edição dos seus dados com confirmação por e-mail.');});
   }
-  if(page==='minha-area-fotos'){
-    var gal=document.getElementById('gal'),n=document.getElementById('selN');
-    function upd(){var k=Object.keys(SEL).filter(function(x){return SEL[x];}).length;n.textContent=k?k+' selecionada'+(k>1?'s':''):'Toque nas fotos para selecionar';}
-    gal.addEventListener('click',function(e){var it=e.target.closest('.it');if(!it)return;var i=it.dataset.i;SEL[i]=!SEL[i];it.classList.toggle('sel',!!SEL[i]);it.querySelector('.ck').textContent=SEL[i]?'✓':'';upd();});
-    document.getElementById('selAll').addEventListener('click',function(){gal.querySelectorAll('.it:not([hidden])').forEach(function(it){SEL[it.dataset.i]=true;it.classList.add('sel');it.querySelector('.ck').textContent='✓';});upd();});
-    document.getElementById('dl').addEventListener('click',function(){var k=Object.keys(SEL).filter(function(x){return SEL[x];}).length;toast(k?'No site final, '+k+' arquivo'+(k>1?'s são baixados':' é baixado')+' em alta resolução.':'Selecione pelo menos uma foto.');});
-    document.querySelectorAll('#gfilt button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#gfilt button').forEach(function(x){x.classList.toggle('on',x===b);});gal.querySelectorAll('.it').forEach(function(it){it.hidden=!!b.dataset.f&&it.dataset.k!==b.dataset.f;});});});
+  if(page==='minha-area'){
     document.getElementById('shareBtn').addEventListener('click',function(){toast('No celular, abre o compartilhamento para Instagram e WhatsApp.');});
     document.getElementById('copyBtn').addEventListener('click',function(){var url='ffsoccerproleague.com.br/atleta/'+ME;var done=function(){toast('Link copiado: '+url);};try{navigator.clipboard.writeText(url).then(done,done);}catch(e){done();}});
-    upd();
   }
   if(page==='pre-inscricao'){
     var fN=document.getElementById('fNum'),fC=document.getElementById('fNomeC');
