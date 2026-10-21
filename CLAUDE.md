@@ -43,7 +43,7 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 
 - **Rotas públicas:**
   - `#inicio`
-  - `#libertadores` (Libertadores FF: página "Em breve", criada em 21/10/2026; vale na onda 1)
+  - `#libertadores` (Libertadores FF, criada em 21/10/2026; vale na onda 1): resumo da última Copa FF em Fut7 antes do calendário 2027, com 5 cartões (times de 10 a 12 atletas, uniforme, fotos, final ao vivo, e muito mais)
   - `#a-league`
   - `#campeonato`, `#campeonato-estatisticas`, `#campeonato-times`
   - `#atletas`, `#atleta-<time>-<numero>`, `#time-<id>`

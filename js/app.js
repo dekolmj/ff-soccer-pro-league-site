@@ -213,8 +213,8 @@ P['hall-da-fama']=function(){
 };
 
 P['libertadores']=function(){
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">As informações da Libertadores FF chegam em breve: formato, datas, times e regulamento.</p></div>'+
-  '<div class="notice" style="margin:8px 0 64px"><b>Em breve.</b> Estamos preparando os detalhes da competição. Enquanto isso, conheça a <a class="more" href="#a-league">FF Soccer Pro League ›</a></div></div>';
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">A última edição da nossa tradicional Copa FF no formato Fut7 antes do novo calendário de competições de 2027.</p></div>'+
+  '<div class="feat" style="margin:8px 0 64px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Novo uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div></div>';
 };
 P['a-league']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Uma nova era começa agora</div><h1>A Pro League</h1><p class="lead">Mais do que um campeonato, a FF Soccer Pro League é uma experiência de temporada. Você vive cada momento: time fixo, uniforme personalizado, jogos transmitidos ao vivo, seus números registrados rodada a rodada e, claro, VAR.</p></div>'+
