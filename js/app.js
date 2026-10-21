@@ -33,10 +33,6 @@ function playerBox(opts){
   return '<div class="player"'+(opts.id?' id="'+opts.id+'"':'')+'><canvas class="bc" data-seed="'+(opts.seed||11)+'"'+(opts.st?' data-static="1"':'')+'></canvas>'+(opts.bug||'')+(opts.live?'<span class="live">Ao vivo</span>':'')+(opts.tag?'<span class="tag">'+opts.tag+'</span>':'')+(opts.bar?'<div class="ytbar"><div class="prog"></div><div class="ctl"><span>● Ao vivo</span><span>'+opts.bar+'</span><span class="sp">HD · ⛶</span></div></div>':'')+(opts.dur?'<span class="dur">'+opts.dur+'</span>':'')+(opts.play?'<span class="play"><i><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z" fill="#fff"/></svg></i></span>':'')+'</div>';
 }
 function liveBug(){return '<div class="bug"><span>'+tn(LIVE.h).slice(0,3).toUpperCase()+' '+LIVE.gh+'</span><span>'+LIVE.ga+' '+tn(LIVE.a).slice(0,3).toUpperCase()+'</span><span class="m" data-livemin>'+LIVE.min+"'</span></div>";}
-function replaysHTML(n){
-  var fin=GAMES.filter(function(g){return g.st==='encerrado';}).sort(function(a,b){return b.date-a.date||b.i-a.i;}).slice(0,n);
-  return '<div class="thumbs">'+fin.map(function(g,i){var sc=g.ev.filter(function(e){return e.t==='gol';}).length;var dur=(3+i%3)+':'+String(10+i*7).slice(-2);return '<button type="button" class="thumb" data-vid="'+g.id+'" data-seed="'+(31+i*13)+'" data-dur="'+dur+'">'+playerBox({seed:31+i*13,st:1,dur:dur,play:1})+'<b>Melhores momentos: '+tn(g.h)+' '+g.gh+' x '+g.ga+' '+tn(g.a)+'</b><small>Rodada '+g.r+' · '+sc+' gol'+(sc===1?'':'s')+'</small></button>';}).join('')+'</div>';
-}
 
 /* ================= PAGES ================= */
 var P={};
@@ -60,8 +56,6 @@ P.inicio=function(){
    '<div class="card" style="display:grid;gap:10px;align-content:start"><div class="between"><h3>Classificação</h3><span class="lbl">Top 4 · zona de semifinal</span></div>'+tableHTML(ST.slice(0,4),false)+'<a class="btn" href="#campeonato" style="justify-content:center;margin-top:6px">Ver tabela completa</a></div>'+
     (cr?'<a class="craque" data-n="'+cr.p.num+'" href="#atleta-'+cr.p.id+'"><span class="k">Craque da rodada '+(CUR-1)+'</span><span class="nm">'+esc(cr.p.n).replace(' ','<br>')+'</span><span class="sub">'+tn(cr.p.team)+' · '+cr.gl+' gol'+(cr.gl===1?'':'s')+' contra '+tn(cr.g.h===cr.p.team?cr.g.a:cr.g.h)+'</span><span class="by">Apresentado por · espaço do patrocinador</span></a>':'')+
   '</div></section>'+
-
-  '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">TV FF</div><h2>Melhores momentos</h2></div><a class="more" href="#ao-vivo">Ir para a TV FF ›</a></div>'+replaysHTML(4)+'</div></section>'+
 
   '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Rodada '+(CUR-1)+' · fotos gratuitas</div><h2>Fotos da rodada</h2></div><span class="chip ok">Grátis para os atletas</span></div>'+
   '<div class="photos">'+['Gol da rodada','Comemoração','Time titular','Disputa de bola','Pré-jogo','Torcida','Defesa','Entrada em campo','Apito final'].map(function(c,i){return '<div class="ph'+(i===0?' w':'')+'"><canvas class="bc" data-seed="'+(21+i*7)+'" data-static="1"></canvas><span>'+c+'</span></div>';}).join('')+'</div></div></section>'+
@@ -209,8 +203,7 @@ P['ao-vivo']=function(){
   '<div class="livegrid"><div style="display:grid;gap:14px;align-content:start">'+playerBox({seed:11,bug:liveBug(),live:1,tag:'Transmissão oferecida por · espaço do patrocinador',bar:'<span data-viewers>186</span> assistindo'})+
   '<div class="between wrapm" style="flex-wrap:wrap"><div style="min-width:0"><h2 style="font-size:32px">'+tn(LIVE.h)+' x '+tn(LIVE.a)+'</h2><div class="lbl" style="margin-top:6px">Rodada '+LIVE.r+' · '+LIVE.field+' · <span data-viewers>186</span> assistindo agora</div></div><div class="row"><a class="btn sm" href="#'+LIVE.id+'">Lances e VAR</a><span class="btn primary sm">Inscrever-se no canal</span></div></div></div>'+
   '<div style="display:grid;gap:14px;align-content:start"><div class="card"><div class="between" style="margin-bottom:10px"><span class="lbl">Chat da torcida</span><span class="lbl">moderado pela FF</span></div><div class="chat" id="chat"><div><b>Cláudia Tavares</b>VAI FILHO!!! Que gol ⚽</div><div><b>Ju Sampaio</b>Diego jogando muito hoje</div><div><b>Carlos · Lobos</b>Era pênalti, o VAR foi generoso 😅</div><div><b>Tio Beto</b>Assistindo de Campinas, bora Falcões</div><div class="ff"><b>FF Soccer</b>O replay do gol já está na TV FF.</div></div><form id="chatF"><input class="chat-in" id="chatIn" type="text" placeholder="Mande sua mensagem para a torcida" maxlength="140"></form></div>'+
-  '<div class="card agenda"><div class="lbl" style="margin-bottom:4px">Próximas transmissões</div>'+up.map(function(g){return '<a class="between" href="#'+g.id+'"><span>'+tn(g.h)+' x '+tn(g.a)+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span></a>';}).join('')+'</div></div></div>'+
-  '<section class="blk" style="margin-top:40px"><div class="sec-h"><div><div class="eyebrow">Replays</div><h2>Melhores momentos</h2></div></div>'+replaysHTML(8)+'</section></div>';
+  '<div class="card agenda"><div class="lbl" style="margin-bottom:4px">Próximas transmissões</div>'+up.map(function(g){return '<a class="between" href="#'+g.id+'"><span>'+tn(g.h)+' x '+tn(g.a)+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span></a>';}).join('')+'</div></div></div></div>';
 };
 
 P['hall-da-fama']=function(){
