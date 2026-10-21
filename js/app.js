@@ -350,9 +350,7 @@ P['minha-area']=function(){
    '<div class="n new"><span class="ic">📋</span><div><b>Escalação da rodada 7 publicada</b><div class="muted" style="font-size:14px">Você começa jogando o 1º tempo contra os Corvos. <a class="more" href="#minha-area-time">Ver escalação</a></div><small>Hoje · 18:02</small></div></div>'+
    '<div class="n new"><span class="ic">🔒</span><div><b>Renovação prioritária</b><div class="muted" style="font-size:14px">A renovação da 2ª Temporada abre em 20/05 para quem já joga.</div><small>12/03</small></div></div>'+
    '<div class="n"><span class="ic">🎥</span><div><b>Transmissão da rodada 6</b><div class="muted" style="font-size:14px">Todos os jogos ao vivo no canal oficial.</div><small>10/03</small></div></div></div>'+
-  '</div></div>'+
-  '<section class="blk" style="margin-top:34px"><div class="share"><div class="scard" data-n="'+p.num+'"><div style="display:grid;gap:6px;position:relative"><span class="k">FF Soccer Pro League · 1ª Temporada</span><span class="nm">'+esc(p.n).replace(' ','<br>')+'</span><span class="k">'+POSN[p.pos]+' · '+tn(p.team)+' · Nº '+p.num+'</span></div><div class="nums"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div><div class="ft"><img src="'+LOGO+'" width="28" height="28" alt="" style="object-fit:contain">ffsoccerproleague.com.br</div></div>'+
-  '<div style="display:grid;gap:12px"><div class="eyebrow">Para postar</div><h2>Meu card da temporada</h2><p class="muted" style="margin:0">Atualizado a cada jogo. Pronto para o story do Instagram e para o status do WhatsApp.</p><div class="row" style="flex-wrap:wrap"><button class="btn primary" id="shareBtn">Compartilhar card</button><button class="btn" id="copyBtn">Copiar link do perfil</button></div></div></div></section>');
+  '</div></div>');
 };
 P['minha-area-inscricao']=function(){
   var p=PM[ME];
@@ -472,10 +470,6 @@ function bind(page){
     document.querySelectorAll('#nkit input').forEach(function(i){i.addEventListener('change',function(){NEXTKIT=i.value;toast('Tamanho '+i.value+' salvo para a 2ª Temporada.');});});
     var rb=document.getElementById('renewBtn');rb.addEventListener('click',function(){if(RENEW)return;RENEW=true;rb.className='btn';rb.textContent='✓ Interesse registrado · avisaremos em 20/05';toast('Interesse registrado. Sua vaga prioritária está garantida até 20/05.');});
     document.getElementById('editBtn').addEventListener('click',function(){toast('No site final, abre a edição dos seus dados com confirmação por e-mail.');});
-  }
-  if(page==='minha-area'){
-    document.getElementById('shareBtn').addEventListener('click',function(){toast('No celular, abre o compartilhamento para Instagram e WhatsApp.');});
-    document.getElementById('copyBtn').addEventListener('click',function(){var url='ffsoccerproleague.com.br/atleta/'+ME;var done=function(){toast('Link copiado: '+url);};try{navigator.clipboard.writeText(url).then(done,done);}catch(e){done();}});
   }
   if(page==='pre-inscricao'){
     var fN=document.getElementById('fNum'),fC=document.getElementById('fNomeC');
