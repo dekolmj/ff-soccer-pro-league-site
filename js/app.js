@@ -179,11 +179,8 @@ P.campeonato=function(tab){
   }
   if(tab==='estatisticas'){
     var yc=PLAYERS.filter(function(p){return p.ca>0;}).sort(function(a,b){return b.ca-a.ca;});
-    var att=ST.slice().sort(function(a,b){return b.gp-a.gp;})[0],def=ST.slice().sort(function(a,b){return a.gc-b.gc;})[0];
-    return camp('estatisticas','<div class="grid3"><div class="card"><h3>Artilharia</h3>'+scorersHTML(SCORERS,10)+'</div><div class="card"><h3>Assistências</h3>'+scorersHTML(PLAYERS.filter(function(p){return p.a>0;}).sort(function(a,b){return b.a-a.a||b.g-a.g;}),10,'a')+'</div><div class="card"><h3>MVPs</h3>'+scorersHTML(MVPS,10,'mvp')+'</div></div>'+
-    '<div class="grid2" style="margin-top:18px"><div class="card"><h3>Cartões amarelos</h3>'+scorersHTML(yc,5,'ca')+'</div><div class="card" style="display:grid;gap:12px;align-content:start"><h3>Times</h3>'+
-    '<a class="between" href="#time-'+att.t.id+'"><span class="row">'+badge(att.t.id,'sm')+'<span>Melhor ataque<small class="lbl" style="display:block">'+att.t.n+'</small></span></span><b class="num" style="font-size:26px;font-family:var(--disp)">'+att.gp+'</b></a>'+
-    '<a class="between" href="#time-'+def.t.id+'"><span class="row">'+badge(def.t.id,'sm')+'<span>Melhor defesa<small class="lbl" style="display:block">'+def.t.n+' · gols sofridos</small></span></span><b class="num" style="font-size:26px;font-family:var(--disp)">'+def.gc+'</b></a></div></div>');
+    // 4 colunas, igual à Libertadores FF: Artilharia, Assistências, Cartões amarelos e MVPs
+    return camp('estatisticas','<div class="grid4" style="margin-bottom:40px"><div class="card"><h3>Artilharia</h3>'+scorersHTML(SCORERS,10)+'</div><div class="card"><h3>Assistências</h3>'+scorersHTML(PLAYERS.filter(function(p){return p.a>0;}).sort(function(a,b){return b.a-a.a||b.g-a.g;}),10,'a')+'</div><div class="card"><h3>Cartões amarelos</h3>'+scorersHTML(yc,10,'ca')+'</div><div class="card"><h3>MVPs</h3>'+scorersHTML(MVPS,10,'mvp')+'</div></div>');
   }
   if(tab==='atletas'){
     return camp('atletas','<div class="filters"><input id="aq" type="search" placeholder="Buscar por nome ou número"><select id="at"><option value="">Todos os times</option>'+TEAMS.map(function(t){return '<option value="'+t.id+'">'+t.n+'</option>';}).join('')+'</select><select id="ap"><option value="">Todas as posições</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></div><div class="athletes" id="alist"></div>');
