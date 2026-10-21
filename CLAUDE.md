@@ -4,7 +4,7 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 
 ## O projeto
 
-- **O que é:** site oficial da **FF Soccer Pro League**, liga de futebol de campo (11 contra 11) para alunos da FF Soccer. Temporadas de 6 meses (janeiro a junho e agosto a dezembro), jogos às quartas e sextas à noite, transmissão no YouTube, VAR com 2 desafios por equipe, mínimo de 45 minutos por atleta em cada jogo, registro individual e noite de premiação.
+- **O que é:** site oficial da **FF Soccer Pro League**, liga de futebol de campo (11 contra 11) para alunos da FF Soccer. Temporadas de 6 meses (janeiro a junho e agosto a dezembro), jogos às quartas e sextas à noite, transmissão no YouTube, VAR com 2 desafios por equipe, registro individual e noite de premiação.
 - **Fase atual:** lançamento em **ondas**. No ar para o público está a **Onda 1** (League e Pré-inscrição, mais Entrar e painel da equipe). O resto do site usa **dados de exemplo** e só aparece com `?demo` no endereço.
 - **Ondas (`CONFIG.ONDA` em `js/config.js`):** 1 = League e Pré-inscrição · 2 = + Campeonato (início, tabela, times, atletas, jogos, faixa de resultados) · 3 = + Ao vivo · 4 = + Hall da fama e área do atleta. Páginas acima da onda somem do menu e do rodapé (`data-onda` no `index.html`) e as rotas levam para `#a-league` (`ondaDaPagina()` no `app.js`). Na onda 1 o site não consulta o banco ao abrir. Com `?demo` (ex.: `…/?demo#inicio`) tudo aparece, com a tarja de pré-lançamento, para apresentações. Para liberar uma onda, é só trocar o número.
 - **Dono do projeto:** Deko (o projeto começou na conta do Lucas e foi trazido para a do Deko; chame sempre de Deko). É um projeto particular, sem vínculo com empresa. O Deko **não programa**: explique tudo em português simples, sem jargão, e diga sempre o que o Deko precisa fazer (se precisar) e o que muda no site.
@@ -100,5 +100,5 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 1. ~~**Separar o `index.html` em arquivos**~~ (feito).
 2. **Banco de dados no Supabase:** estrutura criada (pasta `supabase/`) e aplicada no projeto **FF Soccer Project** (`xsbmuzaensxrkeqwzfkp`, São Paulo, organização FF Soccer). O site ainda não usa o banco. Falta: Postgres, login e armazenamento de fotos. ~~Trocar o destino da pré-inscrição~~ (feito: só banco). Falta importar da planilha as inscrições FF-2027-0001 a 0005, se forem reais.
 3. **Dados reais:** o site já lê do banco. Falta trocar os dados de exemplo (`exemplo = true`) pelos times, atletas e jogos reais e, no lançamento, apagar os exemplos.
-4. **Painel da FF:** ~~login da equipe e aprovar inscrições~~ (feito, `#painel`). Falta: súmula ao vivo em tempo real, escalação e minutagem, fotos e avisos.
+4. **Painel da FF:** ~~login da equipe e aprovar inscrições~~ (feito, `#painel`). Falta: súmula ao vivo em tempo real, escalação e avisos. **Sem controle de minutagem** (tirado do site inteiro em 21/10/2026, a pedido do Deko: Meu painel, Meu time, perfil do atleta, estatísticas e Hall da fama; a coluna `minutos` de `escalacoes` no banco ficou sem uso na tela).
 5. **App nas lojas** (Expo/React Native), usando o mesmo banco.
