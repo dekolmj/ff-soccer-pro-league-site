@@ -145,20 +145,22 @@ function libGrupoHTML(G){
 function libEstatHTML(){
   return '<div class="grid4" style="margin-bottom:40px">'+['Artilharia','Assistências','Cartões amarelos','MVPs'].map(function(x){return '<div class="card"><h3>'+x+'</h3>'+scorersHTML([],10)+'</div>';}).join('')+'</div>';
 }
-// Próximos jogos da Libertadores (DADOS DE EXEMPLO): 6 rodadas às quartas, 2 jogos de cada grupo por rodada
-var LIB_DATAS=['04/11','11/11','18/11','25/11','02/12','09/12'],LIB_HORA={A:'19h30',B:'20h30',C:'21h30'},LR=1;
+// Jogos da Libertadores (DADOS DE EXEMPLO): 6 rodadas às quartas, 2 jogos de cada grupo por rodada.
+// Cada grupo tem o seu quadro de jogos, ao lado da tabela do grupo, com a sua própria rodada (LR).
+var LIB_DATAS=['04/11','11/11','18/11','25/11','02/12','09/12'],LIB_HORA={A:'19h30',B:'20h30',C:'21h30'},LR={A:1,B:1,C:1};
 function libBadge(t){return '<span class="badge sm" style="background:'+t[1]+'">'+t[0][0]+'</span>';}
-function libJogosBox(r){
-  var jogos=[];LIB_GRUPOS.forEach(function(G){[0,1].forEach(function(k){var m=LIB_JOGOS[(r-1)*2+k];jogos.push({g:G.g,c:'Campo '+(k+1),h:G.t[m[0]],a:G.t[m[1]]});});});
-  return '<div class="rnav"><button id="lPrev" aria-label="Rodada anterior"'+(r<=1?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 3L5 9l6 6"/></svg></button><b>'+r+'ª Rodada</b><button id="lNext" aria-label="Próxima rodada"'+(r>=6?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 3l6 6-6 6"/></svg></button></div>'+
-  jogos.map(function(j){return '<div class="rgame"><div class="meta">Grupo '+j.g+' · '+j.c+' &nbsp;<b>'+LIB_DATAS[r-1]+' · Quarta · '+LIB_HORA[j.g]+'</b></div>'+
-    '<div class="ln"><span class="h">'+esc(j.h[0])+libBadge(j.h)+'</span><span class="sc"></span><span class="x">×</span><span class="sc"></span><span class="a">'+libBadge(j.a)+esc(j.a[0])+'</span></div></div>';}).join('');
+function libJogosBox(G){
+  var r=LR[G.g],seta=function(d,dis,pth,lbl){return '<button class="lnav" data-g="'+G.g+'" data-d="'+d+'" aria-label="'+lbl+'"'+(dis?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="'+pth+'"/></svg></button>';};
+  return '<div class="rnav">'+seta(-1,r<=1,'M11 3L5 9l6 6','Rodada anterior')+'<b>'+r+'ª Rodada</b>'+seta(1,r>=6,'M7 3l6 6-6 6','Próxima rodada')+'</div>'+
+  [0,1].map(function(k){var m=LIB_JOGOS[(r-1)*2+k],h=G.t[m[0]],a=G.t[m[1]];return '<div class="rgame"><div class="meta">Campo '+(k+1)+' &nbsp;<b>'+LIB_DATAS[r-1]+' · Quarta · '+LIB_HORA[G.g]+'</b></div>'+
+    '<div class="ln"><span class="h">'+esc(h[0])+libBadge(h)+'</span><span class="sc"></span><span class="x">×</span><span class="sc"></span><span class="a">'+libBadge(a)+esc(a[0])+'</span></div></div>';}).join('');
 }
-document.addEventListener('click',function(e){var b=e.target.closest('#lPrev,#lNext');if(!b||b.disabled)return;LR+=b.id==='lNext'?1:-1;LR=Math.min(6,Math.max(1,LR));document.getElementById('lbox').innerHTML=libJogosBox(LR);});
+document.addEventListener('click',function(e){var b=e.target.closest('button.lnav');if(!b||b.disabled)return;var g=b.dataset.g;LR[g]=Math.min(6,Math.max(1,LR[g]+(+b.dataset.d)));
+  var G=LIB_GRUPOS.filter(function(x){return x.g===g;})[0];document.getElementById('lbox-'+g).innerHTML=libJogosBox(G);});
 function libGruposHTML(){
-  return '<div class="clsgrid" style="margin-bottom:40px"><div style="display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-content:start">'+LIB_GRUPOS.map(libGrupoHTML).join('')+
-  '<div class="legend" style="margin-top:0"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Próxima fase</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div></div>'+
-  '<div class="card" style="padding:20px"><h2 class="blkh">Jogos</h2><div id="lbox">'+libJogosBox(LR)+'</div></div></div>';
+  return '<div style="display:grid;gap:18px">'+LIB_GRUPOS.map(function(G){return '<div class="clsgrid">'+libGrupoHTML(G)+
+    '<div class="card" style="padding:20px"><h2 class="blkh">Jogos · Grupo '+G.g+'</h2><div id="lbox-'+G.g+'">'+libJogosBox(G)+'</div></div></div>';}).join('')+'</div>'+
+  '<div class="legend" style="margin-bottom:40px"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Próxima fase</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div>';
 }
 
 function camp(tab,body){
