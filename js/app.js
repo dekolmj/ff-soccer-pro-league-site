@@ -325,10 +325,11 @@ function toast(t){var el=document.getElementById('toast');el.textContent=t;el.cl
 function login(id){ME=id;try{localStorage.setItem('ffl_user',id);}catch(e){}acct();location.hash='minha-area';}
 function logout(){ME=null;try{localStorage.removeItem('ffl_user');}catch(e){}acct();location.hash='inicio';toast('Você saiu da sua área.');}
 // E-mail de quem está conectado com login real (sessão guardada pelo Supabase neste navegador), ou ''.
+function perfilSalvo(){try{return localStorage.getItem('ffl_perfil')||'';}catch(e){return '';}}
 function sessaoEmail(){try{var ref=(CONFIG.SUPABASE_URL||'').split('//')[1].split('.')[0],v=JSON.parse(localStorage.getItem('sb-'+ref+'-auth-token')||'null');return (v&&v.user&&v.user.email)||'';}catch(e){return '';}}
 function acct(){var a=document.getElementById('acct'),d=document.getElementById('drawAcct');
   if(ME){var p=PM[ME];a.className='acct';a.href='#minha-area';a.innerHTML='<span class="av">'+p.n[0]+'</span><span class="nm">'+esc(p.n.split(' ')[0])+'</span>';d.firstChild.textContent='Minha área ';}
-  else if(sessaoEmail()){var em=sessaoEmail();a.className='acct so';a.href='#painel';a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+'. Abrir o painel');d.firstChild.textContent='Painel ';d.href='#painel';}
+  else if(sessaoEmail()){var em=sessaoEmail(),dest=perfilSalvo()==='atleta'?'#entrar':'#painel';a.className='acct so';a.href=dest;a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+(dest==='#painel'?'. Abrir o painel':'. Abrir a minha conta'));d.firstChild.textContent=dest==='#painel'?'Painel ':'Minha conta ';d.href=dest;}
   else{a.className='acct out';a.href='#entrar';a.textContent='Entrar';a.removeAttribute('title');a.removeAttribute('aria-label');d.firstChild.textContent='Entrar ';d.href='#entrar';}
   if(ME)d.href='#minha-area';
   a.hidden=d.hidden=semBotoes()&&!ME&&!sessaoEmail();}

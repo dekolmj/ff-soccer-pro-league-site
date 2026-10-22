@@ -3,7 +3,7 @@
    Quem pode ver e alterar é decidido no banco (tabela equipe_ff e regras de acesso), não aqui. */
 
 var SBJS='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
-var SB=null,PN={user:null,equipe:null,lista:[],filtro:'em_analise',busca:'',canal:null};
+var SB=null,PN={user:null,equipe:null,lista:[],filtro:'em_analise',busca:'',canal:null,aba:'inscricoes'};
 var PN_ST={em_analise:['Em análise','gold'],aprovada:['Aprovada','ok'],lista_espera:['Lista de espera',''],recusada:['Recusada',''],cancelada:['Cancelada','']};
 
 function pnEl(){return document.getElementById('painel');}
@@ -33,11 +33,20 @@ function pnIniciar(){
   pnSb(function(){SB.auth.getSession().then(function(r){var s=r.data&&r.data.session;PN.user=s?s.user:null;if(PN.user)pnCarregar();else location.replace('#entrar');});});
 }
 
-function pnSair(){if(PN.canal){SB.removeChannel(PN.canal);PN.canal=null;}SB.auth.signOut().then(function(){PN.user=null;PN.equipe=null;PN.lista=[];acct();location.hash='entrar';toast('Você saiu.');});}
+function pnSair(){if(PN.canal){SB.removeChannel(PN.canal);PN.canal=null;}SB.auth.signOut().then(function(){PN.user=null;PN.equipe=null;PN.lista=[];CD.ok=false;pnGuardaPerfil(null);acct();location.hash='entrar';toast('Você saiu.');});}
+
+// Perfil de quem está logado (equipe ou atleta), decidido no banco por meu_perfil(). O site guarda só o tipo, para o botão do topo.
+function pnPerfil(cb){SB.rpc('meu_perfil').then(function(r){
+  if(r.error)  // banco ainda sem meu_perfil(): vale o jeito antigo (só equipe)
+    return SB.from('equipe_ff').select('nome,papel').eq('user_id',PN.user.id).maybeSingle().then(function(q){var p=q.data?{tipo:'equipe',nome:q.data.nome,papel:q.data.papel}:null;pnGuardaPerfil(p&&p.tipo);cb(p);});
+  var p=(r.data&&r.data.tipo)?r.data:null;pnGuardaPerfil(p&&p.tipo);cb(p);});}
+function pnGuardaPerfil(t){try{if(t)localStorage.setItem('ffl_perfil',t);else localStorage.removeItem('ffl_perfil');}catch(e){}}
+function pnSelo(p){return p.tipo==='equipe'?'<span class="chip gold">Equipe FF · '+(p.papel==='admin'?'Administrador':'Editor')+'</span>'
+  :'<span class="chip ok">Atleta'+(p.time?' · '+esc(p.time):'')+'</span>';}
 
 /* ================= TELA ENTRAR (#entrar) =================
-   Login único: quem é da equipe FF vai para o painel; as outras contas veem um aviso
-   (a área do atleta com login próprio ainda não existe; a demonstração continua na mesma tela). */
+   Login único: a equipe FF vai para o painel, o atleta vê a própria conta e as outras contas veem um aviso.
+   "Primeiro acesso": o atleta cadastrado pela equipe cria a própria senha (só e-mails cadastrados). */
 var EN={modo:'entrar'};
 function enEl(){return document.getElementById('entrarF');}
 
@@ -53,7 +62,10 @@ function enForm(msg){
   (criar?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>':'')+
   '<div class="err" id="enErr" role="alert"></div>'+(msg?'<div class="notice">'+msg+'</div>':'')+
   '<button class="btn primary" type="submit" style="justify-content:center">'+(criar?'Criar senha':'Entrar')+'</button>'+
+  '<p class="muted" style="margin:0;text-align:center;font-size:14px">'+(criar?'<a class="more" href="#entrar" id="enModo">Já tenho senha · Entrar</a>':'Atleta cadastrado na FF? <a class="more" href="#entrar" id="enModo">Primeiro acesso</a>')+'</p>'+
   '</form>';
+  if(criar)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Primeiro acesso do atleta</h3><p class="muted" style="margin:0;font-size:14px">Use o e-mail que você informou à FF e crie a sua senha. Depois, confirme pelo link que vai chegar no seu e-mail.</p></div>');
+  document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=criar?'entrar':'criar';enForm();});
   document.getElementById('enF').addEventListener('submit',function(e){
     e.preventDefault();var em=document.getElementById('enEmail').value.trim(),se=document.getElementById('enSenha').value,er=document.getElementById('enErr');
     if(!/^\S+@\S+\.\S+$/.test(em)||!se){er.textContent='Preencha e-mail e senha.';return;}
@@ -61,10 +73,14 @@ function enForm(msg){
     if(!SB){er.textContent='Login indisponível agora. Tente de novo em instantes.';return;}
     var bt=this.querySelector('button');bt.disabled=true;er.textContent='';
     if(criar){
-      SB.auth.signUp({email:em,password:se,options:{emailRedirectTo:location.href.split('#')[0]+'#entrar'}}).then(function(r){
-        bt.disabled=false;if(r.error){er.textContent=pnErro(r.error.message);return;}
-        if(r.data.session)return enDestino(r.data.user);
-        EN.modo='entrar';enForm('Senha criada. Falta confirmar o e-mail: abra o link que chegou para você (confira o spam) ou peça a liberação ao administrador. Depois, é só entrar aqui.');
+      if(se.length<6){bt.disabled=false;er.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
+      SB.rpc('primeiro_acesso_liberado',{email:em}).then(function(l){
+        if(l.error||l.data!==true){bt.disabled=false;er.textContent=l.error?pnErro(l.error.message):'Este e-mail não está cadastrado como atleta, ou já tem senha. Confira o e-mail ou fale com a FF.';return;}
+        SB.auth.signUp({email:em,password:se,options:{emailRedirectTo:location.href.split('#')[0]+'#entrar'}}).then(function(r){
+          bt.disabled=false;if(r.error){er.textContent=pnErro(r.error.message);return;}
+          if(r.data.session)return enDestino(r.data.user);
+          EN.modo='entrar';enForm('Senha criada. Falta confirmar o e-mail: abra o link que chegou para você (confira o spam). Depois, é só entrar aqui.');
+        });
       });
     }else{
       SB.auth.signInWithPassword({email:em,password:se}).then(function(r){
@@ -77,17 +93,30 @@ function enForm(msg){
 
 function enDestino(user){
   PN.user=user;acct();
-  SB.from('equipe_ff').select('nome,papel').eq('user_id',user.id).maybeSingle().then(function(r){
-    if(r.data){PN.equipe=r.data;toast('Bem-vindo, '+r.data.nome.split(' ')[0]+'!');acct();location.hash='painel';return;}
+  pnPerfil(function(p){
+    acct();
+    if(p&&p.tipo==='equipe'){PN.equipe=p;toast('Bem-vindo, '+p.nome.split(' ')[0]+'!');location.hash='painel';return;}
     var el=enEl();if(!el)return;
-    el.innerHTML='<div style="display:grid;gap:12px;text-align:center"><h3>Acesso ainda não liberado</h3><p class="muted" style="margin:0">Você entrou como <b>'+esc(user.email)+'</b>. A área do atleta com login próprio chega em breve; por enquanto, use a demonstração abaixo. Se você é da equipe FF, peça a liberação ao administrador.</p><button class="btn" id="enSair" style="justify-content:center">Sair</button></div>';
-    document.getElementById('enSair').addEventListener('click',function(){SB.auth.signOut().then(function(){EN.modo='entrar';acct();enForm();});});
+    var sair='<button class="btn" id="enSair" style="justify-content:center">Sair</button>';
+    if(p&&p.tipo==='atleta'){
+      // A área do atleta com os dados reais abre na onda 4, quando o atleta já estiver num time do site.
+      var id=p.time_id&&p.numero?p.time_id+'-'+p.numero:'',abre=ONDA>=4&&id&&PM[id];
+      el.innerHTML='<div style="display:grid;gap:12px;text-align:center;justify-items:center">'+pnSelo(p)+'<h3 style="margin:0">Olá, '+esc(p.nome.split(' ')[0])+'!</h3>'+
+        '<p class="muted" style="margin:0">Sua conta de atleta está ativa'+(p.time?' no <b>'+esc(p.time)+'</b>'+(p.numero?', camisa '+p.numero:''):'')+'. '+
+        (abre?'':'A sua área de atleta abre aqui quando a temporada começar.')+'</p>'+
+        (abre?'<button class="btn primary" id="enArea" style="justify-content:center;width:100%">Abrir minha área</button>':'')+sair+'</div>';
+      if(abre)document.getElementById('enArea').addEventListener('click',function(){login(id);});
+    }else{
+      el.innerHTML='<div style="display:grid;gap:12px;text-align:center"><h3>Acesso ainda não liberado</h3><p class="muted" style="margin:0">Você entrou como <b>'+esc(user.email)+'</b>, mas este e-mail ainda não está ligado a um atleta nem à equipe FF. Fale com a FF para liberar o seu acesso.</p>'+sair+'</div>';
+    }
+    document.getElementById('enSair').addEventListener('click',function(){SB.auth.signOut().then(function(){EN.modo='entrar';pnGuardaPerfil(null);acct();enForm();});});
   });
 }
 
 function pnCarregar(){
-  SB.from('equipe_ff').select('nome,papel').eq('user_id',PN.user.id).maybeSingle().then(function(r){
-    PN.equipe=r.data||null;
+  pnPerfil(function(p){
+    PN.equipe=p&&p.tipo==='equipe'?p:null;
+    if(p&&p.tipo==='atleta'){location.replace('#entrar');return;}
     if(!PN.equipe){var el=pnEl();if(!el)return;
       el.innerHTML='<div class="login"><div class="card" style="display:grid;gap:12px;text-align:center"><h2>Acesso ainda não liberado</h2><p class="muted" style="margin:0">Você entrou como <b>'+esc(PN.user.email)+'</b>, mas este e-mail ainda não faz parte da equipe FF. Peça a liberação ao administrador.</p><button class="btn" id="pnSair" style="justify-content:center">Sair</button></div></div>';
       document.getElementById('pnSair').addEventListener('click',pnSair);return;}
@@ -115,13 +144,20 @@ function pnData(iso){if(!iso)return '';var d=new Date(iso);return String(d.getDa
 
 function pnPainel(){
   var el=pnEl();if(!el)return;
-  el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+' · '+(PN.equipe.papel==='admin'?'administrador':'editor')+'</div><h1>Pré-inscrições</h1></div><button class="btn sm" id="pnSair">Sair</button></div>'+
-  '<p class="muted" style="margin:-6px 0 16px">Atualiza sozinho: pré-inscrições novas e decisões de outras pessoas da equipe aparecem na hora.</p>'+
+  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['atletas','Atletas'],['historico','Histórico']];
+  el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+'</div><h1>'+abas.filter(function(a){return a[0]===PN.aba;})[0][1]+'</h1></div>'+
+  '<div class="pnquem">'+pnSelo(PN.equipe)+'<button class="btn sm" id="pnSair">Sair</button></div></div>'+
+  '<nav class="ctabs pnabas" aria-label="Seções do painel">'+abas.map(function(a){return '<a href="#painel" data-aba="'+a[0]+'" class="'+(PN.aba===a[0]?'on':'')+'">'+a[1]+'</a>';}).join('')+'</nav>'+
+  '<div id="pnAba"></div>';
+  document.getElementById('pnSair').addEventListener('click',pnSair);
+  el.querySelectorAll('[data-aba]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();PN.aba=a.dataset.aba;CD.form=null;pnPainel();});});
+  if(PN.aba!=='inscricoes')return cdAba(PN.aba);
+  document.getElementById('pnAba').innerHTML=
+  '<p class="muted" style="margin:0 0 16px">Atualiza sozinho: pré-inscrições novas e decisões de outras pessoas da equipe aparecem na hora.</p>'+
   '<div class="days" id="pnFilt" style="flex-wrap:wrap"></div>'+
   '<div class="pnbusca"><label class="fld">Buscar<input id="pnBusca" placeholder="Nome, e-mail ou protocolo" value="'+esc(PN.busca)+'"></label>'+
   '<button class="btn sm" id="pnExcel" title="Baixa a lista que está na tela (filtro e busca) num arquivo do Excel"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v10M5.5 8.5L10 13l4.5-4.5M4 17h12"/></svg>Baixar Excel</button></div>'+
   '<div id="pnLista" style="display:grid;gap:14px"></div>';
-  document.getElementById('pnSair').addEventListener('click',pnSair);
   document.getElementById('pnExcel').addEventListener('click',pnExcel);
   document.getElementById('pnBusca').addEventListener('input',function(){PN.busca=this.value;pnLista();});
   pnLista();
