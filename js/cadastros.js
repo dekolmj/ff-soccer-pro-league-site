@@ -26,8 +26,8 @@ function cdCarregar(cb){
     CD.ok=true;cb();
   });
 }
-function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,atletas:cdAtletas,historico:cdHistorico})[aba]();};
-  if(aba==='historico'||CD.ok)ir();else cdCarregar(ir);}
+function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,atletas:cdAtletas,historico:cdHistorico,acessos:cdAcessos})[aba]();};
+  if(aba==='historico'||aba==='acessos'||CD.ok)ir();else cdCarregar(ir);}
 function cdRecarregar(){CD.ok=false;cdAba(PN.aba);}
 
 function cdTime(id){return CD.times.filter(function(t){return t.id===id;})[0];}
@@ -240,4 +240,91 @@ function cdHistorico(){
         '<td data-l="O que">'+esc(h.acao)+' · '+esc(CD_TAB[h.tabela]||h.tabela)+'</td><td data-l="Registro" class="wr">'+esc(h.resumo||'')+'</td></tr>';}).join('')+
       '</tbody></table></div>':'<div class="card"><p class="muted" style="margin:0">Nenhuma alteração registrada ainda.</p></div>');
   });
+}
+
+/* ================= ACESSOS (só administradores) =================
+   Quem entra no site: funcionários da FF (contas e convites) e atletas. O envio do convite por e-mail
+   ainda não está ligado: os botões de convite aparecem desligados, com "em breve". */
+var CD_AC={dados:null,lado:'equipe',busca:'',situ:'',form:false};
+var CD_SITU={ativa:['Conta ativa','ok'],convite:['Convite pendente','gold'],sem_acesso:['Sem acesso','']};
+function cdQuando(iso){return iso?pnData(iso):'—';}
+function cdEmBreve(txt){return '<button class="btn sm cdbreve" type="button" disabled title="O envio por e-mail chega numa próxima etapa">'+txt+'<span>em breve</span></button>';}
+
+function cdAcessos(){
+  SB.rpc('listar_acessos').then(function(r){
+    if(PN.aba!=='acessos'||!cdEl())return;
+    if(r.error||!r.data||!r.data.ok){cdMsg((r.data&&r.data.erro)||'Não foi possível carregar os acessos.');return;}
+    CD_AC.dados=r.data;cdAcessosTela();});
+}
+function cdAcessosTela(){
+  var el=cdEl(),d=CD_AC.dados,eq=d.equipe,at=d.atletas;
+  var cont=function(ls,s){return ls.filter(function(x){return x.situacao===s;}).length;};
+  el.innerHTML='<p class="muted" style="margin:0 0 14px">Quem pode entrar no site e em que perfil. <b>Funcionários FF</b> vão para este painel; <b>atletas</b>, para a área do atleta. O envio do convite por e-mail chega numa próxima etapa.</p>'+
+    '<div class="days cdlados"><button data-lado="equipe" class="'+(CD_AC.lado==='equipe'?'on':'')+'">Funcionários FF · '+eq.length+'</button>'+
+    '<button data-lado="atletas" class="'+(CD_AC.lado==='atletas'?'on':'')+'">Atletas · '+at.length+'</button></div>'+
+    '<div class="cdresumo">'+(CD_AC.lado==='equipe'
+      ?'<span class="chip ok">Conta ativa · '+cont(eq,'ativa')+'</span><span class="chip gold">Convite pendente · '+cont(eq,'convite')+'</span>'
+      :'<span class="chip ok">Conta ativa · '+cont(at,'ativa')+'</span><span class="chip">Sem acesso · '+cont(at,'sem_acesso')+'</span>')+'</div>'+
+    '<div id="cdAcLado"></div>';
+  el.querySelectorAll('[data-lado]').forEach(function(b){b.addEventListener('click',function(){CD_AC.lado=b.dataset.lado;CD_AC.form=false;cdAcessosTela();});});
+  if(CD_AC.lado==='equipe')cdAcEquipe();else cdAcAtletas();
+}
+
+function cdAcEquipe(){
+  var box=document.getElementById('cdAcLado'),eq=CD_AC.dados.equipe;
+  box.innerHTML='<div class="pnbusca"><p class="muted" style="margin:0;flex:1 1 300px"><b>Administrador</b> pode tudo, inclusive apagar e dar acessos. <b>Editor</b> cadastra e edita, mas não apaga.</p>'+
+    '<button class="btn primary sm" id="cdNovoAc">+ Convidar funcionário</button></div>'+
+    (CD_AC.form?'<form class="card cdform" id="cdForm" novalidate><h3>Convidar funcionário da FF</h3><div class="cdcampos">'+
+      cdCampo('Nome *','<input id="cNome" maxlength="80">')+cdCampo('E-mail *','<input id="cEmail" type="email" maxlength="120">')+
+      cdCampo('Perfil *','<select id="cPapel"><option value="editor">Editor</option><option value="admin">Administrador</option></select>')+'</div>'+
+      '<div class="notice" style="margin-top:14px">O convite fica registrado aqui. Quando o envio por e-mail estiver ligado, a pessoa recebe o link para criar a senha. Até lá, a conta é criada pela equipe técnica e já entra com este perfil.</div>'+
+      '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">Salvar convite</button><button class="btn" type="button" id="cdCancela">Cancelar</button></div></form>':'')+
+    '<div class="card pntbl" style="padding:0"><table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead><tbody>'+
+    eq.map(function(x){var s=CD_SITU[x.situacao]||[x.situacao,''];
+      var perfil=x.user_id&&!x.eu?'<select class="cdpapel" data-u="'+x.user_id+'">'+cdOpcoes([['admin','Administrador'],['editor','Editor']],x.papel)+'</select>'
+        :(x.papel==='admin'?'Administrador':'Editor');
+      return '<tr><td data-l="Nome" class="nm">'+esc(x.nome)+(x.eu?' <span class="chip">você</span>':'')+'</td><td data-l="E-mail" class="em">'+esc(x.email)+'</td>'+
+        '<td data-l="Perfil">'+perfil+'</td><td data-l="Situação"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
+        '<td data-l="Último acesso">'+(x.situacao==='convite'?'<span class="lbl">Convidado em '+cdQuando(x.convidado_em)+'</span>':cdQuando(x.ultimo_acesso))+'</td>'+
+        '<td class="ac"><div class="pnacoes">'+(x.situacao==='convite'?cdEmBreve('Enviar convite'):'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
+  document.getElementById('cdNovoAc').addEventListener('click',function(){CD_AC.form=true;cdAcEquipe();cdFoco();});
+  box.querySelectorAll('.cdpapel').forEach(function(sel){sel.addEventListener('change',function(){
+    var v=sel.value;sel.disabled=true;
+    SB.rpc('alterar_papel',{usuario:sel.dataset.u,papel:v}).then(function(r){sel.disabled=false;
+      if(r.error||!r.data||!r.data.ok){toast((r.data&&r.data.erro)||'Não foi possível alterar.');cdAcessos();return;}
+      toast('Perfil alterado para '+(v==='admin'?'Administrador':'Editor')+'.');cdAcessos();});});});
+  if(!CD_AC.form)return;
+  document.getElementById('cdCancela').addEventListener('click',function(){CD_AC.form=false;cdAcEquipe();});
+  document.getElementById('cdForm').addEventListener('submit',function(e){e.preventDefault();
+    var er=document.getElementById('cdErr'),nome=document.getElementById('cNome').value.trim(),em=document.getElementById('cEmail').value.trim().toLowerCase();
+    if(!nome||!/^\S+@\S+\.\S+$/.test(em)){er.textContent='Preencha o nome e um e-mail válido.';return;}
+    var bt=this.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
+    SB.rpc('convidar_equipe',{email:em,nome:nome,papel:document.getElementById('cPapel').value}).then(function(r){bt.disabled=false;
+      if(r.error||!r.data||!r.data.ok){er.textContent=(r.data&&r.data.erro)||'Não foi possível salvar. Tente de novo.';return;}
+      CD_AC.form=false;toast('Convite salvo para '+nome.split(' ')[0]+'.');cdAcessos();});
+  });
+}
+
+function cdAcAtletas(){
+  var box=document.getElementById('cdAcLado');
+  box.innerHTML='<div class="pnbusca"><label class="fld">Buscar<input id="cdAcBusca" placeholder="Nome, e-mail ou time" value="'+esc(CD_AC.busca)+'"></label>'+
+    '<label class="fld" style="flex:0 1 200px">Situação<select id="cdAcSitu">'+cdOpcoes([['','Todas'],['ativa','Conta ativa'],['sem_acesso','Sem acesso']],CD_AC.situ)+'</select></label>'+
+    cdEmBreve('Convidar todos sem acesso')+'</div>'+
+    '<p class="muted" style="margin:-6px 0 14px;font-size:14px">O acesso do atleta usa o e-mail do cadastro (aba Atletas). Para corrigir um e-mail, edite o atleta lá.</p>'+
+    '<div id="cdAcLista"></div>';
+  document.getElementById('cdAcBusca').addEventListener('input',function(){CD_AC.busca=this.value;cdAcAtletasLista();});
+  document.getElementById('cdAcSitu').addEventListener('change',function(){CD_AC.situ=this.value;cdAcAtletasLista();});
+  cdAcAtletasLista();
+}
+function cdAcAtletasLista(){
+  var box=document.getElementById('cdAcLista');if(!box)return;var q=CD_AC.busca.trim().toLowerCase();
+  var ls=CD_AC.dados.atletas.filter(function(x){return (!CD_AC.situ||x.situacao===CD_AC.situ)&&(!q||[x.nome,x.email,x.time].join(' ').toLowerCase().indexOf(q)>=0);});
+  if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">Nenhum atleta neste filtro.</p></div>';return;}
+  box.innerHTML='<div class="card pntbl" style="padding:0"><table class="tbl"><thead><tr><th>Atleta</th><th>Time</th><th>E-mail</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead><tbody>'+
+    ls.map(function(x){var s=CD_SITU[x.situacao]||[x.situacao,''];
+      return '<tr><td data-l="Atleta" class="nm">'+esc(x.nome)+(x.exemplo?' <span class="chip">exemplo</span>':'')+'</td>'+
+        '<td data-l="Time">'+(x.time?esc(x.time)+(x.numero?' · nº '+x.numero:''):'<span class="muted">Sem time</span>')+'</td>'+
+        '<td data-l="E-mail" class="em">'+esc(x.email||'')+'</td><td data-l="Situação"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
+        '<td data-l="Último acesso">'+cdQuando(x.ultimo_acesso)+'</td>'+
+        '<td class="ac"><div class="pnacoes">'+(x.situacao==='sem_acesso'?cdEmBreve('Enviar convite'):'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
 }
