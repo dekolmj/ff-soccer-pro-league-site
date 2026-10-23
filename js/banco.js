@@ -22,7 +22,10 @@ function dataBrasilia(iso){
 }
 
 function montarDados(d){
-  var ORD={GOL:0,LAT:1,ZAG:2,VOL:3,MEI:4,ATA:5},un={},at={},sid={},nVar=(d.temporadas[0]||{}).desafios_var_por_jogo;
+  // Por enquanto o Campeonato do site mostra só a FF Pro League (a Libertadores FF tem as suas próprias temporadas).
+  var pro=d.temporadas.filter(function(t){return (t.competicao||'pro_league')==='pro_league';}),ids=pro.map(function(t){return t.id;}),daPro=function(x){return ids.indexOf(x.temporada_id)>=0;};
+  d.times=d.times.filter(daPro);d.elencos=d.elencos.filter(daPro);d.jogos=d.jogos.filter(daPro);
+  var ORD={GOL:0,LAT:1,ZAG:2,VOL:3,MEI:4,ATA:5},un={},at={},sid={},nVar=(pro[0]||{}).desafios_var_por_jogo;
   if(nVar==null)nVar=2;
   d.unidades.forEach(function(u){un[u.id]=u.nome;});
   d.atletas.forEach(function(a){at[a.id]=a;});
@@ -81,12 +84,12 @@ function carregarBanco(pronto){
   setTimeout(fim,4000);
   var T=['temporadas','unidades','times','atletas','elencos','jogos','escalacoes','eventos_jogo','desafios_var'];
   Promise.all([
-    sbGet('temporadas','select=id,desafios_var_por_jogo&order=id.desc'),
+    sbGet('temporadas','select=id,desafios_var_por_jogo,competicao&order=id.desc'),
     sbGet('unidades','select=id,nome'),
-    sbGet('times','select=id,nome,cor,ordem&order=ordem,nome'),
+    sbGet('times','select=id,nome,cor,ordem,temporada_id&order=ordem,nome'),
     sbGet('atletas','select=id,nome,posicao,unidade_id,foto_url&order=id'),
-    sbGet('elencos','select=time_id,atleta_id,numero&order=id'),
-    sbGet('jogos','select=id,rodada,ordem,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,minuto_atual,mvp_atleta_id&order=rodada,ordem'),
+    sbGet('elencos','select=time_id,atleta_id,numero,temporada_id&order=id'),
+    sbGet('jogos','select=id,temporada_id,rodada,ordem,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,minuto_atual,mvp_atleta_id&order=rodada,ordem'),
     sbGet('escalacoes','select=jogo_id,atleta_id,minutos&order=jogo_id,atleta_id'),
     sbGet('eventos_jogo','select=jogo_id,minuto,tipo,time_id,atleta_id,atleta2_id,observacao&order=minuto,criado_em,id'),
     sbGet('desafios_var','select=jogo_id,time_id,minuto,motivo&order=minuto,criado_em,id')

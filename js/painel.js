@@ -145,13 +145,13 @@ function pnData(iso){if(!iso)return '';var d=new Date(iso);return String(d.getDa
 
 function pnPainel(){
   var el=pnEl();if(!el)return;
-  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['usuarios','Usuários'],['historico','Histórico']].filter(function(a){return a[0]!=='inscricoes'||preOn();});
+  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['jogos','Jogos'],['usuarios','Usuários'],['historico','Histórico']].filter(function(a){return a[0]!=='inscricoes'||preOn();});
   el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+'</div><h1>'+abas.filter(function(a){return a[0]===PN.aba;})[0][1]+'</h1></div>'+
   '<div class="pnquem">'+pnSelo(PN.equipe)+'<button class="btn sm" id="pnSair">Sair</button></div></div>'+
   '<nav class="ctabs pnabas" aria-label="Seções do painel">'+abas.map(function(a){return '<a href="#painel" data-aba="'+a[0]+'" class="'+(PN.aba===a[0]?'on':'')+'">'+a[1]+'</a>';}).join('')+'</nav>'+
   '<div id="pnAba"></div>';
   document.getElementById('pnSair').addEventListener('click',pnSair);
-  el.querySelectorAll('[data-aba]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();PN.aba=a.dataset.aba;CD.form=null;pnPainel();});});
+  el.querySelectorAll('[data-aba]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();PN.aba=a.dataset.aba;CD.form=null;CD.sumula=null;pnPainel();});});
   var ab=el.querySelector('.pnabas a.on');if(ab)ab.parentNode.scrollLeft=Math.max(0,ab.offsetLeft-20);  // no celular, a aba aberta fica à vista
   if(PN.aba!=='inscricoes')return cdAba(PN.aba);
   document.getElementById('pnAba').innerHTML=
