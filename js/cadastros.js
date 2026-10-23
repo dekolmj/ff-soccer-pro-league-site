@@ -618,12 +618,12 @@ function cdSumulaTela(){
           '<b>'+e.numero+'</b><span>'+esc(a.nome)+'<small>'+esc(POSN[a.posicao]||'')+(su?' · <em>Suspenso: vermelho na rodada '+su.rodada+'</em>':'')+'</small></span></label>';}).join('')+'</div>'
         :'<p class="muted" style="margin:0">Este time não tem atletas no elenco desta competição. Cadastre em Usuários.</p>')+'</div>';};
   // cada campo da linha tem o seu nome em cima (ex.: "Autor do gol" e "Assistência"), para não confundir os dois atletas
-  var rot=function(txt,html){return '<label class="cdevc"><small>'+txt+'</small>'+html+'</label>';};
+  var rot=function(txt,html,cl){return '<label class="cdevc '+cl+'"><small>'+txt+'</small>'+html+'</label>';};
   var linha=function(lista,i,x,tipos){var t=x.time_id||j.time_casa,gol=lista==='gols';x.time_id=t;
-    return '<div class="cdev">'+rot('Tipo','<select data-k="'+lista+'.'+i+'.tipo"'+dis+'>'+cdOpcoes(tipos,x.tipo)+'</select>')+rot(gol?(x.tipo==='gol_contra'?'Time de quem fez contra':'Time que marcou'):'Time',selT(lista+'.'+i+'.time_id',t))+
-      rot('Minuto','<input type="number" min="0" max="130" placeholder="Min." data-k="'+lista+'.'+i+'.minuto" value="'+esc(x.minuto==null?'':x.minuto)+'"'+dis+'>')+
-      rot(gol?(x.tipo==='gol_contra'?'Quem fez contra':'Autor do gol'):'Atleta','<select data-k="'+lista+'.'+i+'.atleta_id"'+dis+'>'+opAt(t,x.atleta_id)+'</select>')+
-      (gol?(x.tipo==='gol'?rot('Assistência','<select data-k="gols.'+i+'.atleta2_id"'+dis+'><option value="">Sem assistência</option>'+opAt(t,x.atleta2_id,x.atleta_id).replace('<option value="">Escolha</option>','')+'</select>'):'<span class="lbl">conta para o adversário</span>'):'')+
+    return '<div class="cdev">'+rot('Tipo','<select data-k="'+lista+'.'+i+'.tipo"'+dis+'>'+cdOpcoes(tipos,x.tipo)+'</select>','ctipo')+rot(gol?(x.tipo==='gol_contra'?'Time de quem fez contra':'Time que marcou'):'Time',selT(lista+'.'+i+'.time_id',t),'ctime')+
+      rot('Minuto','<input type="number" min="0" max="130" placeholder="Min." data-k="'+lista+'.'+i+'.minuto" value="'+esc(x.minuto==null?'':x.minuto)+'"'+dis+'>','cmin')+
+      rot(gol?(x.tipo==='gol_contra'?'Quem fez contra':'Autor do gol'):'Atleta','<select data-k="'+lista+'.'+i+'.atleta_id"'+dis+'>'+opAt(t,x.atleta_id)+'</select>','cat')+
+      (gol?(x.tipo==='gol'?rot('Assistência','<select data-k="gols.'+i+'.atleta2_id"'+dis+'><option value="">Sem assistência</option>'+opAt(t,x.atleta2_id,x.atleta_id).replace('<option value="">Escolha</option>','')+'</select>','cat'):'<span class="lbl">conta para o adversário</span>'):'')+
       (ro?'':'<button type="button" class="pnic no" data-tira="'+lista+'.'+i+'" title="Tirar" aria-label="Tirar">✕</button>')+'</div>';};
   var cnt=function(t){return S.var.filter(function(x){return x.time_id===t;}).length;};
   el.innerHTML='<div class="cdsum"><button class="btn sm" id="cdVolta" type="button">← Voltar aos jogos</button>'+
@@ -640,9 +640,9 @@ function cdSumulaTela(){
       '<p class="muted" style="margin:10px 0 0;font-size:13px">Cartão vermelho suspende o atleta no jogo seguinte do time.</p></div>'+
     '<div class="card"><div class="between"><h3>VAR <span class="lbl">até '+lim+' por time · '+esc(nomeT(j.time_casa))+' '+cnt(j.time_casa)+' · '+esc(nomeT(j.time_fora))+' '+cnt(j.time_fora)+'</span></h3>'+(ro?'':'<button type="button" class="btn sm" data-add="var">+ Pedido de VAR</button>')+'</div>'+
       (S.var.length?S.var.map(function(x,i){x.time_id=x.time_id||j.time_casa;x.resultado=x.resultado||'pendente';
-        return '<div class="cdev">'+rot('Time que pediu',selT('var.'+i+'.time_id',x.time_id))+rot('Minuto','<input type="number" min="0" max="130" placeholder="Min." data-k="var.'+i+'.minuto" value="'+esc(x.minuto==null?'':x.minuto)+'"'+dis+'>')+
+        return '<div class="cdev">'+rot('Time que pediu',selT('var.'+i+'.time_id',x.time_id),'ctime')+rot('Minuto','<input type="number" min="0" max="130" placeholder="Min." data-k="var.'+i+'.minuto" value="'+esc(x.minuto==null?'':x.minuto)+'"'+dis+'>','cmin')+
           '<label class="cdevc cdmot"><small>Motivo</small><input maxlength="200" placeholder="Ex.: pênalti não marcado" data-k="var.'+i+'.motivo" value="'+esc(x.motivo||'')+'"'+dis+'></label>'+
-          rot('Decisão','<select data-k="var.'+i+'.resultado"'+dis+'>'+cdOpcoes([['pendente','Pendente'],['mantida','Mantida'],['revertida','Revertida']],x.resultado)+'</select>')+
+          rot('Decisão','<select data-k="var.'+i+'.resultado"'+dis+'>'+cdOpcoes([['pendente','Pendente'],['mantida','Mantida'],['revertida','Revertida']],x.resultado)+'</select>','ctipo')+
           (ro?'':'<button type="button" class="pnic no" data-tira="var.'+i+'" title="Tirar" aria-label="Tirar">✕</button>')+'</div>';}).join(''):'<p class="muted" style="margin:8px 0 0">Nenhum pedido de VAR.</p>')+'</div>'+
     '<div class="card"><h3>MVP do jogo</h3><label class="fld" style="max-width:420px;margin-top:8px">Melhor em campo<select id="sMvp"'+dis+'><option value="">Escolha</option>'+
       [j.time_casa,j.time_fora].map(function(t){return '<optgroup label="'+esc(nomeT(t))+'">'+escDe(t).map(function(a){return '<option value="'+a.id+'"'+(a.id===S.mvp?' selected':'')+'>'+(a.els[j.temporada_id]||{}).numero+' · '+esc(a.nome)+'</option>';}).join('')+'</optgroup>';}).join('')+'</select></label></div>'+

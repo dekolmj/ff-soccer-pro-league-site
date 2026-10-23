@@ -1091,3 +1091,8 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
 .cdev>.lbl{padding-bottom:10px}
 .cdev .cdmot input{width:100%}
 .cdev select,.cdev input{height:40px;box-sizing:border-box}
+/* súmula: colunas com a mesma largura em todas as linhas */
+.cdevc select,.cdevc input{width:100%;max-width:none}
+.cdevc small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdev .ctipo{width:140px}.cdev .ctime{width:190px}.cdev .cmin{width:80px}.cdev .cat{width:250px}
+@media (max-width:700px){.cdev .ctipo,.cdev .ctime,.cdev .cat{flex:1 1 140px;width:auto}.cdev .cmin{width:80px}}
