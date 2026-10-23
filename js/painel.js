@@ -152,6 +152,7 @@ function pnPainel(){
   '<div id="pnAba"></div>';
   document.getElementById('pnSair').addEventListener('click',pnSair);
   el.querySelectorAll('[data-aba]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();PN.aba=a.dataset.aba;CD.form=null;pnPainel();});});
+  var ab=el.querySelector('.pnabas a.on');if(ab)ab.parentNode.scrollLeft=Math.max(0,ab.offsetLeft-20);  // no celular, a aba aberta fica à vista
   if(PN.aba!=='inscricoes')return cdAba(PN.aba);
   document.getElementById('pnAba').innerHTML=
   '<p class="muted" style="margin:0 0 16px">Atualiza sozinho: pré-inscrições novas e decisões de outras pessoas da equipe aparecem na hora.</p>'+
