@@ -25,7 +25,7 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 ```
 index.html            estrutura da página (cabeçalho, menu, rodapé, <main id="app">)
 css/site.css          todo o visual
-js/config.js          CONFIG: banco (Supabase), onda, botão Entrar e temporada zerada
+js/config.js          CONFIG: banco (Supabase), versão dos termos, onda e unidades FF
 js/dados-exemplo.js   times, atletas e jogos de exemplo (reserva, se o banco não responder)
 js/banco.js           lê times, atletas e jogos do Supabase e monta as mesmas variáveis
 js/tv-canvas.js       animação da TV FF (Scene, initCanvases)
