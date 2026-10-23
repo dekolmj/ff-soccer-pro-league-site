@@ -145,7 +145,7 @@ function pnData(iso){if(!iso)return '';var d=new Date(iso);return String(d.getDa
 
 function pnPainel(){
   var el=pnEl();if(!el)return;
-  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['atletas','Atletas'],['historico','Histórico'],['acessos','Acessos']].filter(function(a){return (a[0]!=='inscricoes'||preOn())&&(a[0]!=='acessos'||PN.equipe.papel==='admin');});
+  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['usuarios','Usuários'],['historico','Histórico']].filter(function(a){return a[0]!=='inscricoes'||preOn();});
   el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+'</div><h1>'+abas.filter(function(a){return a[0]===PN.aba;})[0][1]+'</h1></div>'+
   '<div class="pnquem">'+pnSelo(PN.equipe)+'<button class="btn sm" id="pnSair">Sair</button></div></div>'+
   '<nav class="ctabs pnabas" aria-label="Seções do painel">'+abas.map(function(a){return '<a href="#painel" data-aba="'+a[0]+'" class="'+(PN.aba===a[0]?'on':'')+'">'+a[1]+'</a>';}).join('')+'</nav>'+

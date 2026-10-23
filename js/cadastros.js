@@ -1,8 +1,8 @@
-/* Cadastros do painel da equipe FF (#painel): Times, Atletas e Histórico.
+/* Cadastros do painel da equipe FF (#painel): Times, Usuários (atletas e funcionários) e Histórico.
    Usa o mesmo login do painel.js (SB, PN). O banco decide quem pode gravar; aqui só a interface.
    Apagar times e atletas fica só para administradores. Escudos e fotos vão para o armazenamento 'marca'. */
 
-var CD={ok:false,temporada:null,times:[],atletas:[],unidades:[],aprovadas:[],busca:'',time:'',form:null,hist:[]};
+var CD={ok:false,temporada:null,times:[],atletas:[],unidades:[],aprovadas:[],equipe:[],acesso:{},busca:'',tipo:'',time:'',situ:'',form:null,hist:[]};
 var CD_POS=['GOL','LAT','ZAG','VOL','MEI','ATA'],CD_KIT=['P','M','G','GG','XG'];
 
 function cdEl(){return document.getElementById('pnAba');}
@@ -16,18 +16,20 @@ function cdCarregar(cb){
     SB.from('times').select('id,nome,cor,escudo_url,tecnico,ordem,exemplo,temporada_id').order('ordem').order('nome'),
     SB.from('atletas').select('id,nome,apelido,posicao,unidade_id,foto_url,ativo,exemplo,user_id,atletas_privado(email,celular,nascimento),elencos(time_id,numero,nome_camisa,kit,temporada_id)').order('nome'),
     SB.from('unidades').select('id,nome').eq('ativa',true).order('nome'),
-    !preOn()?Promise.resolve({data:[]}):SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome')
+    !preOn()?Promise.resolve({data:[]}):SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome'),
+    SB.rpc('listar_acessos')
   ]).then(function(r){
     var erro=r.filter(function(x){return x.error;})[0];
     if(erro){cdMsg('Não foi possível carregar os cadastros. Recarregue a página.');console.warn(erro.error);return;}
+    var ac=r[5].data&&r[5].data.ok?r[5].data:{equipe:[],atletas:[]};CD.equipe=ac.equipe;CD.acesso={};ac.atletas.forEach(function(x){CD.acesso[x.id]=x;});
     CD.temporada=(r[0].data[0]||{}).id||null;CD.times=r[1].data;CD.unidades=r[3].data;CD.aprovadas=r[4].data;
     CD.atletas=r[2].data.map(function(a){var pv=Array.isArray(a.atletas_privado)?a.atletas_privado[0]:a.atletas_privado,el=(a.elencos||[]).slice().sort(function(x,y){return y.temporada_id-x.temporada_id;})[0];
       a.pv=pv||{};a.el=el||null;return a;});
     CD.ok=true;cb();
   });
 }
-function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,atletas:cdAtletas,historico:cdHistorico,acessos:cdAcessos})[aba]();};
-  if(aba==='historico'||aba==='acessos'||CD.ok)ir();else cdCarregar(ir);}
+function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,usuarios:cdUsuarios,historico:cdHistorico})[aba]();};
+  if(aba==='historico'||CD.ok)ir();else cdCarregar(ir);}
 function cdRecarregar(){CD.ok=false;cdAba(PN.aba);}
 
 function cdTime(id){return CD.times.filter(function(t){return t.id===id;})[0];}
@@ -114,53 +116,122 @@ function cdTimeLigar(f,qtd){
   });
 }
 
-/* ================= ATLETAS ================= */
+/* ================= USUÁRIOS (atletas e funcionários da FF) =================
+   Uma lista só, com filtro por tipo. "+ Criar usuário" abre o cadastro e pergunta se é atleta ou funcionário.
+   Atleta: o cadastro completo (dados, contato e time). Funcionário: nome, e-mail, telefone, cargo e perfil de acesso
+   (só administrador cria ou altera funcionário). O envio do convite por e-mail ainda não está ligado ("em breve"). */
+var CD_SITU={ativa:['Conta ativa','ok'],convite:['Convite pendente','gold'],sem_acesso:['Sem acesso','']};
+function cdQuando(iso){return iso?pnData(iso):'—';}
+function cdEmBreve(txt){return '<button class="btn sm cdbreve" type="button" disabled title="O envio por e-mail chega numa próxima etapa">'+txt+'<span>em breve</span></button>';}
 function cdAtletaPorEmail(em){em=String(em||'').toLowerCase();return CD.atletas.filter(function(a){return (a.pv.email||'').toLowerCase()===em;})[0];}
 function cdPendentes(){return CD.aprovadas.filter(function(x){return !cdAtletaPorEmail(x.email);});}
 
-function cdAtletas(){
+// Lista única: atletas + funcionários, cada um com tipo, função, contato e situação do acesso.
+function cdLinhas(){
+  var at=CD.atletas.map(function(a){var t=a.el&&cdTime(a.el.time_id),ac=CD.acesso[a.id]||{};
+    return {tipo:'atleta',id:a.id,nome:a.nome,foto:a.foto_url,email:a.pv.email||'',tel:a.pv.celular||'',
+      funcao:POSN[a.posicao]||a.posicao,detalhe:t?t.nome+(a.el?' · nº '+a.el.numero:''):'Sem time',time:a.el?a.el.time_id:'',
+      situacao:a.user_id?'ativa':'sem_acesso',ultimo:ac.ultimo_acesso,exemplo:a.exemplo,inativo:!a.ativo,a:a};});
+  var fu=CD.equipe.map(function(x){
+    return {tipo:'func',id:x.email,nome:x.nome,email:x.email,tel:x.telefone||'',funcao:x.cargo||'Funcionário',
+      detalhe:x.papel==='admin'?'Administrador':'Editor',situacao:x.situacao,ultimo:x.situacao==='convite'?null:x.ultimo_acesso,
+      convidado:x.convidado_em,eu:x.eu,x:x};});
+  return fu.concat(at);
+}
+
+function cdUsuarios(){
   var el=cdEl(),f=CD.form&&CD.form.tipo!=='time'?CD.form:null,pend=cdPendentes();
-  el.innerHTML='<div class="pnbusca"><label class="fld">Buscar<input id="cdBusca" placeholder="Nome ou e-mail" value="'+esc(CD.busca)+'"></label>'+
-    '<label class="fld" style="flex:0 1 220px">Time<select id="cdTimeF">'+cdOpcoes([['','Todos'],['-','Sem time']].concat(CD.times.map(function(t){return [t.id,t.nome];})),CD.time)+'</select></label>'+
-    '<button class="btn primary sm" id="cdNovoAt">+ Novo atleta</button>'+
+  el.innerHTML='<div class="pnbusca"><label class="fld">Buscar<input id="cdBusca" placeholder="Nome, e-mail ou cargo" value="'+esc(CD.busca)+'"></label>'+
+    '<label class="fld" style="flex:0 1 190px">Tipo<select id="cdTipoF">'+cdOpcoes([['','Todos'],['atleta','Atletas'],['func','Funcionários FF']],CD.tipo)+'</select></label>'+
+    '<label class="fld" style="flex:0 1 190px">Time<select id="cdTimeF">'+cdOpcoes([['','Todos'],['-','Sem time']].concat(CD.times.map(function(t){return [t.id,t.nome];})),CD.time)+'</select></label>'+
+    '<label class="fld" style="flex:0 1 190px">Acesso<select id="cdSituF">'+cdOpcoes([['','Todos'],['ativa','Conta ativa'],['convite','Convite pendente'],['sem_acesso','Sem acesso']],CD.situ)+'</select></label>'+
+    '<button class="btn primary sm" id="cdNovo">+ Criar usuário</button>'+
     (preOn()?'<button class="btn sm" id="cdImporta"'+(pend.length?'':' disabled')+'>Cadastrar aprovados · '+pend.length+'</button>':'')+'</div>'+
-    (f&&f.tipo==='importar'?cdImportaHTML(pend):'')+(f&&f.tipo==='atleta'?cdAtletaForm(f):'')+
+    '<div class="cdresumo" id="cdResumo"></div>'+
+    (f&&f.tipo==='importar'?cdImportaHTML(pend):'')+(f&&f.tipo==='atleta'?cdAtletaForm(f):'')+(f&&f.tipo==='func'?cdFuncForm(f):'')+
     '<div id="cdLista"></div>';
-  document.getElementById('cdBusca').addEventListener('input',function(){CD.busca=this.value;cdAtletasLista();});
-  document.getElementById('cdTimeF').addEventListener('change',function(){CD.time=this.value;cdAtletasLista();});
-  document.getElementById('cdNovoAt').addEventListener('click',function(){CD.form={tipo:'atleta',novo:true,el:{}};cdAtletas();cdFoco();});
-  if(preOn())document.getElementById('cdImporta').addEventListener('click',function(){CD.form={tipo:'importar'};cdAtletas();
+  document.getElementById('cdBusca').addEventListener('input',function(){CD.busca=this.value;cdUsuariosLista();});
+  [['cdTipoF','tipo'],['cdTimeF','time'],['cdSituF','situ']].forEach(function(p){document.getElementById(p[0]).addEventListener('change',function(){CD[p[1]]=this.value;cdUsuariosLista();});});
+  document.getElementById('cdNovo').addEventListener('click',function(){CD.form={tipo:'atleta',novo:true,el:{}};cdUsuarios();cdFoco();});
+  if(preOn())document.getElementById('cdImporta').addEventListener('click',function(){CD.form={tipo:'importar'};cdUsuarios();
     var b=document.getElementById('cdImp');if(b)b.scrollIntoView({block:'start',behavior:'smooth'});});
   if(f&&f.tipo==='importar')cdImportaLigar(pend);
   if(f&&f.tipo==='atleta')cdAtletaLigar(f);
-  cdAtletasLista();
+  if(f&&f.tipo==='func')cdFuncLigar(f);
+  if(f&&f.novo)cdTipoLigar();
+  cdUsuariosLista();
 }
 
-function cdAtletasLista(){
-  var box=document.getElementById('cdLista');if(!box)return;var q=CD.busca.trim().toLowerCase();
-  var ls=CD.atletas.filter(function(a){
-    if(CD.time==='-'?a.el:CD.time&&(!a.el||a.el.time_id!==CD.time))return false;
-    return !q||(a.nome+' '+(a.pv.email||'')).toLowerCase().indexOf(q)>=0;});
-  if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">'+(CD.atletas.length?'Nenhum atleta neste filtro.':'Nenhum atleta cadastrado ainda.')+'</p></div>';return;}
-  box.innerHTML='<div class="card pntbl" style="padding:0"><table class="tbl"><thead><tr><th>Atleta</th><th>Posição</th><th>Time</th><th>Camisa</th><th>E-mail</th><th>Celular</th><th>Acesso</th><th></th></tr></thead><tbody>'+
-    ls.map(function(a){var t=a.el&&cdTime(a.el.time_id);
-      return '<tr><td data-l="Atleta" class="nm"><div class="row" style="gap:10px">'+(a.foto_url?'<img class="cdfoto" src="'+esc(a.foto_url)+'" alt="">':'<span class="cdfoto"></span>')+
-        '<div>'+esc(a.nome)+(a.ativo?'':' <span class="chip">inativo</span>')+(a.exemplo?' <span class="chip">exemplo</span>':'')+'</div></div></td>'+
-        '<td data-l="Posição">'+esc(POSN[a.posicao]||a.posicao)+'</td>'+
-        '<td data-l="Time">'+(t?'<div class="row" style="gap:6px">'+cdEscudo(t,22)+esc(t.nome)+'</div>':'<span class="muted">Sem time</span>')+'</td>'+
-        '<td data-l="Camisa">'+(a.el?'<b>'+a.el.numero+'</b> · '+esc(a.el.nome_camisa)+'<div class="lbl">Kit '+esc(a.el.kit)+'</div>':'')+'</td>'+
-        '<td data-l="E-mail" class="em">'+esc(a.pv.email||'')+'</td><td data-l="Celular">'+esc(a.pv.celular||'')+'</td>'+
-        '<td data-l="Acesso">'+(a.user_id?'<span class="chip ok">Conta ativa</span>':'<span class="chip">Sem conta</span>')+'</td>'+
-        '<td class="ac"><div class="pnacoes"><button class="btn sm" data-at="'+a.id+'">Editar</button></div></td></tr>';}).join('')+'</tbody></table></div>';
-  box.querySelectorAll('[data-at]').forEach(function(b){b.addEventListener('click',function(){
-    var a=CD.atletas.filter(function(x){return x.id===b.dataset.at;})[0];
-    CD.form={tipo:'atleta',id:a.id,nome:a.nome,apelido:a.apelido,posicao:a.posicao,unidade_id:a.unidade_id,foto_url:a.foto_url,
-      email:a.pv.email,celular:a.pv.celular,nascimento:a.pv.nascimento,el:a.el||{},conta:!!a.user_id};
-    cdAtletas();cdFoco();});});
+function cdUsuariosLista(){
+  var box=document.getElementById('cdLista');if(!box)return;var q=CD.busca.trim().toLowerCase(),todas=cdLinhas();
+  var ls=todas.filter(function(u){
+    if(CD.tipo&&u.tipo!==CD.tipo)return false;
+    if(CD.time&&(u.tipo!=='atleta'||(CD.time==='-'?u.time:u.time!==CD.time)))return false;
+    if(CD.situ&&u.situacao!==CD.situ)return false;
+    return !q||[u.nome,u.email,u.funcao,u.detalhe].join(' ').toLowerCase().indexOf(q)>=0;});
+  var n=function(t){return todas.filter(function(u){return u.tipo===t;}).length;};
+  document.getElementById('cdResumo').innerHTML='<span class="chip">Atletas · '+n('atleta')+'</span><span class="chip">Funcionários FF · '+n('func')+'</span>'+
+    '<span class="chip ok">Conta ativa · '+todas.filter(function(u){return u.situacao==='ativa';}).length+'</span>'+(ls.length!==todas.length?'<span class="chip gold">Mostrando '+ls.length+'</span>':'');
+  if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">'+(todas.length?'Nenhum usuário neste filtro.':'Nenhum usuário cadastrado ainda.')+'</p></div>';return;}
+  box.innerHTML='<div class="card pntbl" style="padding:0"><table class="tbl"><thead><tr><th>Usuário</th><th>Tipo</th><th>Função</th><th>E-mail</th><th>Telefone</th><th>Acesso</th><th>Último acesso</th><th></th></tr></thead><tbody>'+
+    ls.map(function(u){var s=CD_SITU[u.situacao]||[u.situacao,''],pode=u.tipo==='atleta'||cdAdmin();
+      return '<tr><td data-l="Usuário" class="nm"><div class="row" style="gap:10px">'+(u.foto?'<img class="cdfoto" src="'+esc(u.foto)+'" alt="">':'<span class="cdfoto"></span>')+
+        '<div>'+esc(u.nome)+(u.eu?' <span class="chip">você</span>':'')+(u.inativo?' <span class="chip">inativo</span>':'')+(u.exemplo?' <span class="chip">exemplo</span>':'')+'</div></div></td>'+
+        '<td data-l="Tipo">'+(u.tipo==='atleta'?'Atleta':'<span style="color:var(--gold)">Funcionário FF</span>')+'</td>'+
+        '<td data-l="Função" class="wr">'+esc(u.funcao)+'<div class="lbl">'+esc(u.detalhe)+'</div></td>'+
+        '<td data-l="E-mail" class="em">'+esc(u.email)+'</td><td data-l="Telefone">'+esc(u.tel)+'</td>'+
+        '<td data-l="Acesso"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
+        '<td data-l="Último acesso">'+(u.situacao==='convite'?cdQuando(u.convidado).split(' ')[0]+'<div class="lbl">convidado</div>':cdQuando(u.ultimo))+'</td>'+
+        '<td class="ac"><div class="pnacoes">'+(u.situacao!=='ativa'?cdEmBreve('Convite'):'')+
+        (pode?'<button class="btn sm" data-ed="'+esc(u.tipo+'|'+u.id)+'">Editar</button>':'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
+  box.querySelectorAll('[data-ed]').forEach(function(b){b.addEventListener('click',function(){
+    var p=b.dataset.ed.split('|'),tipo=p[0],id=p.slice(1).join('|');
+    if(tipo==='atleta'){var a=CD.atletas.filter(function(x){return x.id===id;})[0];
+      CD.form={tipo:'atleta',id:a.id,nome:a.nome,apelido:a.apelido,posicao:a.posicao,unidade_id:a.unidade_id,foto_url:a.foto_url,
+        email:a.pv.email,celular:a.pv.celular,nascimento:a.pv.nascimento,el:a.el||{},conta:!!a.user_id};}
+    else{var x=CD.equipe.filter(function(e){return e.email===id;})[0];
+      CD.form={tipo:'func',email:x.email,nome:x.nome,telefone:x.telefone,cargo:x.cargo,papel:x.papel,eu:x.eu};}
+    cdUsuarios();cdFoco();});});
 }
 
+// No "Criar usuário", o topo do formulário escolhe o tipo: Atleta ou Funcionário FF.
+function cdTipoHTML(t){
+  return '<div class="cdtipo" role="radiogroup" aria-label="Tipo de usuário"><span class="lbl">Tipo de usuário</span>'+
+    '<button type="button" data-tipo="atleta" class="'+(t==='atleta'?'on':'')+'">Atleta</button>'+
+    '<button type="button" data-tipo="func" class="'+(t==='func'?'on':'')+'"'+(cdAdmin()?'':' disabled title="Só administradores criam funcionários"')+'>Funcionário FF</button></div>';
+}
+function cdTipoLigar(){document.querySelectorAll('.cdtipo [data-tipo]').forEach(function(b){b.addEventListener('click',function(){
+  if(CD.form.tipo===b.dataset.tipo)return;CD.form=b.dataset.tipo==='atleta'?{tipo:'atleta',novo:true,el:{}}:{tipo:'func',novo:true,papel:'editor'};cdUsuarios();});});}
+
+function cdFuncForm(f){
+  return '<form class="card cdform" id="cdForm" novalidate>'+(f.novo?'<h3>Criar usuário</h3>'+cdTipoHTML('func'):'<h3>Editar '+esc(f.nome)+'</h3>')+
+    '<div class="lbl cdsec">Dados do funcionário</div><div class="cdcampos">'+
+    cdCampo('Nome completo *','<input id="fNome" maxlength="80" value="'+esc(f.nome||'')+'">','full')+
+    cdCampo('E-mail * (é o login)','<input id="fEmail" type="email" maxlength="120" value="'+esc(f.email||'')+'"'+(f.novo?'':' readonly title="O e-mail é o login e não muda por aqui."')+'>')+
+    cdCampo('Telefone','<input id="fTel" maxlength="30" value="'+esc(f.telefone||'')+'">')+
+    cdCampo('Cargo','<input id="fCargo" maxlength="60" placeholder="Ex.: Coordenador, Mesário, Comunicação" value="'+esc(f.cargo||'')+'">')+
+    cdCampo('Perfil de acesso *','<select id="fPapel"'+(f.eu?' disabled title="Você não pode mudar o seu próprio perfil."':'')+'>'+cdOpcoes([['editor','Editor · cadastra e edita'],['admin','Administrador · pode tudo']],f.papel||'editor')+'</select>')+
+    '</div><div class="notice" style="margin-top:14px">'+(f.novo?'O funcionário fica com o convite pendente. Quando o envio por e-mail estiver ligado, ele recebe o link para criar a senha; até lá, a conta é criada pela equipe técnica e já entra com este perfil.'
+      :'Mudanças de perfil valem a partir do próximo acesso da pessoa.')+'</div>'+
+    '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button></div></form>';
+}
+function cdFuncLigar(f){
+  var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr'),v=function(id){return document.getElementById(id).value.trim();};
+  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdUsuarios();});
+  fm.addEventListener('submit',function(e){e.preventDefault();
+    var d={nome:v('fNome'),email:v('fEmail').toLowerCase(),telefone:v('fTel'),cargo:v('fCargo'),papel:f.eu?'admin':v('fPapel')};
+    if(!d.nome||!/^\S+@\S+\.\S+$/.test(d.email)){er.textContent='Preencha o nome e um e-mail válido.';return;}
+    if(f.novo&&CD.equipe.some(function(x){return x.email===d.email;})){er.textContent='Já existe um funcionário com este e-mail.';return;}
+    var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
+    SB.rpc('salvar_funcionario',{dados:d}).then(function(r){bt.disabled=false;
+      if(r.error||!r.data||!r.data.ok){er.textContent=(r.data&&r.data.erro)||'Não foi possível salvar. Tente de novo.';return;}
+      CD.form=null;toast(f.novo?'Funcionário criado: '+d.nome.split(' ')[0]+'.':'Funcionário atualizado.');cdRecarregar();});
+  });
+}
+
+/* ================= FORMULÁRIO DO ATLETA ================= */
 function cdAtletaForm(f){var e=f.el||{};
-  return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Novo atleta':'Editar '+esc(f.nome))+'</h3>'+
+  return '<form class="card cdform" id="cdForm" novalidate>'+(f.novo&&!f.origem?'<h3>Criar usuário</h3>'+cdTipoHTML('atleta'):'<h3>'+(f.novo?'Novo atleta':'Editar '+esc(f.nome))+'</h3>')+
     (f.origem?'<p class="muted" style="margin:-4px 0 12px;font-size:14px">Dados da pré-inscrição '+esc(f.origem)+'. Confira e escolha o time.</p>':'')+
     '<div class="lbl cdsec">Dados do atleta</div><div class="cdcampos">'+
     cdCampo('Nome completo *','<input id="aNome" maxlength="120" value="'+esc(f.nome||'')+'">','full')+
@@ -183,7 +254,7 @@ function cdAtletaForm(f){var e=f.el||{};
 }
 function cdAtletaLigar(f){
   var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr'),v=function(id){return document.getElementById(id).value.trim();};
-  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdAtletas();});
+  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdUsuarios();});
   var ap=document.getElementById('cdApaga');
   if(ap)ap.addEventListener('click',function(){
     if(!confirm('Apagar o atleta '+f.nome+'? Isso não pode ser desfeito.'))return;
@@ -218,13 +289,13 @@ function cdImportaHTML(pend){
     '<div class="cdbts"><button class="btn" type="button" id="cdCancela">Fechar</button></div></div>';
 }
 function cdImportaLigar(pend){
-  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdAtletas();});
+  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdUsuarios();});
   document.querySelectorAll('[data-pi]').forEach(function(b){b.addEventListener('click',function(){
     var x=pend.filter(function(p){return p.id===b.dataset.pi;})[0],pos=(x.posicoes&&x.posicoes[0])||String(x.posicao||'').split(' · ')[0];
     var cod=CD_POS.filter(function(p){return POSN[p]===pos;})[0]||'',uni=CD.unidades.filter(function(u){return u.nome===x.unidade;})[0];
     CD.form={tipo:'atleta',novo:true,origem:x.protocolo,nome:x.nome,email:x.email,celular:x.celular,nascimento:x.nascimento,posicao:cod,unidade_id:uni?uni.id:'',
       el:{numero:(x.numeros&&x.numeros[0])||x.numero,nome_camisa:x.nome_camisa,kit:x.kit}};
-    cdAtletas();cdFoco();});});
+    cdUsuarios();cdFoco();});});
 }
 
 /* ================= HISTÓRICO ================= */
@@ -240,91 +311,4 @@ function cdHistorico(){
         '<td data-l="O que">'+esc(h.acao)+' · '+esc(CD_TAB[h.tabela]||h.tabela)+'</td><td data-l="Registro" class="wr">'+esc(h.resumo||'')+'</td></tr>';}).join('')+
       '</tbody></table></div>':'<div class="card"><p class="muted" style="margin:0">Nenhuma alteração registrada ainda.</p></div>');
   });
-}
-
-/* ================= ACESSOS (só administradores) =================
-   Quem entra no site: funcionários da FF (contas e convites) e atletas. O envio do convite por e-mail
-   ainda não está ligado: os botões de convite aparecem desligados, com "em breve". */
-var CD_AC={dados:null,lado:'equipe',busca:'',situ:'',form:false};
-var CD_SITU={ativa:['Conta ativa','ok'],convite:['Convite pendente','gold'],sem_acesso:['Sem acesso','']};
-function cdQuando(iso){return iso?pnData(iso):'—';}
-function cdEmBreve(txt){return '<button class="btn sm cdbreve" type="button" disabled title="O envio por e-mail chega numa próxima etapa">'+txt+'<span>em breve</span></button>';}
-
-function cdAcessos(){
-  SB.rpc('listar_acessos').then(function(r){
-    if(PN.aba!=='acessos'||!cdEl())return;
-    if(r.error||!r.data||!r.data.ok){cdMsg((r.data&&r.data.erro)||'Não foi possível carregar os acessos.');return;}
-    CD_AC.dados=r.data;cdAcessosTela();});
-}
-function cdAcessosTela(){
-  var el=cdEl(),d=CD_AC.dados,eq=d.equipe,at=d.atletas;
-  var cont=function(ls,s){return ls.filter(function(x){return x.situacao===s;}).length;};
-  el.innerHTML='<p class="muted" style="margin:0 0 14px">Quem pode entrar no site e em que perfil. <b>Funcionários FF</b> vão para este painel; <b>atletas</b>, para a área do atleta. O envio do convite por e-mail chega numa próxima etapa.</p>'+
-    '<div class="days cdlados"><button data-lado="equipe" class="'+(CD_AC.lado==='equipe'?'on':'')+'">Funcionários FF · '+eq.length+'</button>'+
-    '<button data-lado="atletas" class="'+(CD_AC.lado==='atletas'?'on':'')+'">Atletas · '+at.length+'</button></div>'+
-    '<div class="cdresumo">'+(CD_AC.lado==='equipe'
-      ?'<span class="chip ok">Conta ativa · '+cont(eq,'ativa')+'</span><span class="chip gold">Convite pendente · '+cont(eq,'convite')+'</span>'
-      :'<span class="chip ok">Conta ativa · '+cont(at,'ativa')+'</span><span class="chip">Sem acesso · '+cont(at,'sem_acesso')+'</span>')+'</div>'+
-    '<div id="cdAcLado"></div>';
-  el.querySelectorAll('[data-lado]').forEach(function(b){b.addEventListener('click',function(){CD_AC.lado=b.dataset.lado;CD_AC.form=false;cdAcessosTela();});});
-  if(CD_AC.lado==='equipe')cdAcEquipe();else cdAcAtletas();
-}
-
-function cdAcEquipe(){
-  var box=document.getElementById('cdAcLado'),eq=CD_AC.dados.equipe;
-  box.innerHTML='<div class="pnbusca"><p class="muted" style="margin:0;flex:1 1 300px"><b>Administrador</b> pode tudo, inclusive apagar e dar acessos. <b>Editor</b> cadastra e edita, mas não apaga.</p>'+
-    '<button class="btn primary sm" id="cdNovoAc">+ Convidar funcionário</button></div>'+
-    (CD_AC.form?'<form class="card cdform" id="cdForm" novalidate><h3>Convidar funcionário da FF</h3><div class="cdcampos">'+
-      cdCampo('Nome *','<input id="cNome" maxlength="80">')+cdCampo('E-mail *','<input id="cEmail" type="email" maxlength="120">')+
-      cdCampo('Perfil *','<select id="cPapel"><option value="editor">Editor</option><option value="admin">Administrador</option></select>')+'</div>'+
-      '<div class="notice" style="margin-top:14px">O convite fica registrado aqui. Quando o envio por e-mail estiver ligado, a pessoa recebe o link para criar a senha. Até lá, a conta é criada pela equipe técnica e já entra com este perfil.</div>'+
-      '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">Salvar convite</button><button class="btn" type="button" id="cdCancela">Cancelar</button></div></form>':'')+
-    '<div class="card pntbl" style="padding:0"><table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead><tbody>'+
-    eq.map(function(x){var s=CD_SITU[x.situacao]||[x.situacao,''];
-      var perfil=x.user_id&&!x.eu?'<select class="cdpapel" data-u="'+x.user_id+'">'+cdOpcoes([['admin','Administrador'],['editor','Editor']],x.papel)+'</select>'
-        :(x.papel==='admin'?'Administrador':'Editor');
-      return '<tr><td data-l="Nome" class="nm">'+esc(x.nome)+(x.eu?' <span class="chip">você</span>':'')+'</td><td data-l="E-mail" class="em">'+esc(x.email)+'</td>'+
-        '<td data-l="Perfil">'+perfil+'</td><td data-l="Situação"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
-        '<td data-l="Último acesso">'+(x.situacao==='convite'?'<span class="lbl">Convidado em '+cdQuando(x.convidado_em)+'</span>':cdQuando(x.ultimo_acesso))+'</td>'+
-        '<td class="ac"><div class="pnacoes">'+(x.situacao==='convite'?cdEmBreve('Enviar convite'):'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
-  document.getElementById('cdNovoAc').addEventListener('click',function(){CD_AC.form=true;cdAcEquipe();cdFoco();});
-  box.querySelectorAll('.cdpapel').forEach(function(sel){sel.addEventListener('change',function(){
-    var v=sel.value;sel.disabled=true;
-    SB.rpc('alterar_papel',{usuario:sel.dataset.u,papel:v}).then(function(r){sel.disabled=false;
-      if(r.error||!r.data||!r.data.ok){toast((r.data&&r.data.erro)||'Não foi possível alterar.');cdAcessos();return;}
-      toast('Perfil alterado para '+(v==='admin'?'Administrador':'Editor')+'.');cdAcessos();});});});
-  if(!CD_AC.form)return;
-  document.getElementById('cdCancela').addEventListener('click',function(){CD_AC.form=false;cdAcEquipe();});
-  document.getElementById('cdForm').addEventListener('submit',function(e){e.preventDefault();
-    var er=document.getElementById('cdErr'),nome=document.getElementById('cNome').value.trim(),em=document.getElementById('cEmail').value.trim().toLowerCase();
-    if(!nome||!/^\S+@\S+\.\S+$/.test(em)){er.textContent='Preencha o nome e um e-mail válido.';return;}
-    var bt=this.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
-    SB.rpc('convidar_equipe',{email:em,nome:nome,papel:document.getElementById('cPapel').value}).then(function(r){bt.disabled=false;
-      if(r.error||!r.data||!r.data.ok){er.textContent=(r.data&&r.data.erro)||'Não foi possível salvar. Tente de novo.';return;}
-      CD_AC.form=false;toast('Convite salvo para '+nome.split(' ')[0]+'.');cdAcessos();});
-  });
-}
-
-function cdAcAtletas(){
-  var box=document.getElementById('cdAcLado');
-  box.innerHTML='<div class="pnbusca"><label class="fld">Buscar<input id="cdAcBusca" placeholder="Nome, e-mail ou time" value="'+esc(CD_AC.busca)+'"></label>'+
-    '<label class="fld" style="flex:0 1 200px">Situação<select id="cdAcSitu">'+cdOpcoes([['','Todas'],['ativa','Conta ativa'],['sem_acesso','Sem acesso']],CD_AC.situ)+'</select></label>'+
-    cdEmBreve('Convidar todos sem acesso')+'</div>'+
-    '<p class="muted" style="margin:-6px 0 14px;font-size:14px">O acesso do atleta usa o e-mail do cadastro (aba Atletas). Para corrigir um e-mail, edite o atleta lá.</p>'+
-    '<div id="cdAcLista"></div>';
-  document.getElementById('cdAcBusca').addEventListener('input',function(){CD_AC.busca=this.value;cdAcAtletasLista();});
-  document.getElementById('cdAcSitu').addEventListener('change',function(){CD_AC.situ=this.value;cdAcAtletasLista();});
-  cdAcAtletasLista();
-}
-function cdAcAtletasLista(){
-  var box=document.getElementById('cdAcLista');if(!box)return;var q=CD_AC.busca.trim().toLowerCase();
-  var ls=CD_AC.dados.atletas.filter(function(x){return (!CD_AC.situ||x.situacao===CD_AC.situ)&&(!q||[x.nome,x.email,x.time].join(' ').toLowerCase().indexOf(q)>=0);});
-  if(!ls.length){box.innerHTML='<div class="card"><p class="muted" style="margin:0">Nenhum atleta neste filtro.</p></div>';return;}
-  box.innerHTML='<div class="card pntbl" style="padding:0"><table class="tbl"><thead><tr><th>Atleta</th><th>Time</th><th>E-mail</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead><tbody>'+
-    ls.map(function(x){var s=CD_SITU[x.situacao]||[x.situacao,''];
-      return '<tr><td data-l="Atleta" class="nm">'+esc(x.nome)+(x.exemplo?' <span class="chip">exemplo</span>':'')+'</td>'+
-        '<td data-l="Time">'+(x.time?esc(x.time)+(x.numero?' · nº '+x.numero:''):'<span class="muted">Sem time</span>')+'</td>'+
-        '<td data-l="E-mail" class="em">'+esc(x.email||'')+'</td><td data-l="Situação"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
-        '<td data-l="Último acesso">'+cdQuando(x.ultimo_acesso)+'</td>'+
-        '<td class="ac"><div class="pnacoes">'+(x.situacao==='sem_acesso'?cdEmBreve('Enviar convite'):'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
 }
