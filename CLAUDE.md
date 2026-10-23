@@ -6,7 +6,7 @@ Contexto para o Claude Code trabalhar neste repositório. Leia inteiro antes de 
 
 - **O que é:** site oficial da **FF Soccer Pro League**, liga de futebol de campo (11 contra 11) para alunos da FF Soccer. Temporadas de 6 meses (janeiro a junho e agosto a dezembro), jogos às quartas e sextas à noite, transmissão no YouTube, VAR com 2 desafios por equipe, registro individual e noite de premiação.
 - **Fase atual:** lançamento em **ondas**. No ar para o público está a **Onda 1** (League e Pré-inscrição, mais Entrar e painel da equipe). O resto do site usa **dados de exemplo** e só aparece com `?demo` no endereço.
-- **Ondas (`CONFIG.ONDA` em `js/config.js`):** 1 = League e Pré-inscrição · 2 = + Campeonato (início, tabela, times, atletas, jogos, faixa de resultados) · 3 = + Ao vivo · 4 = + área do atleta. Páginas acima da onda somem do menu e do rodapé (`data-onda` no `index.html`) e as rotas levam para `#a-league` (`ondaDaPagina()` no `app.js`). Na onda 1 o site não consulta o banco ao abrir. Com `?demo` (ex.: `…/?demo#inicio`) tudo aparece, com a tarja de pré-lançamento, para apresentações. Para liberar uma onda, é só trocar o número.
+- **Ondas (`CONFIG.ONDA` em `js/config.js`):** 1 = League e Pré-inscrição · 2 = + Campeonato (tabela, atletas, jogos) · 3 = + Ao vivo · 4 = + área do atleta. Páginas acima da onda somem do menu e do rodapé (`data-onda` no `index.html`) e as rotas levam para `#a-league` (`ondaDaPagina()` no `app.js`). Na onda 1 o site não consulta o banco ao abrir. Com `?demo` (ex.: `…/?demo#inicio`) tudo aparece, com a tarja de pré-lançamento, para apresentações. Para liberar uma onda, é só trocar o número.
 - **Dono do projeto:** Deko (o projeto começou na conta do Lucas e foi trazido para a do Deko; chame sempre de Deko). É um projeto particular, sem vínculo com empresa. O Deko **não programa**: explique tudo em português simples, sem jargão, e diga sempre o que o Deko precisa fazer (se precisar) e o que muda no site.
 - **Site no ar:** endereço principal **https://ffproleague.vercel.app** (Vercel). Os endereços antigos https://ff-soccer-pro-league-site.vercel.app e https://dekolmj.github.io/ff-soccer-pro-league-site/ (GitHub Pages) levam automaticamente para o novo (script no topo do `<head>` do `index.html`). Todos publicam a branch `main`, pasta raiz.
 
@@ -64,9 +64,10 @@ O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem
 - **TV FF:** os vídeos são uma animação em canvas (função `Scene`), no lugar dos vídeos do YouTube. A seção "Melhores momentos" (replays) foi tirada do Ao vivo e do Início em 21/10/2026, a pedido do Deko: ninguém vai cortar vídeos. O pop-up de vídeo (`openVideo`) ficou no código, sem uso.
 - **Configuração:** fica em `js/config.js` (`VERSAO_TERMOS`, `SUPABASE_URL`, `SUPABASE_KEY`, `ONDA`, `BOTOES_PRE_E_ENTRAR`, `PRE_INSCRICAO`, `TEMPORADA_ZERADA`, `UNIDADES`). A chave é a pública (pode ficar no site; a `service_role` nunca). Sem `SUPABASE_URL`/`SUPABASE_KEY`, o formulário mostra "As pré-inscrições abrem em breve".
 - **Visitas (Vercel Web Analytics):** ligado em 09/10/2026. O contador fica no fim do `<head>` do `index.html` e só carrega em endereços `.vercel.app` (sem cookies). Os números ficam na aba Analytics do projeto no Vercel e podem ser consultados pela ferramenta do Vercel (contagem de visualizações). O site usa rotas por `#`, então as visitas aparecem todas na página `/`.
-- **localStorage:** `ffl_user` guarda o login de demonstração e `ffl_pl` guarda que a tarja de pré-lançamento foi fechada. Sempre dentro de try/catch.
+- **Faixa de resultados** (ticker preto com os jogos da rodada, no topo): **saiu em 23/10/2026**, a pedido do Deko. A função `ticker()` ficou no `app.js` e não faz nada sem o elemento `#ticker`.
+- **localStorage:** `ffl_user` guarda o login de demonstração e `ffl_perfil` o tipo de conta logada (`ffl_pl`, da tarja de pré-lançamento, não é mais usado). Sempre dentro de try/catch.
 - **Pré-lançamento:**
-  - tarja amarela `<div class="prelaunch">`: agora só aparece com `?demo` (`data-demo`);
+  - tarja amarela de pré-lançamento: **saiu em 23/10/2026**, a pedido do Deko (nem com `?demo`);
   - `<meta name="robots" content="noindex">`: **continua**. O Deko pediu para não liberar o site no Google ainda. Só remova quando o Deko pedir.
 
 ## Pré-inscrição

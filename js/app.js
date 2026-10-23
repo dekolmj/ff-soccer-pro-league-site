@@ -509,11 +509,10 @@ function ticker(){
   var items=GAMES.filter(function(g){return g.r===CUR;}).map(function(g){
     var s=g.st==='ao vivo'?'<span class="live">'+g.min+"'</span>":g.st==='encerrado'?'<span class="lbl">Fim</span>':'<span class="lbl">'+fmtD(g.date)+' '+g.time+'</span>';
     return '<a href="#'+g.id+'">'+s+' '+tn(g.h)+' <b>'+(g.gh==null?'':g.gh)+'</b> x <b>'+(g.ga==null?'':g.ga)+'</b> '+tn(g.a)+'</a>';});
-  document.getElementById('ticker').innerHTML='<span class="lbl" style="color:var(--gold)">Rodada '+CUR+'</span>'+items.join('<span class="sep">|</span>');
+  var tk=document.getElementById('ticker');if(!tk)return;  // faixa de resultados tirada em 23/10/2026
+  tk.innerHTML='<span class="lbl" style="color:var(--gold)">Rodada '+CUR+'</span>'+items.join('<span class="sep">|</span>');
 }
 acct();
-try{if(localStorage.getItem('ffl_pl'))document.getElementById('prelaunch').hidden=true;}catch(e){}
-document.getElementById('plClose').addEventListener('click',function(){document.getElementById('prelaunch').hidden=true;try{localStorage.setItem('ffl_pl','1');}catch(e){}});
 ticker();
 setInterval(function(){
   if(LIVE.min<90){LIVE.min++;
