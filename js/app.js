@@ -38,40 +38,6 @@ function liveBug(){return '<div class="bug"><span>'+tn(LIVE.h).slice(0,3).toUppe
 
 /* ================= PAGES ================= */
 var P={};
-P.inicio=function(){
-  var lead=ST[0],cr=craqueOf(CUR-1),rg=GAMES.filter(function(g){return g.r===CUR;});
-  var nextG=GAMES.filter(function(g){return g.r===CUR+1;});
-  return ''+
-  '<section class="hero"><div class="wrap">'+
-   '<div class="hero-txt"><div class="eyebrow">1ª Temporada · Rodada '+CUR+'</div>'+
-   '<h1>'+tn(LIVE.h)+' e '+tn(LIVE.a)+'<span> ao vivo agora</span></h1>'+
-   '<p class="lead">'+(lead.j?tn(lead.t.id)+' lidera com '+lead.pts+' pontos depois de '+lead.j+' jogos. ':'A temporada começa agora. ')+'Hoje, '+tn(LIVE.h)+' e '+tn(LIVE.a)+' fazem o jogo da rodada no '+LIVE.field+'.</p>'+
-   '<div class="card" style="padding:18px"><div class="sb"><div class="t">'+badge(LIVE.h,'lg')+tn(LIVE.h)+'</div><div class="s">'+LIVE.gh+'<i>:</i>'+LIVE.ga+'</div><div class="t">'+badge(LIVE.a,'lg')+tn(LIVE.a)+'</div></div><div class="between" style="margin-top:10px"><span class="live" data-livepill>'+(LIVE.min<=45?'1º':'2º')+' tempo · '+LIVE.min+"'</span><a class=\"more\" href=\"#"+LIVE.id+'">Lances e VAR ›</a></div></div>'+
-   '<div class="cta-row"><a class="btn primary" href="#ao-vivo">▶ Assistir ao vivo</a><a class="btn" href="#campeonato">Tabela e jogos</a></div></div>'+
-   '<a href="#ao-vivo">'+playerBox({seed:11,bug:liveBug(),live:1,tag:'Canal oficial FF Soccer · YouTube',bar:'<span data-viewers>186</span> assistindo'})+'</a>'+
-  '</div></section>'+
-
-  '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Rodada '+CUR+' · '+fmtD(rg[0].date)+' e '+fmtD(rg[2].date)+'</div><h2>Jogos da rodada</h2></div><a class="more" href="#campeonato">Todos os jogos ›</a></div>'+
-  '<div class="games compact">'+rg.map(gameCard).join('')+'</div></div></section>'+
-
-  '<section class="blk"><div class="wrap grid2" style="align-items:stretch">'+
-   '<div class="card" style="display:grid;gap:10px;align-content:start"><div class="between"><h3>Classificação</h3><span class="lbl">Top 4 · zona de semifinal</span></div>'+tableHTML(ST.slice(0,4),false)+'<a class="btn" href="#campeonato" style="justify-content:center;margin-top:6px">Ver tabela completa</a></div>'+
-    (cr?'<a class="craque" data-n="'+cr.p.num+'" href="#atleta-'+cr.p.id+'"><span class="k">Craque da rodada '+(CUR-1)+'</span><span class="nm">'+esc(cr.p.n).replace(' ','<br>')+'</span><span class="sub">'+tn(cr.p.team)+' · '+cr.gl+' gol'+(cr.gl===1?'':'s')+' contra '+tn(cr.g.h===cr.p.team?cr.g.a:cr.g.h)+'</span><span class="by">Apresentado por · espaço do patrocinador</span></a>':'')+
-  '</div></section>'+
-
-  '<section class="blk"><div class="wrap grid2">'+
-   '<div class="card"><div class="between" style="margin-bottom:6px"><h3>Próxima rodada</h3><span class="lbl">Rodada '+(CUR+1)+'</span></div><div class="agenda">'+nextG.map(function(g){return '<a class="between" href="#'+g.id+'"><span class="row">'+badge(g.h,'sm')+tn(g.h)+' <span class="muted">x</span> '+tn(g.a)+badge(g.a,'sm')+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span></a>';}).join('')+'</div></div>'+
-   '<div class="card" style="display:grid;gap:12px;align-content:start"><h3>Encontre seu perfil</h3><p class="muted" style="margin:0">Gols e MVPs de cada atleta, temporada após temporada.</p><form id="homeSearch" class="row"><input id="homeQ" type="search" placeholder="Nome do atleta" style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:11px 14px;color:var(--ink);min-width:0"><button class="btn primary sm" type="submit">Buscar</button></form></div>'+
-  '</div></section>'+
-
-  '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Calendário FF 2027</div><h2>Uma temporada inteira</h2></div><a class="more" href="#a-league">Como funciona ›</a></div>'+
-  '<div class="season"><div class="now"><b>Fev → Jun</b><span>FF Soccer Pro League · 1ª Temporada · em andamento</span></div><div><b>Julho</b><span>Copa FF</span></div><div><b>Ago → Dez</b><span>FF Soccer Pro League · 2ª Temporada</span></div></div></div></section>'+
-
-  '<section class="blk"><div class="wrap"><div class="renew"><img src="'+LOGO+'" width="90" height="90" alt="" style="object-fit:contain"><div style="display:grid;gap:8px"><div class="eyebrow">Vagas limitadas</div><h2>2ª Temporada · agosto a dezembro</h2><p class="muted" style="margin:0">Quem joga a 1ª Temporada tem prioridade para continuar. Novas vagas só abrem se sobrarem.</p></div>'+(preOn()?'<a class="btn primary" href="#pre-inscricao">Fazer pré-inscrição</a>':'')+'</div></div></section>'+
-
-  '<section class="blk"><div class="wrap"><div class="sec-h"><div><div class="eyebrow">Parceiros da League</div><h2>Patrocinadores</h2></div></div><div class="sponsors"><div>Seu logo aqui</div><div>Seu logo aqui</div><div>Seu logo aqui</div><div>Seu logo aqui</div><div>Seu logo aqui</div></div></div></section>';
-};
-
 P.jogos=function(q){
   var r=+(q||CUR);if(!(r>=1&&r<=ROUNDS))r=CUR;
   var gs=GAMES.filter(function(g){return g.r===r;});
@@ -323,7 +289,7 @@ if(ONDA<4)ME=null;  // área do atleta de demonstração só a partir da onda 4
 var CONF=null,RENEW=false,SEL={},NEXTKIT='M';
 function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on');},2600);}
 function login(id){ME=id;try{localStorage.setItem('ffl_user',id);}catch(e){}acct();location.hash='minha-area';}
-function logout(){ME=null;try{localStorage.removeItem('ffl_user');}catch(e){}acct();location.hash='inicio';toast('Você saiu da sua área.');}
+function logout(){ME=null;try{localStorage.removeItem('ffl_user');}catch(e){}acct();location.hash='a-league';toast('Você saiu da sua área.');}
 // E-mail de quem está conectado com login real (sessão guardada pelo Supabase neste navegador), ou ''.
 function perfilSalvo(){try{return localStorage.getItem('ffl_perfil')||'';}catch(e){return '';}}
 function sessaoEmail(){try{var ref=(CONFIG.SUPABASE_URL||'').split('//')[1].split('.')[0],v=JSON.parse(localStorage.getItem('sb-'+ref+'-auth-token')||'null');return (v&&v.user&&v.user.email)||'';}catch(e){return '';}}
@@ -454,10 +420,10 @@ window.addEventListener('hashchange',function(){var m=document.getElementById('v
 
 /* ================= ROUTER ================= */
 var app=document.getElementById('app');
-var ALIAS={'':'inicio'};
+var ALIAS={'':'a-league'};
 function route(){
   var h=(location.hash||'').replace('#','')||'a-league',page=h,arg=null;
-  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='campeonato-atletas')h='atletas';page=h;
+  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
   if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
@@ -466,7 +432,7 @@ function route(){
   if(h==='sair'){logout();return;}
   if(/^minha-area/.test(page)&&!ME){page='entrar';}
   if(page==='entrar'&&ME){page='minha-area';}
-  if(!P[page])page='inicio';
+  if(!P[page])page='a-league';
   if(ondaDaPagina(page)>ONDA||(page==='pre-inscricao'&&!preOn())){page='a-league';arg=null;try{history.replaceState(null,'',location.pathname+location.search+'#a-league');}catch(e){}}
   app.innerHTML=P[page](arg);
   var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
@@ -475,12 +441,11 @@ function route(){
   document.getElementById('drawer').hidden=true;document.getElementById('burger').setAttribute('aria-expanded','false');
   window.scrollTo(0,0);
   bind(page);initCanvases();
-  document.title=({inicio:'Site FF Soccer Pro League'})[page]||'Site FF Soccer Pro League';
+  document.title='Site FF Soccer Pro League';
 }
 function bind(page){
   if(document.getElementById('rbox')){bindRound();}
   if(page==='jogos'){document.querySelectorAll('#roundSel button').forEach(function(b){b.addEventListener('click',function(){location.hash='jogos-'+b.dataset.r;});});}
-  if(page==='inicio'){document.getElementById('homeSearch').addEventListener('submit',function(e){e.preventDefault();SEARCH=document.getElementById('homeQ').value;location.hash='campeonato-atletas';});}
   if(document.getElementById('alist')){
     var q=document.getElementById('aq'),t=document.getElementById('at'),ps=document.getElementById('ap'),out=document.getElementById('alist');
     q.value=SEARCH||'';SEARCH='';
@@ -526,7 +491,7 @@ function bind(page){
       // grava direto no banco (função enviar_pre_inscricao), que devolve {ok, protocolo, duplicado}
       fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/enviar_pre_inscricao',{method:'POST',headers:{apikey:CONFIG.SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({dados:payload})}).then(function(r){return r.json();}).then(function(res){
         if(!res||!res.ok)throw new Error(res&&res.erro||'falha');
-        fm.innerHTML='<div class="okbox"><span class="ck">✓</span><h2>Pré-inscrição recebida</h2><p class="muted" style="margin:0;max-width:44ch">Obrigado, '+esc(payload.nome.split(' ')[0])+'. Sua pré-inscrição entrou na fila de análise da FF. Você recebe o retorno por e-mail ou WhatsApp.</p><span class="chip">Camisa: '+esc(payload.nome_camisa)+' · Nº '+payload.numero+'</span><span class="chip gold">Protocolo '+esc(res.protocolo||'')+'</span>'+(res.duplicado?'<span class="hint">Já tínhamos uma pré-inscrição com este e-mail. Registramos esta como atualização.</span>':'')+'<a class="btn" href="#inicio">Voltar ao início</a></div>';
+        fm.innerHTML='<div class="okbox"><span class="ck">✓</span><h2>Pré-inscrição recebida</h2><p class="muted" style="margin:0;max-width:44ch">Obrigado, '+esc(payload.nome.split(' ')[0])+'. Sua pré-inscrição entrou na fila de análise da FF. Você recebe o retorno por e-mail ou WhatsApp.</p><span class="chip">Camisa: '+esc(payload.nome_camisa)+' · Nº '+payload.numero+'</span><span class="chip gold">Protocolo '+esc(res.protocolo||'')+'</span>'+(res.duplicado?'<span class="hint">Já tínhamos uma pré-inscrição com este e-mail. Registramos esta como atualização.</span>':'')+'<a class="btn" href="#a-league">Voltar ao início</a></div>';
         window.scrollTo(0,0);
       }).catch(function(){btn.disabled=false;btn.textContent='Enviar pré-inscrição';err.textContent='Não conseguimos enviar agora. Confira sua internet e tente de novo em alguns minutos.';});
     });
