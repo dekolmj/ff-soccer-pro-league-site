@@ -335,7 +335,6 @@ P['minha-area-time']=function(){
 P.entrar=function(){
   return '<div class="wrap"><div class="login"><div style="text-align:center;display:grid;gap:10px;justify-items:center"><img src="'+LOGO+'" width="76" height="76" alt="" style="object-fit:contain"><h1 style="font-size:44px">Entrar</h1><p class="muted" style="margin:0">Atletas e equipe FF entram por aqui. O site leva cada um para a sua área.</p></div>'+
   '<div class="card" id="entrarF"><p class="muted" style="margin:0">Carregando…</p></div>'+
-  (ONDA>=4?'<div class="demo"><div class="lbl" style="color:var(--gold)">Protótipo · atleta de demonstração</div><div class="row"><div class="avatar" style="width:42px;height:42px;'+avBg('falcoes-10')+'"></div><div><b style="font-family:var(--cond);text-transform:uppercase;font-size:17px">André Marques</b><div class="lbl">Meia · Falcões · Nº 10</div></div></div><button class="btn primary sm" id="demoBtn" type="button" style="justify-content:center">Entrar como André</button></div>':'')+
   (preOn()?'<p class="muted" style="text-align:center;font-size:14px;margin:0">Ainda não é atleta da League? <a class="more" href="#pre-inscricao">Fazer pré-inscrição</a></p>':'')+'</div></div>';
 };
 P['minha-area']=function(){
