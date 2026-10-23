@@ -1084,3 +1084,10 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
 @media (max-width:700px){.cdeltab thead{display:none}.cdeltab,.cdeltab tbody{display:block}.cdeltab tr{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--line)}.cdeltab td{display:block;padding:2px 0;border:0;white-space:normal}.cdeltab td[data-l]::before{content:attr(data-l)': ';color:var(--dim);font-size:12px}.cdeltab td:last-child{grid-column:1/-1}}
 .cdrodcab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .cdrodcab h3{margin:0}
+/* súmula: nome de cada campo em cima (Autor do gol, Assistência…) */
+.cdev{align-items:flex-end}
+.cdevc{display:grid;gap:4px;min-width:0}
+.cdevc small{font-family:var(--cond);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cdev>.lbl{padding-bottom:10px}
+.cdev .cdmot input{width:100%}
+.cdev select,.cdev input{height:40px;box-sizing:border-box}
