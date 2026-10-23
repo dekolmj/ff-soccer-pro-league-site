@@ -3,7 +3,7 @@
    Usa o mesmo login do painel.js (SB, PN). O banco decide quem pode gravar; aqui só a interface.
    Apagar times e atletas fica só para administradores. Escudos e fotos vão para o armazenamento 'marca'. */
 
-var CD={ok:false,temporadas:[],comp:'pro_league',jogos:[],vermelhos:[],rodada:'',sumula:null,times:[],atletas:[],unidades:[],aprovadas:[],equipe:[],acesso:{},busca:'',tipo:'',time:'',situ:'',form:null,hist:[]};
+var CD={ok:false,temporadas:[],comp:'pro_league',jogos:[],rodadas:[],vermelhos:[],rodada:'',sumula:null,times:[],atletas:[],unidades:[],aprovadas:[],equipe:[],acesso:{},busca:'',tipo:'',time:'',situ:'',form:null,hist:[]};
 var CD_POS=['GOL','LAT','ZAG','VOL','MEI','ATA'],CD_KIT=['P','M','G','GG','XG'];
 
 function cdEl(){return document.getElementById('pnAba');}
@@ -20,12 +20,13 @@ function cdCarregar(cb){
     !preOn()?Promise.resolve({data:[]}):SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome'),
     SB.rpc('listar_acessos'),
     SB.from('jogos').select('id,temporada_id,rodada,ordem,grupo,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,mvp_atleta_id,sumula_fechada,exemplo').order('rodada').order('ordem'),
-    SB.from('eventos_jogo').select('jogo_id,atleta_id,time_id').eq('tipo','cartao_vermelho')
+    SB.from('eventos_jogo').select('jogo_id,atleta_id,time_id').eq('tipo','cartao_vermelho'),
+    SB.from('rodadas').select('id,temporada_id,numero,data').order('numero').then(function(x){return x.error?{data:[]}:x;})  // banco ainda sem a tabela rodadas: só as rodadas dos jogos
   ]).then(function(r){
     var erro=r.filter(function(x){return x.error;})[0];
     if(erro){cdMsg('Não foi possível carregar os cadastros. Recarregue a página.');console.warn(erro.error);return;}
     var ac=r[5].data&&r[5].data.ok?r[5].data:{equipe:[],atletas:[]};CD.equipe=ac.equipe;CD.acesso={};ac.atletas.forEach(function(x){CD.acesso[x.id]=x;});
-    CD.temporadas=r[0].data;CD.jogos=r[6].data;CD.vermelhos=r[7].data;CD.times=r[1].data;CD.unidades=r[3].data;CD.aprovadas=r[4].data;
+    CD.temporadas=r[0].data;CD.jogos=r[6].data;CD.rodadas=r[8].data;CD.vermelhos=r[7].data;CD.times=r[1].data;CD.unidades=r[3].data;CD.aprovadas=r[4].data;
     CD.atletas=r[2].data.map(function(a){var pv=Array.isArray(a.atletas_privado)?a.atletas_privado[0]:a.atletas_privado;
       a.pv=pv||{};a.els={};(a.elencos||[]).forEach(function(e){a.els[e.temporada_id]=e;});
       a.el=a.els[cdTempId('pro_league')]||(a.elencos||[])[0]||null;return a;});
@@ -65,26 +66,114 @@ function cdEnviar(arquivo,pasta,cb){
 function cdCampo(rot,html,cl){return '<label class="fld'+(cl?' '+cl:'')+'">'+rot+html+'</label>';}
 function cdOpcoes(lista,val){return lista.map(function(o){return '<option value="'+esc(o[0])+'"'+(String(o[0])===String(val==null?'':val)?' selected':'')+'>'+esc(o[1])+'</option>';}).join('');}
 
-/* ================= TIMES ================= */
+/* ================= PASSO A PASSO DA COMPETIÇÃO =================
+   1 Times → 2 Grupos (só Libertadores) → 3 Rodadas e jogos → 4 Atletas nos times. Aparece no topo de Times e Jogos;
+   dá para esconder (fica guardado neste navegador). */
+function cdGuiaOn(){try{return localStorage.getItem('ffl_guia')!=='0';}catch(e){return true;}}
+function cdGuiaHTML(){
+  if(!cdGuiaOn())return '<p class="cdguiaoff"><button type="button" class="more" id="cdGuiaMostra">Mostrar o passo a passo</button></p>';
+  var tid=cdTempId(CD.comp),lib=CD.comp==='libertadores',ts=cdTimesDa(CD.comp),n=ts.length;
+  var comGrupo=ts.filter(function(t){return t.grupo;}).length,rods=cdRodadas(tid),js=CD.jogos.filter(function(j){return j.temporada_id===tid;});
+  var na={};CD.atletas.forEach(function(a){var e=a.els[tid];if(e)na[e.time_id]=(na[e.time_id]||0)+1;});
+  var semAt=ts.filter(function(t){return !na[t.id];}).length,qa=Object.keys(na).reduce(function(s,k){return s+na[k];},0);
+  var passos=[['Criar os times','painel-times',n?n+(n===1?' time':' times'):'Nenhum time ainda',n>=2]];
+  if(lib)passos.push(['Dividir em grupos','painel-times',n?comGrupo+' de '+n+' times com grupo':'Crie os times antes',n>0&&comGrupo===n]);
+  passos.push(['Criar as rodadas e os jogos','painel-jogos',rods.length?rods.length+(rods.length===1?' rodada':' rodadas')+' · '+js.length+(js.length===1?' jogo':' jogos'):'Nenhuma rodada ainda',rods.length>0&&js.length>0]);
+  passos.push(['Colocar os atletas nos times','painel-times',qa+(qa===1?' atleta':' atletas')+(n&&semAt?' · '+semAt+(semAt===1?' time sem atletas':' times sem atletas'):''),n>0&&!semAt]);
+  return '<div class="card cdguia"><div class="between"><b>Passo a passo · '+CD_COMP[CD.comp]+'</b><button type="button" class="more" id="cdGuiaEsconde">Esconder</button></div><ol>'+
+    passos.map(function(p,i){return '<li class="'+(p[3]?'ok':'')+'"><a href="#'+p[1]+'"><span class="cdgn">'+(p[3]?'✓':i+1)+'</span><span><b>'+p[0]+'</b><small>'+p[2]+'</small></span></a></li>';}).join('')+'</ol></div>';
+}
+function cdGuiaLigar(fn){
+  var e=document.getElementById('cdGuiaEsconde'),m=document.getElementById('cdGuiaMostra');
+  if(e)e.addEventListener('click',function(){try{localStorage.setItem('ffl_guia','0');}catch(x){}fn();});
+  if(m)m.addEventListener('click',function(){try{localStorage.removeItem('ffl_guia');}catch(x){}fn();});
+}
+
+/* ================= TIMES =================
+   Na Libertadores os times aparecem separados por grupo, com a troca de grupo direto no cartão.
+   "Elenco" abre os atletas do time: dá para colocar, trocar o número e tirar atletas (o mesmo vale pelo cadastro do atleta, em Usuários). */
 function cdTimes(){
-  var el=cdEl(),f=CD.form&&CD.form.tipo==='time'?CD.form:null;
-  var n={},lib=CD.comp==='libertadores',ts=cdTimesDa(CD.comp);CD.atletas.forEach(function(a){Object.keys(a.els).forEach(function(k){var t=a.els[k].time_id;n[t]=(n[t]||0)+1;});});
-  el.innerHTML=cdCompHTML()+'<div class="pnbusca"><p class="muted" style="margin:0;flex:1 1 300px">'+ts.length+' times na '+CD_COMP[CD.comp]+'. O site mostra os times nesta ordem.</p>'+
-    '<button class="btn primary sm" id="cdNovoTime">+ Novo time</button></div>'+
-    (f?cdTimeForm(f):'')+
-    '<div class="cdgrid">'+ts.map(function(t){
+  var el=cdEl(),f=CD.form&&(CD.form.tipo==='time'||CD.form.tipo==='elenco')?CD.form:null;
+  var n={},tid=cdTempId(CD.comp),lib=CD.comp==='libertadores',ts=cdTimesDa(CD.comp);CD.atletas.forEach(function(a){var e=a.els[tid];if(e)n[e.time_id]=(n[e.time_id]||0)+1;});
+  var cartao=function(t){
       return '<div class="card cdtime"><div class="row">'+cdEscudo(t,48)+'<div style="min-width:0"><b>'+esc(t.nome)+'</b>'+
-        '<div class="lbl">'+(lib&&t.grupo?'Grupo '+esc(t.grupo)+' · ':'')+(n[t.id]||0)+' atletas'+(t.tecnico?' · Técnico: '+esc(t.tecnico):'')+'</div>'+
+        '<div class="lbl">'+(n[t.id]||0)+((n[t.id]||0)===1?' atleta':' atletas')+(t.tecnico?' · Técnico: '+esc(t.tecnico):'')+'</div>'+
         (t.exemplo?'<span class="chip">exemplo</span>':'')+'</div></div>'+
-        '<button class="btn sm" data-editar="'+esc(t.id)+'">Editar</button></div>';}).join('')+
-    (ts.length?'':'<div class="card"><p class="muted" style="margin:0">Nenhum time na '+CD_COMP[CD.comp]+' ainda. Comece em "+ Novo time".</p></div>')+'</div>';
-  cdCompLigar(cdTimes);
+        '<div class="cdtbts">'+(lib?'<select class="cdgsel" data-grupo="'+esc(t.id)+'" aria-label="Grupo do '+esc(t.nome)+'"><option value="">Sem grupo</option>'+cdOpcoes(CD_GRUPOS.map(function(g){return [g,'Grupo '+g];}),t.grupo)+'</select>':'')+
+        '<button class="btn sm" data-elenco="'+esc(t.id)+'">Elenco</button><button class="btn sm" data-editar="'+esc(t.id)+'">Editar</button></div></div>';};
+  var lista;
+  if(lib&&ts.length){var gs=[];ts.forEach(function(t){var g=t.grupo||'';if(gs.indexOf(g)<0)gs.push(g);});gs.sort(function(a,b){return !a?1:!b?-1:a.localeCompare(b);});
+    lista=gs.map(function(g){var tg=ts.filter(function(t){return (t.grupo||'')===g;});
+      return '<h3 class="cdgtit">'+(g?'Grupo '+esc(g):'Sem grupo')+' <span class="lbl">'+tg.length+(tg.length===1?' time':' times')+'</span></h3><div class="cdgrid">'+tg.map(cartao).join('')+'</div>';}).join('');}
+  else lista='<div class="cdgrid">'+ts.map(cartao).join('')+(ts.length?'':'<div class="card"><p class="muted" style="margin:0">Nenhum time na '+CD_COMP[CD.comp]+' ainda. Comece em "+ Novo time".</p></div>')+'</div>';
+  el.innerHTML=cdCompHTML()+cdGuiaHTML()+'<div class="pnbusca"><p class="muted" style="margin:0;flex:1 1 300px">'+ts.length+' times na '+CD_COMP[CD.comp]+'. O site mostra os times nesta ordem.'+
+    (lib?' Escolha o grupo de cada time no próprio cartão.':'')+'</p>'+
+    '<button class="btn primary sm" id="cdNovoTime">+ Novo time</button></div>'+
+    (f?(f.tipo==='elenco'?cdElencoHTML(f):cdTimeForm(f)):'')+lista;
+  cdCompLigar(cdTimes);cdGuiaLigar(cdTimes);
   document.getElementById('cdNovoTime').addEventListener('click',function(){CD.form={tipo:'time',novo:true,cor:'#F2C14D',ordem:ts.length+1};cdTimes();cdFoco();});
   el.querySelectorAll('[data-editar]').forEach(function(b){b.addEventListener('click',function(){var t=cdTime(b.dataset.editar);
     CD.form={tipo:'time',id:t.id,nome:t.nome,cor:t.cor,tecnico:t.tecnico||'',ordem:t.ordem,escudo_url:t.escudo_url,grupo:t.grupo};cdTimes();cdFoco();});});
-  if(f)cdTimeLigar(f,n[f.id]||0);
+  el.querySelectorAll('[data-elenco]').forEach(function(b){b.addEventListener('click',function(){CD.form={tipo:'elenco',id:b.dataset.elenco};cdTimes();cdFoco();});});
+  el.querySelectorAll('[data-grupo]').forEach(function(s){s.addEventListener('change',function(){var t=cdTime(s.dataset.grupo),g=s.value||null;s.disabled=true;
+    SB.from('times').update({grupo:g}).eq('id',t.id).then(function(r){
+      if(r.error){s.disabled=false;s.value=t.grupo||'';toast('Não foi possível trocar o grupo. Tente de novo.');return;}
+      t.grupo=g;toast(t.nome+(g?' no Grupo '+g+'.':' ficou sem grupo.'));cdTimes();});});});
+  if(f&&f.tipo==='time')cdTimeLigar(f,n[f.id]||0);
+  if(f&&f.tipo==='elenco')cdElencoLigar(f);
 }
+var CD_GRUPOS='ABCDEFGH'.split('');
 function cdFoco(){var fm=document.getElementById('cdForm');if(fm){fm.scrollIntoView({block:'start',behavior:'smooth'});var i=fm.querySelector('input');if(i)i.focus({preventScroll:true});}}
+
+// ---------- Elenco de um time ----------
+function cdElencoHTML(f){
+  var t=cdTime(f.id),tid=cdTempId(CD.comp),el=cdElenco(f.id,tid),ed=f.atleta?cdAtleta(f.atleta):null,e0=ed&&ed.els[tid]&&ed.els[tid].time_id===f.id?ed.els[tid]:null;
+  var ops=CD.atletas.filter(function(a){return a.ativo!==false;}).map(function(a){var e=a.els[tid],ot=e&&e.time_id!==f.id?cdTime(e.time_id):null;
+    return [a.id,a.nome+(e&&e.time_id===f.id?' · já no time, nº '+e.numero:ot?' · hoje no '+ot.nome:'')];});
+  return '<div class="card cdform" id="cdForm"><div class="between" style="flex-wrap:wrap;gap:8px"><h3>Elenco · '+esc(t.nome)+'</h3><span class="lbl">'+CD_COMP[CD.comp]+' · '+el.length+(el.length===1?' atleta':' atletas')+'</span></div>'+
+    (el.length?'<div class="tblw"><table class="tbl cdeltab"><thead><tr><th>Nº</th><th class="l">Atleta</th><th class="l">Camisa</th><th>Kit</th><th>Posição</th><th></th></tr></thead><tbody>'+
+      el.map(function(a){var e=a.els[tid];return '<tr><td data-l="Nº"><b>'+e.numero+'</b></td><td data-l="Atleta" class="l">'+esc(a.nome)+'</td><td data-l="Camisa" class="l">'+esc(e.nome_camisa)+'</td><td data-l="Kit">'+esc(e.kit)+'</td><td data-l="Posição">'+esc(a.posicao||'')+'</td>'+
+        '<td><div class="pnacoes"><button class="btn sm" data-eledita="'+a.id+'">Editar</button><button class="btn sm" data-eltira="'+a.id+'">Tirar do time</button></div></td></tr>';}).join('')+'</tbody></table></div>'
+      :'<p class="muted" style="margin:6px 0 0">Nenhum atleta neste time ainda.</p>')+
+    '<form id="cdElF" novalidate style="margin-top:16px"><h4 style="margin:0 0 8px">'+(e0?'Editar '+esc(ed.nome):'Colocar atleta no time')+'</h4><div class="cdcampos">'+
+      cdCampo('Atleta *','<select id="eAt"'+(e0?' disabled':'')+'><option value="">Escolha</option>'+cdOpcoes(ops,f.atleta)+'</select>','full')+
+      cdCampo('Número *','<input id="eNum" type="number" min="1" max="99" value="'+esc(e0?e0.numero:'')+'">')+
+      cdCampo('Nome na camisa *','<input id="eCam" maxlength="12" value="'+esc(e0?e0.nome_camisa:'')+'">')+
+      cdCampo('Kit *','<select id="eKit">'+cdOpcoes(CD_KIT.map(function(k){return [k,k];}),e0?e0.kit:'M')+'</select>')+
+    '</div><p class="muted" style="margin:8px 0 0;font-size:14px">Atleta ainda não cadastrado? Crie em <a class="more" href="#painel-usuarios">Usuários</a> e volte aqui.</p>'+
+    '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">'+(e0?'Salvar':'Colocar no time')+'</button>'+
+    (e0?'<button class="btn" type="button" id="cdElNovo">Cancelar edição</button>':'')+'<button class="btn" type="button" id="cdCancela">Fechar elenco</button></div></form></div>';
+}
+function cdElencoLigar(f){
+  var tid=cdTempId(CD.comp),er=document.getElementById('cdErr'),fm=document.getElementById('cdElF'),at=document.getElementById('eAt');
+  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdTimes();});
+  var nv=document.getElementById('cdElNovo');if(nv)nv.addEventListener('click',function(){CD.form={tipo:'elenco',id:f.id};cdTimes();});
+  // ao escolher o atleta, sugere nome na camisa e kit do cadastro dele
+  at.addEventListener('change',function(){var a=cdAtleta(at.value);if(!a)return;var e=a.els[tid]||a.el||(a.elencos||[])[0];
+    var cam=document.getElementById('eCam');if(!cam.value)cam.value=(e&&e.nome_camisa)||String(a.apelido||a.nome.split(' ')[0]).toUpperCase().slice(0,12);
+    if(e&&e.kit)document.getElementById('eKit').value=e.kit;});
+  document.querySelectorAll('[data-eledita]').forEach(function(b){b.addEventListener('click',function(){CD.form={tipo:'elenco',id:f.id,atleta:b.dataset.eledita};cdTimes();
+    var fe=document.getElementById('cdElF');if(fe)fe.scrollIntoView({block:'center',behavior:'smooth'});});});
+  document.querySelectorAll('[data-eltira]').forEach(function(b){b.addEventListener('click',function(){var a=cdAtleta(b.dataset.eltira);
+    if(!confirm('Tirar '+a.nome+' do '+cdTime(f.id).nome+'? O cadastro do atleta continua; ele só fica sem time nesta competição.'))return;
+    b.disabled=true;SB.from('elencos').delete().eq('atleta_id',a.id).eq('temporada_id',tid).then(function(r){
+      if(r.error){b.disabled=false;er.textContent='Não foi possível tirar do time. Tente de novo.';return;}
+      toast(a.nome.split(' ')[0]+' saiu do time.');cdRecarregar();});});});
+  fm.addEventListener('submit',function(e){e.preventDefault();
+    var a=cdAtleta(f.atleta||at.value),num=parseInt(document.getElementById('eNum').value,10),cam=document.getElementById('eCam').value.trim().toUpperCase(),kit=document.getElementById('eKit').value;
+    if(!a){er.textContent='Escolha o atleta.';return;}
+    if(!(num>=1&&num<=99)){er.textContent='Número de 1 a 99.';return;}
+    if(!cam){er.textContent='Preencha o nome na camisa.';return;}
+    var dono=cdElenco(f.id,tid).filter(function(x){return x.id!==a.id&&x.els[tid].numero===num;})[0];
+    if(dono){er.textContent='O número '+num+' já é de '+dono.nome+' neste time.';return;}
+    var ant=a.els[tid],ot=ant&&ant.time_id!==f.id?cdTime(ant.time_id):null;
+    if(ot&&!confirm(a.nome+' está no '+ot.nome+'. Passar para o '+cdTime(f.id).nome+'?'))return;
+    var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
+    SB.from('elencos').upsert({temporada_id:tid,time_id:f.id,atleta_id:a.id,numero:num,nome_camisa:cam,kit:kit},{onConflict:'temporada_id,atleta_id'}).then(function(r){bt.disabled=false;
+      if(r.error){er.textContent=/numero|duplicate|unique/i.test(r.error.message)?'Este número já está em uso neste time.':'Não foi possível salvar. Tente de novo.';console.warn(r.error);return;}
+      CD.form={tipo:'elenco',id:f.id};toast(a.nome.split(' ')[0]+(ant&&!ot?' atualizado.':' entrou no time.'));cdRecarregar();});
+  });
+}
 
 function cdTimeForm(f){
   return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Novo time · '+CD_COMP[CD.comp]:'Editar '+esc(f.nome))+'</h3><div class="cdcampos">'+
@@ -92,7 +181,7 @@ function cdTimeForm(f){
     cdCampo('Técnico','<input id="tTec" maxlength="60" value="'+esc(f.tecnico||'')+'">')+
     cdCampo('Cor','<input id="tCor" type="color" value="'+esc(f.cor||'#F2C14D')+'">')+
     cdCampo('Ordem no site','<input id="tOrdem" type="number" min="0" max="99" value="'+esc(f.ordem==null?'':f.ordem)+'">')+
-    (CD.comp==='libertadores'?cdCampo('Grupo','<select id="tGrupo"><option value="">Sem grupo</option>'+cdOpcoes('ABCDEFGH'.split('').map(function(g){return [g,'Grupo '+g];}),f.grupo)+'</select>'):'')+
+    (CD.comp==='libertadores'?cdCampo('Grupo','<select id="tGrupo"><option value="">Sem grupo</option>'+cdOpcoes(CD_GRUPOS.map(function(g){return [g,'Grupo '+g];}),f.grupo)+'</select>'):'')+
     cdCampo('Escudo (PNG, JPG, WEBP ou SVG, até 2 MB)','<div class="cdimg">'+(f.escudo_url?'<img src="'+esc(f.escudo_url)+'" alt="" width="48" height="48">':'')+'<input id="tEsc" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></div>','full')+
     '</div><div class="err" id="cdErr" role="alert"></div><div class="cdbts">'+
     '<button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button>'+
@@ -318,7 +407,7 @@ function cdImportaLigar(pend){
 }
 
 /* ================= HISTÓRICO ================= */
-var CD_TAB={times:'Time',atletas:'Atleta',elencos:'Elenco',jogos:'Jogo'};
+var CD_TAB={times:'Time',atletas:'Atleta',elencos:'Elenco',jogos:'Jogo',rodadas:'Rodada'};
 function cdHistorico(){
   SB.from('historico').select('quando,quem,tabela,acao,resumo').order('quando',{ascending:false}).limit(200).then(function(r){
     var el=cdEl();if(!el||PN.aba!=='historico')return;
@@ -361,28 +450,70 @@ function cdElenco(timeId,tempId){return CD.atletas.filter(function(a){var e=a.el
   .sort(function(a,b){return a.els[tempId].numero-b.els[tempId].numero;});}
 function cdAtleta(id){return CD.atletas.filter(function(a){return a.id===id;})[0];}
 
+// Rodadas da competição: as criadas no painel (tabela rodadas) mais as que só existem pelos jogos.
+function cdRodadas(tid){var out={};
+  CD.rodadas.forEach(function(r){if(r.temporada_id===tid)out[r.numero]={id:r.id,numero:r.numero,data:r.data};});
+  CD.jogos.forEach(function(j){if(j.temporada_id===tid&&!out[j.rodada])out[j.rodada]={id:null,numero:j.rodada,data:null};});
+  return Object.keys(out).map(function(k){return out[k];}).sort(function(a,b){return a.numero-b.numero;});}
+function cdDataBr(d){if(!d)return '';var x=new Date(d+'T12:00:00');return CD_DIAS[x.getDay()]+' '+d.split('-').reverse().slice(0,2).join('/');}
+
 function cdJogos(){
   if(CD.sumula)return cdSumula();
-  var el=cdEl(),tid=cdTempId(CD.comp),f=CD.form&&CD.form.tipo==='jogo'?CD.form:null;
-  var js=CD.jogos.filter(function(j){return j.temporada_id===tid;}),rods=[];
-  js.forEach(function(j){if(rods.indexOf(j.rodada)<0)rods.push(j.rodada);});rods.sort(function(a,b){return a-b;});
+  var el=cdEl(),tid=cdTempId(CD.comp),f=CD.form&&(CD.form.tipo==='jogo'||CD.form.tipo==='rodada')?CD.form:null;
+  var js=CD.jogos.filter(function(j){return j.temporada_id===tid;}),rods=cdRodadas(tid);
   var pend=js.filter(function(j){return cdSitJogo(j)[0]==='Súmula pendente';}).length;
-  el.innerHTML=cdCompHTML()+'<div class="pnbusca"><label class="fld" style="flex:0 1 200px">Rodada<select id="cdRod">'+
-    cdOpcoes([['','Todas']].concat(rods.map(function(r){return [r,'Rodada '+r];})),CD.rodada)+'</select></label>'+
-    '<p class="muted" style="margin:0;flex:1 1 260px">'+js.length+' jogos na '+CD_COMP[CD.comp]+(pend?' · <b style="color:var(--gold)">'+pend+' com súmula pendente</b>':'')+'</p>'+
-    '<button class="btn primary sm" id="cdNovoJogo">+ Novo jogo</button></div>'+(f?cdJogoForm(f):'')+'<div id="cdJogosLista" style="display:grid;gap:14px"></div>';
-  cdCompLigar(cdJogos);
+  el.innerHTML=cdCompHTML()+cdGuiaHTML()+'<div class="pnbusca"><label class="fld" style="flex:0 1 200px">Rodada<select id="cdRod">'+
+    cdOpcoes([['','Todas']].concat(rods.map(function(r){return [r.numero,'Rodada '+r.numero];})),CD.rodada)+'</select></label>'+
+    '<p class="muted" style="margin:0;flex:1 1 260px">'+rods.length+(rods.length===1?' rodada':' rodadas')+' · '+js.length+(js.length===1?' jogo':' jogos')+' na '+CD_COMP[CD.comp]+(pend?' · <b style="color:var(--gold)">'+pend+' com súmula pendente</b>':'')+'</p>'+
+    '<button class="btn primary sm" id="cdNovaRod">+ Nova rodada</button></div>'+(f?(f.tipo==='rodada'?cdRodadaForm(f):cdJogoForm(f)):'')+'<div id="cdJogosLista" style="display:grid;gap:14px"></div>';
+  cdCompLigar(cdJogos);cdGuiaLigar(cdJogos);
   document.getElementById('cdRod').addEventListener('change',function(){CD.rodada=this.value;cdJogos();});
-  document.getElementById('cdNovoJogo').addEventListener('click',function(){var ult=rods.length?rods[rods.length-1]:1;
-    CD.form={tipo:'jogo',novo:true,rodada:CD.rodada||ult,status:'agendado'};cdJogos();cdFoco();});
-  if(f)cdJogoLigar(f);
-  var box=document.getElementById('cdJogosLista'),mostra=rods.filter(function(r){return !CD.rodada||String(r)===String(CD.rodada);});
-  box.innerHTML=mostra.length?mostra.map(function(r){var lj=js.filter(function(j){return j.rodada===r;}).sort(function(a,b){return a.ordem-b.ordem;});
-    return '<div class="card cdrod"><div class="between" style="margin-bottom:6px"><h3>Rodada '+r+'</h3><span class="lbl">'+lj.length+(lj.length===1?' jogo':' jogos')+'</span></div>'+lj.map(cdJogoLinha).join('')+'</div>';}).join('')
-    :'<div class="card"><p class="muted" style="margin:0">Nenhum jogo na '+CD_COMP[CD.comp]+' ainda. Comece em "+ Novo jogo".</p></div>';
+  document.getElementById('cdNovaRod').addEventListener('click',function(){var ult=rods.length?rods[rods.length-1]:null;
+    CD.form={tipo:'rodada',novo:true,numero:ult?ult.numero+1:1,data:ult&&ult.data?cdMaisDias(ult.data,7):''};cdJogos();cdFoco();});
+  if(f&&f.tipo==='jogo')cdJogoLigar(f);
+  if(f&&f.tipo==='rodada')cdRodadaLigar(f);
+  var box=document.getElementById('cdJogosLista'),mostra=rods.filter(function(r){return !CD.rodada||String(r.numero)===String(CD.rodada);});
+  box.innerHTML=mostra.length?mostra.map(function(r){var lj=js.filter(function(j){return j.rodada===r.numero;}).sort(function(a,b){return a.ordem-b.ordem;});
+    return '<div class="card cdrod"><div class="cdrodcab"><div><h3>Rodada '+r.numero+'</h3><span class="lbl">'+(r.data?cdDataBr(r.data)+' · ':'')+lj.length+(lj.length===1?' jogo':' jogos')+'</span></div>'+
+      '<div class="pnacoes"><button class="btn primary sm" data-novojogo="'+r.numero+'">+ Jogo</button><button class="btn sm" data-rodada="'+r.numero+'">Editar rodada</button></div></div>'+
+      (lj.length?lj.map(cdJogoLinha).join(''):'<p class="muted" style="margin:6px 0 0">Nenhum jogo nesta rodada ainda. Use "+ Jogo".</p>')+'</div>';}).join('')
+    :'<div class="card"><p class="muted" style="margin:0">Nenhuma rodada na '+CD_COMP[CD.comp]+' ainda. Comece em "+ Nova rodada" e depois coloque os jogos dentro dela.</p></div>';
   box.querySelectorAll('[data-sumula]').forEach(function(b){b.addEventListener('click',function(){location.hash='painel-sumula-'+b.dataset.sumula;});});
+  box.querySelectorAll('[data-novojogo]').forEach(function(b){b.addEventListener('click',function(){var r=rods.filter(function(x){return String(x.numero)===b.dataset.novojogo;})[0];
+    CD.form={tipo:'jogo',novo:true,rodada:r.numero,data:r.data||'',status:'agendado'};cdJogos();cdFoco();});});
+  box.querySelectorAll('[data-rodada]').forEach(function(b){b.addEventListener('click',function(){var r=rods.filter(function(x){return String(x.numero)===b.dataset.rodada;})[0];
+    CD.form={tipo:'rodada',id:r.id,numero:r.numero,antigo:r.numero,data:r.data||'',jogos:js.filter(function(j){return j.rodada===r.numero;}).length};cdJogos();cdFoco();});});
   box.querySelectorAll('[data-jogo]').forEach(function(b){b.addEventListener('click',function(){var j=CD.jogos.filter(function(x){return x.id===b.dataset.jogo;})[0],d=cdBr(j.data_hora)||{};
     CD.form={tipo:'jogo',id:j.id,rodada:j.rodada,grupo:j.grupo,data:d.data||'',hora:d.hora||'',local:j.local,time_casa:j.time_casa,time_fora:j.time_fora,status:j.status,fechada:j.sumula_fechada};cdJogos();cdFoco();});});
+}
+function cdMaisDias(d,n){var x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return x.getFullYear()+'-'+cdP2(x.getMonth()+1)+'-'+cdP2(x.getDate());}
+
+// ---------- Rodada ----------
+function cdRodadaForm(f){
+  return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Nova rodada · '+CD_COMP[CD.comp]:'Editar rodada '+f.antigo)+'</h3><div class="cdcampos">'+
+    cdCampo('Número da rodada *','<input id="rNum" type="number" min="1" max="99" value="'+esc(f.numero||'')+'"'+(f.jogos?' disabled':'')+'>')+
+    cdCampo('Data','<input id="rData" type="date" value="'+esc(f.data||'')+'">')+
+    '</div><p class="muted" style="margin:10px 0 0;font-size:14px">'+(f.jogos?'Esta rodada já tem jogos: o número não muda. A data nova vale para os próximos jogos criados nela; a data de cada jogo muda em "Editar" do jogo.':'Depois de criar a rodada, coloque os jogos nela com "+ Jogo". Os jogos já vêm com a data da rodada.')+'</p>'+
+    '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">'+(f.novo?'Criar rodada':'Salvar')+'</button><button class="btn" type="button" id="cdCancela">Cancelar</button>'+
+    (!f.novo&&f.id&&!f.jogos?'<button class="btn cdapaga" type="button" id="cdApaga">Apagar rodada</button>':'')+'</div></form>';}
+function cdRodadaLigar(f){
+  var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr'),tid=cdTempId(CD.comp);
+  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdJogos();});
+  var ap=document.getElementById('cdApaga');
+  if(ap)ap.addEventListener('click',function(){if(!confirm('Apagar a rodada '+f.antigo+'?'))return;
+    ap.disabled=true;SB.from('rodadas').delete().eq('id',f.id).then(function(r){
+      if(r.error){ap.disabled=false;er.textContent=/jogos/.test(r.error.message)?'Esta rodada já tem jogos. Tire os jogos dela antes.':'Não foi possível apagar. Tente de novo.';return;}
+      CD.form=null;CD.rodada='';toast('Rodada apagada.');cdRecarregar();});});
+  fm.addEventListener('submit',function(e){e.preventDefault();
+    var num=f.jogos?f.antigo:parseInt(document.getElementById('rNum').value,10),data=document.getElementById('rData').value||null;
+    if(!(num>=1&&num<=99)){er.textContent='Número da rodada de 1 a 99.';return;}
+    if(num!==f.antigo&&cdRodadas(tid).some(function(r){return r.numero===num;})){er.textContent='Já existe a rodada '+num+' nesta competição.';return;}
+    var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
+    var q=f.id?SB.from('rodadas').update({numero:num,data:data}).eq('id',f.id):SB.from('rodadas').insert({temporada_id:tid,numero:num,data:data});
+    q.then(function(r){bt.disabled=false;
+      if(r.error){er.textContent=/duplicate|unique/i.test(r.error.message)?'Já existe a rodada '+num+' nesta competição.':'Não foi possível salvar. Tente de novo.';console.warn(r.error);return;}
+      CD.form=null;toast(f.novo?'Rodada '+num+' criada. Agora coloque os jogos nela.':'Rodada atualizada.');cdRecarregar();});
+  });
 }
 function cdJogoLinha(j){var c=cdTime(j.time_casa),f=cdTime(j.time_fora),s=cdSitJogo(j),pl=j.gols_casa!=null&&j.gols_fora!=null;
   return '<div class="cdjogo"><div class="cdjq"><b>'+esc(cdQuandoJogo(j))+'</b><span class="lbl">'+esc(j.local||'Local a definir')+(j.grupo?' · Grupo '+esc(j.grupo):'')+'</span></div>'+
@@ -390,10 +521,13 @@ function cdJogoLinha(j){var c=cdTime(j.time_casa),f=cdTime(j.time_fora),s=cdSitJ
     '<div class="cdjs"><span class="chip '+s[1]+'">'+s[0]+'</span>'+(j.exemplo?' <span class="chip">exemplo</span>':'')+'</div>'+
     '<div class="pnacoes"><button class="btn sm'+(s[0]==='Súmula pendente'?' primary':'')+'" data-sumula="'+j.id+'">Súmula</button><button class="btn sm" data-jogo="'+j.id+'">Editar</button></div></div>';}
 
-function cdJogoForm(f){var ts=cdTimesDa(CD.comp),op=ts.map(function(t){return [t.id,t.nome+(t.grupo?' · Grupo '+t.grupo:'')];});
+// Na Libertadores, escolher o grupo deixa só os times daquele grupo nas listas de times.
+function cdOpTimes(g,keep){return cdTimesDa(CD.comp).filter(function(t){return !g||t.grupo===g||keep.indexOf(t.id)>=0;}).map(function(t){return [t.id,t.nome+(t.grupo?' · Grupo '+t.grupo:'')];});}
+function cdJogoForm(f){var op=cdOpTimes(f.grupo,[f.time_casa,f.time_fora]),rods=cdRodadas(cdTempId(CD.comp));
+  if(!rods.some(function(r){return String(r.numero)===String(f.rodada);})&&f.rodada)rods.push({numero:+f.rodada,data:null});
   return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Novo jogo · '+CD_COMP[CD.comp]:'Editar jogo')+'</h3><div class="cdcampos">'+
-    cdCampo('Rodada *','<input id="jRod" type="number" min="1" max="99" value="'+esc(f.rodada||'')+'">')+
-    (CD.comp==='libertadores'?cdCampo('Grupo','<select id="jGrupo"><option value="">Sem grupo (mata-mata)</option>'+cdOpcoes('ABCDEFGH'.split('').map(function(g){return [g,'Grupo '+g];}),f.grupo)+'</select>'):'')+
+    cdCampo('Rodada *','<select id="jRod">'+cdOpcoes(rods.map(function(r){return [r.numero,'Rodada '+r.numero+(r.data?' · '+cdDataBr(r.data):'')];}),f.rodada)+'</select>')+
+    (CD.comp==='libertadores'?cdCampo('Grupo','<select id="jGrupo"'+(f.fechada?' disabled':'')+'><option value="">Sem grupo (mata-mata)</option>'+cdOpcoes(CD_GRUPOS.map(function(g){return [g,'Grupo '+g];}),f.grupo)+'</select>'):'')+
     cdCampo('Data','<input id="jData" type="date" value="'+esc(f.data||'')+'">')+
     cdCampo('Horário (Brasília)','<input id="jHora" type="time" value="'+esc(f.hora||'')+'">')+
     cdCampo('Local / campo','<input id="jLocal" maxlength="60" placeholder="Ex.: Campo 1" value="'+esc(f.local||'')+'">')+
@@ -406,6 +540,12 @@ function cdJogoForm(f){var ts=cdTimesDa(CD.comp),op=ts.map(function(t){return [t
 function cdJogoLigar(f){
   var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr'),v=function(id){var x=document.getElementById(id);return x?x.value.trim():'';};
   document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdJogos();});
+  var gr=document.getElementById('jGrupo');
+  if(gr)gr.addEventListener('change',function(){['jCasa','jFora'].forEach(function(id){var s=document.getElementById(id),v0=s.value;
+    s.innerHTML='<option value="">Escolha</option>'+cdOpcoes(cdOpTimes(gr.value,[]),v0);if(s.value!==v0)s.value='';});});
+  // trocar a rodada de um jogo novo traz a data dela
+  var rs=document.getElementById('jRod');
+  if(f.novo)rs.addEventListener('change',function(){var r=cdRodadas(cdTempId(CD.comp)).filter(function(x){return String(x.numero)===rs.value;})[0];if(r&&r.data)document.getElementById('jData').value=r.data;});
   var ap=document.getElementById('cdApaga');
   if(ap)ap.addEventListener('click',function(){
     if(!confirm('Apagar este jogo? A súmula dele (escalação, gols, cartões e VAR) também é apagada. Isso não pode ser desfeito.'))return;
@@ -424,7 +564,9 @@ function cdJogoLigar(f){
     var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
     SB.rpc('salvar_jogo',{dados:d}).then(function(r){bt.disabled=false;
       if(r.error||!r.data||!r.data.ok){er.textContent=(r.data&&r.data.erro)||(r.error&&/mesma competição/.test(r.error.message)?'Os dois times precisam ser desta competição.':'Não foi possível salvar. Tente de novo.');return;}
-      CD.form=null;toast(f.novo?'Jogo cadastrado.':'Jogo atualizado.');cdRecarregar();});
+      // jogo novo: o formulário continua aberto, com a mesma rodada, data, horário e local, para lançar o próximo
+      CD.form=f.novo?{tipo:'jogo',novo:true,rodada:d.rodada,grupo:d.grupo,data:data,hora:hora,local:d.local,status:'agendado'}:null;
+      toast(f.novo?'Jogo cadastrado. Já pode lançar o próximo desta rodada.':'Jogo atualizado.');cdRecarregar();});
   });
 }
 
