@@ -1,0 +1,20 @@
+# Consulta o banco (Supabase) uma vez por dia para o plano grátis não pausar o projeto por falta de uso.
+# Usa só a chave pública do site (js/config.js); nada de segredo aqui.
+name: Manter o banco acordado
+
+on:
+  schedule:
+    - cron: '17 9 * * *'   # todo dia, 06:17 em Brasília
+  workflow_dispatch:        # dá para rodar na mão, na aba Actions
+
+jobs:
+  consulta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Consultar o banco
+        run: |
+          URL=$(grep -o "SUPABASE_URL:'[^']*'" js/config.js | cut -d"'" -f2)
+          KEY=$(grep -o "SUPABASE_KEY:'[^']*'" js/config.js | cut -d"'" -f2)
+          curl -sS --fail -o /dev/null -w "Banco respondeu: %{http_code}\n" \
+            "$URL/rest/v1/times?select=id&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY"
