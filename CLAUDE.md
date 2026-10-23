@@ -41,7 +41,7 @@ README.md             passo a passo para o Deko
 .github/workflows/    acordar-banco.yml: consulta o banco todo dia (06:17 de Brasília) para o Supabase grátis não pausar o projeto
 ```
 
-O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem frameworks. Os scripts são carregados em ordem no fim do `index.html` (config → dados-exemplo → banco → tv-canvas → app → painel → cadastros) e compartilham variáveis globais; a ordem importa. Detalhes em `docs/arquitetura.md`.
+O site é um app de página única, com rotas por `#hash`, JavaScript puro e sem frameworks. **Navegação (23/10/2026):** toda página tem endereço próprio e fica no histórico, então o "voltar" do navegador funciona e devolve a página na mesma altura (`NAV` e `route()` no `app.js`; altura guardada em `sessionStorage` `ffl_rolagem`). Endereços antigos e redirecionamentos trocam o endereço no lugar (`trocaEndereco()`), para o "voltar" não cair numa página que só redireciona. No painel, cada aba e cada súmula têm endereço: `#painel-times`, `#painel-jogos`, `#painel-usuarios`, `#painel-historico`, `#painel-sumula-<id do jogo>` (`#painel` abre a primeira aba). Quem já está logado e abre `#entrar` vai para o painel sem criar passo no histórico. Os scripts são carregados em ordem no fim do `index.html` (config → dados-exemplo → banco → tv-canvas → app → painel → cadastros) e compartilham variáveis globais; a ordem importa. Detalhes em `docs/arquitetura.md`.
 
 - **Rotas públicas:**
   - ~~`#inicio`~~: a página Início saiu em 23/10/2026, a pedido do Deko: a tela inicial é sempre a **FF Pro League** (`#a-league`), inclusive com `?demo`. `#inicio` e endereços desconhecidos levam para `#a-league`; o logo também.

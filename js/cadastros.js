@@ -380,7 +380,7 @@ function cdJogos(){
   box.innerHTML=mostra.length?mostra.map(function(r){var lj=js.filter(function(j){return j.rodada===r;}).sort(function(a,b){return a.ordem-b.ordem;});
     return '<div class="card cdrod"><div class="between" style="margin-bottom:6px"><h3>Rodada '+r+'</h3><span class="lbl">'+lj.length+(lj.length===1?' jogo':' jogos')+'</span></div>'+lj.map(cdJogoLinha).join('')+'</div>';}).join('')
     :'<div class="card"><p class="muted" style="margin:0">Nenhum jogo na '+CD_COMP[CD.comp]+' ainda. Comece em "+ Novo jogo".</p></div>';
-  box.querySelectorAll('[data-sumula]').forEach(function(b){b.addEventListener('click',function(){CD.form=null;CD.sumula={id:b.dataset.sumula};cdJogos();window.scrollTo(0,0);});});
+  box.querySelectorAll('[data-sumula]').forEach(function(b){b.addEventListener('click',function(){location.hash='painel-sumula-'+b.dataset.sumula;});});
   box.querySelectorAll('[data-jogo]').forEach(function(b){b.addEventListener('click',function(){var j=CD.jogos.filter(function(x){return x.id===b.dataset.jogo;})[0],d=cdBr(j.data_hora)||{};
     CD.form={tipo:'jogo',id:j.id,rodada:j.rodada,grupo:j.grupo,data:d.data||'',hora:d.hora||'',local:j.local,time_casa:j.time_casa,time_fora:j.time_fora,status:j.status,fechada:j.sumula_fechada};cdJogos();cdFoco();});});
 }
@@ -429,9 +429,12 @@ function cdJogoLigar(f){
 }
 
 // ---------- Súmula ----------
+// Volta da súmula para a lista de jogos: pelo histórico, se veio de lá; senão troca o endereço (o "voltar" não reabre a súmula).
+function cdVoltaJogos(){if(NAV.ant==='#painel-jogos')history.back();else location.replace('#painel-jogos');}
 function cdSumula(){
   var S=CD.sumula,j=CD.jogos.filter(function(x){return x.id===S.id;})[0];
-  if(!j){CD.sumula=null;return cdJogos();}
+  if(!j){CD.sumula=null;trocaEndereco('painel-jogos');return cdJogos();}
+  CD.comp=cdCompDe(j.temporada_id)||CD.comp;
   if(S.j)return cdSumulaTela();
   cdMsg('Carregando a súmula…');
   Promise.all([
@@ -506,7 +509,7 @@ function cdSumulaTela(){
 }
 function cdSumulaLigar(){
   var S=CD.sumula,el=cdEl(),j=S.j;
-  document.getElementById('cdVolta').addEventListener('click',function(){CD.sumula=null;cdJogos();});
+  document.getElementById('cdVolta').addEventListener('click',cdVoltaJogos);
   var re=document.getElementById('sReabre');if(re)re.addEventListener('click',function(){S.aberta=true;cdSumulaTela();});
   var conf=function(){var ct=cdContaGols(S),ok=String(ct[0])===String(S.gc)&&String(ct[1])===String(S.gf);
     document.getElementById('sConf').textContent='Gols lançados: '+ct[0]+' x '+ct[1]+(S.gc===''||S.gf===''?'':ok?' · confere com o placar ✓':' · não confere com o placar');};
@@ -540,8 +543,7 @@ function cdSumulaLigar(){
     SB.rpc('salvar_sumula',{jogo:j.id,dados:d}).then(function(r){bt.disabled=false;
       if(r.error||!r.data||!r.data.ok){er.textContent=(r.data&&r.data.erro)||'Não foi possível salvar a súmula. Tente de novo.';if(r.error)console.warn(r.error);return;}
       toast(fechar?'Súmula fechada. O jogo está encerrado.':'Rascunho da súmula salvo.');
-      if(fechar)CD.sumula=null;else CD.sumula={id:j.id};
-      cdRecarregar();});};
+      if(fechar){CD.ok=false;cdVoltaJogos();}else{CD.sumula={id:j.id};cdRecarregar();}});};
   var rb=document.getElementById('sRasc');if(rb)rb.addEventListener('click',function(){salvar(false,rb);});
   var fb=document.getElementById('sFecha');if(fb)fb.addEventListener('click',function(){salvar(true,fb);});
 }

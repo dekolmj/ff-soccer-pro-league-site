@@ -25,7 +25,15 @@ function pnErro(m){
   return 'Não deu certo agora. Tente de novo em instantes.';
 }
 
-P.painel=function(){setTimeout(pnIniciar,0);return '<div class="wrap pnwrap" id="painel"><p class="muted" style="padding:40px 0">Carregando o painel…</p></div>';};
+// Cada aba do painel e cada súmula têm o seu endereço (#painel-times, #painel-jogos, #painel-sumula-<id>…), para o "voltar" do navegador funcionar.
+var PN_ABAS=['inscricoes','times','jogos','usuarios','historico'];
+P.painel=function(arg){
+  var aba=arg||'',sum=null;
+  if(/^sumula-/.test(aba)){sum=aba.slice(7);aba='jogos';}
+  if(PN_ABAS.indexOf(aba)<0||(aba==='inscricoes'&&!preOn())){aba=preOn()?'inscricoes':'times';if(arg)trocaEndereco('painel');}
+  if(aba!==PN.aba||sum||CD.sumula)CD.form=null;
+  PN.aba=aba;CD.sumula=sum?(CD.sumula&&CD.sumula.id===sum?CD.sumula:{id:sum}):null;
+  setTimeout(PN.user&&PN.equipe&&SB?pnPainel:pnIniciar,0);return '<div class="wrap pnwrap" id="painel"><p class="muted" style="padding:40px 0">Carregando o painel…</p></div>';};
 
 // Sem login, o painel manda para a tela Entrar, que é a porta única do site.
 function pnIniciar(){
@@ -95,7 +103,7 @@ function enDestino(user){
   PN.user=user;acct();
   pnPerfil(function(p){
     acct();
-    if(p&&p.tipo==='equipe'){PN.equipe=p;toast('Bem-vindo, '+p.nome.split(' ')[0]+'!');location.hash='painel';return;}
+    if(p&&p.tipo==='equipe'){PN.equipe=p;toast('Bem-vindo, '+p.nome.split(' ')[0]+'!');location.replace('#painel');return;}
     var el=enEl();if(!el)return;
     var sair='<button class="btn" id="enSair" style="justify-content:center">Sair</button>';
     if(p&&p.tipo==='atleta'){
@@ -148,10 +156,9 @@ function pnPainel(){
   var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['jogos','Jogos'],['usuarios','Usuários'],['historico','Histórico']].filter(function(a){return a[0]!=='inscricoes'||preOn();});
   el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+'</div><h1>'+abas.filter(function(a){return a[0]===PN.aba;})[0][1]+'</h1></div>'+
   '<div class="pnquem">'+pnSelo(PN.equipe)+'<button class="btn sm" id="pnSair">Sair</button></div></div>'+
-  '<nav class="ctabs pnabas" aria-label="Seções do painel">'+abas.map(function(a){return '<a href="#painel" data-aba="'+a[0]+'" class="'+(PN.aba===a[0]?'on':'')+'">'+a[1]+'</a>';}).join('')+'</nav>'+
+  '<nav class="ctabs pnabas" aria-label="Seções do painel">'+abas.map(function(a){return '<a href="#painel-'+a[0]+'" class="'+(PN.aba===a[0]?'on':'')+'">'+a[1]+'</a>';}).join('')+'</nav>'+
   '<div id="pnAba"></div>';
   document.getElementById('pnSair').addEventListener('click',pnSair);
-  el.querySelectorAll('[data-aba]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();PN.aba=a.dataset.aba;CD.form=null;CD.sumula=null;pnPainel();});});
   var ab=el.querySelector('.pnabas a.on');if(ab)ab.parentNode.scrollLeft=Math.max(0,ab.offsetLeft-20);  // no celular, a aba aberta fica à vista
   if(PN.aba!=='inscricoes')return cdAba(PN.aba);
   document.getElementById('pnAba').innerHTML=
@@ -278,4 +285,4 @@ function pnZip(arq){
   return new Blob(partes.concat(central,[e.b]));
 }
 
-window.addEventListener('hashchange',function(){if(PN.canal&&location.hash!=='#painel'){SB.removeChannel(PN.canal);PN.canal=null;}});
+window.addEventListener('hashchange',function(){if(PN.canal&&location.hash.indexOf('#painel')!==0){SB.removeChannel(PN.canal);PN.canal=null;}});

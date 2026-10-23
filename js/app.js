@@ -221,7 +221,7 @@ P.atleta=function(id,dentro){
   '<div class="card" style="display:grid;gap:10px"><h3>Carreira FF</h3><div class="agenda"><div class="between"><span>Temporadas</span><b class="num">1</b></div><div class="between"><span>Títulos</span><b class="num">0</b></div><div class="between"><span>Copa FF 2026</span><span class="chip">Participou</span></div></div></div></div></div>';
   // dentro = mostrado na área do atleta (Meu perfil público), sem o “‹ Atletas” do Campeonato
   if(dentro)return corpo;
-  return '<div class="wrap"><div class="phead"><a class="more" href="#campeonato-atletas">‹ Atletas</a></div>'+corpo+'</div>';
+  return '<div class="wrap"><div class="phead"><a class="more" href="#atletas">‹ Atletas</a></div>'+corpo+'</div>';
 };
 P['minha-area-perfil']=function(){
   return area('perfil','<div class="ahead"><div><div class="eyebrow">Como os outros atletas veem você</div><h1>Meu perfil público</h1></div></div>'+P.atleta(ME,1));
@@ -419,29 +419,45 @@ window.addEventListener('hashchange',function(){var m=document.getElementById('v
 
 /* ================= ROUTER ================= */
 var app=document.getElementById('app');
-var ALIAS={'':'a-league'};
-function route(){
-  var h=(location.hash||'').replace('#','')||'a-league',page=h,arg=null;
-  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';page=h;
-  if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
-  if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
-  else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
-  else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}
-  else if(h.indexOf('time-')===0){page='time';arg=h.slice(5);}
-  if(h==='sair'){logout();return;}
-  if(/^minha-area/.test(page)&&!ME){page='entrar';}
-  if(page==='entrar'&&ME){page='minha-area';}
-  if(!P[page])page='a-league';
-  if(ondaDaPagina(page)>ONDA||(page==='pre-inscricao'&&!preOn())){page='a-league';arg=null;try{history.replaceState(null,'',location.pathname+location.search+'#a-league');}catch(e){}}
-  app.innerHTML=P[page](arg);
-  var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
-  document.getElementById('acct').classList.toggle('on',/^minha-area|entrar/.test(page));
-  document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('on',a.dataset.r===navKey);});
-  document.getElementById('drawer').hidden=true;document.getElementById('burger').setAttribute('aria-expanded','false');
-  window.scrollTo(0,0);
-  bind(page);initCanvases();
-  document.title='Site FF Soccer Pro League';
-}
+var ALIAS={'':'a-league'};
+// Navegação: cada página fica no histórico do navegador (voltar e avançar funcionam) e o "voltar" devolve a página na mesma altura em que estava.
+// Endereços antigos e redirecionamentos trocam o endereço no lugar (replace), para o "voltar" não cair numa página que só redireciona.
+var NAV={k:0,n:0,pos:{},ant:'',atual:''};
+try{history.scrollRestoration='manual';}catch(e){}
+try{NAV.pos=JSON.parse(sessionStorage.getItem('ffl_rolagem')||'{}')||{};}catch(e){}
+window.addEventListener('scroll',function(){if(NAV.k)NAV.pos[NAV.k]=window.scrollY;},{passive:true});
+window.addEventListener('pagehide',function(){try{sessionStorage.setItem('ffl_rolagem',JSON.stringify(NAV.pos));}catch(e){}});
+function trocaEndereco(h){try{history.replaceState(history.state,'',location.pathname+location.search+'#'+h);}catch(e){}}
+function route(){
+  var orig=(location.hash||'').replace('#',''),h=orig||'a-league',page=h,arg=null;
+  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';page=h;
+  if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
+  if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
+  else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
+  else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}
+  else if(h.indexOf('time-')===0){page='time';arg=h.slice(5);}
+  else if(h.indexOf('painel-')===0){page='painel';arg=h.slice(7);}
+  if(h==='sair'){logout();return;}
+  if(/^minha-area/.test(page)&&!ME){page=h='entrar';}
+  if(page==='entrar'&&ME){page=h='minha-area';}
+  if(!P[page])page=h='a-league';
+  if(ondaDaPagina(page)>ONDA||(page==='pre-inscricao'&&!preOn())){page=h='a-league';arg=null;}
+  if(orig&&h!==orig)trocaEndereco(h);
+  // guarda a altura da página que está saindo; página nova abre no topo, página do histórico volta para onde estava
+  if(NAV.k)NAV.pos[NAV.k]=window.scrollY;
+  var st=history.state;
+  if(st&&st.k){NAV.k=st.k;}else{NAV.k=Date.now()+'-'+(++NAV.n);try{history.replaceState({k:NAV.k},'',location.href);}catch(e){}}
+  NAV.ant=NAV.atual;NAV.atual='#'+h;
+  app.innerHTML=P[page](arg);
+  var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
+  document.getElementById('acct').classList.toggle('on',/^minha-area|entrar/.test(page));
+  document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('on',a.dataset.r===navKey);});
+  document.getElementById('drawer').hidden=true;document.getElementById('burger').setAttribute('aria-expanded','false');
+  var y=NAV.pos[NAV.k]||0;window.scrollTo(0,y);
+  if(y)setTimeout(function(){window.scrollTo(0,y);},0);  // o painel termina de desenhar logo depois
+  bind(page);initCanvases();
+  document.title='Site FF Soccer Pro League';
+}
 function bind(page){
   if(document.getElementById('rbox')){bindRound();}
   if(page==='jogos'){document.querySelectorAll('#roundSel button').forEach(function(b){b.addEventListener('click',function(){location.hash='jogos-'+b.dataset.r;});});}
