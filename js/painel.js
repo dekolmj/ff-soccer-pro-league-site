@@ -3,7 +3,7 @@
    Quem pode ver e alterar é decidido no banco (tabela equipe_ff e regras de acesso), não aqui. */
 
 var SBJS='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
-var SB=null,PN={user:null,equipe:null,lista:[],filtro:'em_analise',busca:'',canal:null,aba:'inscricoes'};
+var SB=null,PN={user:null,equipe:null,lista:[],filtro:'em_analise',busca:'',canal:null,aba:preOn()?'inscricoes':'times'};  // pré-inscrição oculta (CONFIG.PRE_INSCRICAO:false): o painel abre em Times
 var PN_ST={em_analise:['Em análise','gold'],aprovada:['Aprovada','ok'],lista_espera:['Lista de espera',''],recusada:['Recusada',''],cancelada:['Cancelada','']};
 
 function pnEl(){return document.getElementById('painel');}
@@ -120,6 +120,7 @@ function pnCarregar(){
     if(!PN.equipe){var el=pnEl();if(!el)return;
       el.innerHTML='<div class="login"><div class="card" style="display:grid;gap:12px;text-align:center"><h2>Acesso ainda não liberado</h2><p class="muted" style="margin:0">Você entrou como <b>'+esc(PN.user.email)+'</b>, mas este e-mail ainda não faz parte da equipe FF. Peça a liberação ao administrador.</p><button class="btn" id="pnSair" style="justify-content:center">Sair</button></div></div>';
       document.getElementById('pnSair').addEventListener('click',pnSair);return;}
+    if(!preOn())return pnPainel();
     SB.from('pre_inscricoes').select('*').order('recebido_em',{ascending:false}).then(function(q){
       if(q.error){pnEl().innerHTML='<p class="err" style="padding:40px 0">Não foi possível carregar as pré-inscrições.</p>';return;}
       PN.lista=q.data||[];pnPainel();pnAoVivo();
@@ -144,7 +145,7 @@ function pnData(iso){if(!iso)return '';var d=new Date(iso);return String(d.getDa
 
 function pnPainel(){
   var el=pnEl();if(!el)return;
-  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['atletas','Atletas'],['historico','Histórico']];
+  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['atletas','Atletas'],['historico','Histórico']].filter(function(a){return a[0]!=='inscricoes'||preOn();});
   el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+'</div><h1>'+abas.filter(function(a){return a[0]===PN.aba;})[0][1]+'</h1></div>'+
   '<div class="pnquem">'+pnSelo(PN.equipe)+'<button class="btn sm" id="pnSair">Sair</button></div></div>'+
   '<nav class="ctabs pnabas" aria-label="Seções do painel">'+abas.map(function(a){return '<a href="#painel" data-aba="'+a[0]+'" class="'+(PN.aba===a[0]?'on':'')+'">'+a[1]+'</a>';}).join('')+'</nav>'+

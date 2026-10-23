@@ -16,7 +16,7 @@ function cdCarregar(cb){
     SB.from('times').select('id,nome,cor,escudo_url,tecnico,ordem,exemplo,temporada_id').order('ordem').order('nome'),
     SB.from('atletas').select('id,nome,apelido,posicao,unidade_id,foto_url,ativo,exemplo,user_id,atletas_privado(email,celular,nascimento),elencos(time_id,numero,nome_camisa,kit,temporada_id)').order('nome'),
     SB.from('unidades').select('id,nome').eq('ativa',true).order('nome'),
-    SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome')
+    !preOn()?Promise.resolve({data:[]}):SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome')
   ]).then(function(r){
     var erro=r.filter(function(x){return x.error;})[0];
     if(erro){cdMsg('Não foi possível carregar os cadastros. Recarregue a página.');console.warn(erro.error);return;}
@@ -123,13 +123,13 @@ function cdAtletas(){
   el.innerHTML='<div class="pnbusca"><label class="fld">Buscar<input id="cdBusca" placeholder="Nome ou e-mail" value="'+esc(CD.busca)+'"></label>'+
     '<label class="fld" style="flex:0 1 220px">Time<select id="cdTimeF">'+cdOpcoes([['','Todos'],['-','Sem time']].concat(CD.times.map(function(t){return [t.id,t.nome];})),CD.time)+'</select></label>'+
     '<button class="btn primary sm" id="cdNovoAt">+ Novo atleta</button>'+
-    '<button class="btn sm" id="cdImporta"'+(pend.length?'':' disabled')+'>Cadastrar aprovados · '+pend.length+'</button></div>'+
+    (preOn()?'<button class="btn sm" id="cdImporta"'+(pend.length?'':' disabled')+'>Cadastrar aprovados · '+pend.length+'</button>':'')+'</div>'+
     (f&&f.tipo==='importar'?cdImportaHTML(pend):'')+(f&&f.tipo==='atleta'?cdAtletaForm(f):'')+
     '<div id="cdLista"></div>';
   document.getElementById('cdBusca').addEventListener('input',function(){CD.busca=this.value;cdAtletasLista();});
   document.getElementById('cdTimeF').addEventListener('change',function(){CD.time=this.value;cdAtletasLista();});
   document.getElementById('cdNovoAt').addEventListener('click',function(){CD.form={tipo:'atleta',novo:true,el:{}};cdAtletas();cdFoco();});
-  document.getElementById('cdImporta').addEventListener('click',function(){CD.form={tipo:'importar'};cdAtletas();
+  if(preOn())document.getElementById('cdImporta').addEventListener('click',function(){CD.form={tipo:'importar'};cdAtletas();
     var b=document.getElementById('cdImp');if(b)b.scrollIntoView({block:'start',behavior:'smooth'});});
   if(f&&f.tipo==='importar')cdImportaLigar(pend);
   if(f&&f.tipo==='atleta')cdAtletaLigar(f);
