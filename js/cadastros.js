@@ -2,7 +2,7 @@
    Usa o mesmo login do painel.js (SB, PN). O banco decide quem pode gravar; aqui só a interface.
    Apagar times e atletas fica só para administradores. Escudos e fotos vão para o armazenamento 'marca'. */
 
-var CD={ok:false,temporada:null,times:[],atletas:[],unidades:[],aprovadas:[],busca:'',time:'',form:null,hist:[]};
+var CD={ok:false,temporada:null,times:[],atletas:[],unidades:[],busca:'',time:'',form:null,hist:[]};
 var CD_POS=['GOL','LAT','ZAG','VOL','MEI','ATA'],CD_KIT=['P','M','G','GG','XG'];
 
 function cdEl(){return document.getElementById('pnAba');}
@@ -15,12 +15,11 @@ function cdCarregar(cb){
     SB.from('temporadas').select('id,nome').order('id',{ascending:false}).limit(1),
     SB.from('times').select('id,nome,cor,escudo_url,tecnico,ordem,exemplo,temporada_id').order('ordem').order('nome'),
     SB.from('atletas').select('id,nome,apelido,posicao,unidade_id,foto_url,ativo,exemplo,user_id,atletas_privado(email,celular,nascimento),elencos(time_id,numero,nome_camisa,kit,temporada_id)').order('nome'),
-    SB.from('unidades').select('id,nome').eq('ativa',true).order('nome'),
-    SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome')
+    SB.from('unidades').select('id,nome').eq('ativa',true).order('nome')
   ]).then(function(r){
     var erro=r.filter(function(x){return x.error;})[0];
     if(erro){cdMsg('Não foi possível carregar os cadastros. Recarregue a página.');console.warn(erro.error);return;}
-    CD.temporada=(r[0].data[0]||{}).id||null;CD.times=r[1].data;CD.unidades=r[3].data;CD.aprovadas=r[4].data;
+    CD.temporada=(r[0].data[0]||{}).id||null;CD.times=r[1].data;CD.unidades=r[3].data;
     CD.atletas=r[2].data.map(function(a){var pv=Array.isArray(a.atletas_privado)?a.atletas_privado[0]:a.atletas_privado,el=(a.elencos||[]).slice().sort(function(x,y){return y.temporada_id-x.temporada_id;})[0];
       a.pv=pv||{};a.el=el||null;return a;});
     CD.ok=true;cb();
@@ -115,23 +114,17 @@ function cdTimeLigar(f,qtd){
 }
 
 /* ================= ATLETAS ================= */
-function cdAtletaPorEmail(em){em=String(em||'').toLowerCase();return CD.atletas.filter(function(a){return (a.pv.email||'').toLowerCase()===em;})[0];}
-function cdPendentes(){return CD.aprovadas.filter(function(x){return !cdAtletaPorEmail(x.email);});}
 
 function cdAtletas(){
-  var el=cdEl(),f=CD.form&&CD.form.tipo!=='time'?CD.form:null,pend=cdPendentes();
+  var el=cdEl(),f=CD.form&&CD.form.tipo!=='time'?CD.form:null;
   el.innerHTML='<div class="pnbusca"><label class="fld">Buscar<input id="cdBusca" placeholder="Nome ou e-mail" value="'+esc(CD.busca)+'"></label>'+
     '<label class="fld" style="flex:0 1 220px">Time<select id="cdTimeF">'+cdOpcoes([['','Todos'],['-','Sem time']].concat(CD.times.map(function(t){return [t.id,t.nome];})),CD.time)+'</select></label>'+
-    '<button class="btn primary sm" id="cdNovoAt">+ Novo atleta</button>'+
-    '<button class="btn sm" id="cdImporta"'+(pend.length?'':' disabled')+'>Cadastrar aprovados · '+pend.length+'</button></div>'+
-    (f&&f.tipo==='importar'?cdImportaHTML(pend):'')+(f&&f.tipo==='atleta'?cdAtletaForm(f):'')+
+    '<button class="btn primary sm" id="cdNovoAt">+ Novo atleta</button></div>'+
+    (f&&f.tipo==='atleta'?cdAtletaForm(f):'')+
     '<div id="cdLista"></div>';
   document.getElementById('cdBusca').addEventListener('input',function(){CD.busca=this.value;cdAtletasLista();});
   document.getElementById('cdTimeF').addEventListener('change',function(){CD.time=this.value;cdAtletasLista();});
   document.getElementById('cdNovoAt').addEventListener('click',function(){CD.form={tipo:'atleta',novo:true,el:{}};cdAtletas();cdFoco();});
-  document.getElementById('cdImporta').addEventListener('click',function(){CD.form={tipo:'importar'};cdAtletas();
-    var b=document.getElementById('cdImp');if(b)b.scrollIntoView({block:'start',behavior:'smooth'});});
-  if(f&&f.tipo==='importar')cdImportaLigar(pend);
   if(f&&f.tipo==='atleta')cdAtletaLigar(f);
   cdAtletasLista();
 }
@@ -161,7 +154,6 @@ function cdAtletasLista(){
 
 function cdAtletaForm(f){var e=f.el||{};
   return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Novo atleta':'Editar '+esc(f.nome))+'</h3>'+
-    (f.origem?'<p class="muted" style="margin:-4px 0 12px;font-size:14px">Dados da pré-inscrição '+esc(f.origem)+'. Confira e escolha o time.</p>':'')+
     '<div class="lbl cdsec">Dados do atleta</div><div class="cdcampos">'+
     cdCampo('Nome completo *','<input id="aNome" maxlength="120" value="'+esc(f.nome||'')+'">','full')+
     cdCampo('Posição *','<select id="aPos"><option value="">Escolha</option>'+cdOpcoes(CD_POS.map(function(p){return [p,POSN[p]];}),f.posicao)+'</select>')+
@@ -206,25 +198,6 @@ function cdAtletaLigar(f){
         CD.form=null;toast(f.novo?'Atleta cadastrado.':'Atleta atualizado.');cdRecarregar();});
     });
   });
-}
-
-// Aprovados nas pré-inscrições que ainda não viraram atleta: um clique abre o cadastro já preenchido.
-function cdImportaHTML(pend){
-  return '<div class="card cdform" id="cdImp"><h3>Cadastrar aprovados</h3><p class="muted" style="margin:-4px 0 12px;font-size:14px">Pré-inscrições aprovadas que ainda não estão no cadastro de atletas.</p>'+
-    (pend.length?'<div class="cdimp">'+pend.map(function(x){var nums=(x.numeros&&x.numeros.length?x.numeros:[x.numero]);
-      return '<div class="cdimpl"><div><b>'+esc(x.nome)+'</b><div class="lbl">'+esc(x.protocolo)+' · '+esc((x.posicoes&&x.posicoes[0])||x.posicao)+' · Nº '+esc(nums.join(' / '))+'</div></div>'+
-        '<button class="btn sm primary" data-pi="'+x.id+'">Cadastrar</button></div>';}).join('')+'</div>'
-      :'<p class="muted" style="margin:0">Todos os aprovados já estão cadastrados.</p>')+
-    '<div class="cdbts"><button class="btn" type="button" id="cdCancela">Fechar</button></div></div>';
-}
-function cdImportaLigar(pend){
-  document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdAtletas();});
-  document.querySelectorAll('[data-pi]').forEach(function(b){b.addEventListener('click',function(){
-    var x=pend.filter(function(p){return p.id===b.dataset.pi;})[0],pos=(x.posicoes&&x.posicoes[0])||String(x.posicao||'').split(' · ')[0];
-    var cod=CD_POS.filter(function(p){return POSN[p]===pos;})[0]||'',uni=CD.unidades.filter(function(u){return u.nome===x.unidade;})[0];
-    CD.form={tipo:'atleta',novo:true,origem:x.protocolo,nome:x.nome,email:x.email,celular:x.celular,nascimento:x.nascimento,posicao:cod,unidade_id:uni?uni.id:'',
-      el:{numero:(x.numeros&&x.numeros[0])||x.numero,nome_camisa:x.nome_camisa,kit:x.kit}};
-    cdAtletas();cdFoco();});});
 }
 
 /* ================= HISTÓRICO ================= */

@@ -1,17 +1,14 @@
-/* Páginas, menu, área logada (demonstração), pop-up de vídeo, roteador e pré-inscrição. */
+/* Páginas, menu, área logada (demonstração), pop-up de vídeo e roteador. */
 var LOGO='assets/escudo.webp';
 /* ================= ONDAS DE LANÇAMENTO =================
    CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
 var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
-function ondaDaPagina(pg){return ({libertadores:1,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?4:2);}
-// CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
+function ondaDaPagina(pg){return ({libertadores:1,'a-league':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?4:2);}
+// CONFIG.BOTOES_PRE_E_ENTRAR = false esconde o botão Entrar (o endereço #entrar continua abrindo).
 function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
-// CONFIG.PRE_INSCRICAO = false esconde tudo da pré-inscrição (botões, links, página, pergunta frequente), inclusive com ?demo. Nada é apagado.
-function preOn(){return CONFIG.PRE_INSCRICAO!==false;}
 function aplicarOnda(){
   document.querySelectorAll('[data-onda]').forEach(function(el){if(+el.dataset.onda>ONDA)el.hidden=true;});
   if(!DEMO)document.querySelectorAll('[data-demo]').forEach(function(el){el.hidden=true;});
-  if(semBotoes()||!preOn())document.querySelectorAll('[data-pre]').forEach(function(el){el.hidden=true;});
 }
 /* ================= HELPERS ================= */
 function badge(tid,cls){var t=TM[tid];return '<span class="badge '+(cls||'')+'" style="background:'+t.c+'">'+t.n[0]+'</span>';}
@@ -256,31 +253,10 @@ P['a-league']=function(){
   '<div style="display:grid;gap:14px;align-content:start"><h2>Quando são os jogos</h2><div class="card agenda"><div class="between"><span>Quartas-feiras</span><span class="chip gold">Principal · noite</span></div><div class="between"><span>Sextas-feiras</span><span class="chip gold">Principal · noite</span></div><div class="between"><span>Domingos</span><span class="chip">Quando o calendário pedir</span></div><div class="between"><span>Segundas-feiras</span><span class="chip">Quando o calendário pedir</span></div></div>'+
   '<h2 style="margin-top:14px">Calendário</h2><div class="card agenda"><div class="between"><span>1ª Temporada</span><span>Janeiro a junho</span></div><div class="between"><span>Copa FF</span><span>Julho</span></div><div class="between"><span>2ª Temporada</span><span>Agosto a dezembro</span></div></div></div></div></section>'+
   '<section class="blk"><h2 style="margin-bottom:10px">Perguntas frequentes</h2>'+
-  [['Como funciona o VAR?','Cada equipe tem até dois pedidos de desafio por partida, para lances definidos pela organização: pênaltis, impedimentos e agressões ou situações disciplinares específicas.'],['A pré-inscrição garante minha vaga?','Não. A pré-inscrição passa por uma análise da FF, que considera o histórico de pontualidade nos pagamentos e o histórico comportamental nas unidades e competições FF.'],['Quem joga a 1ª Temporada tem prioridade?','Sim. Os participantes da 1ª Temporada têm prioridade para continuar na 2ª. Novas vagas só abrem se sobrarem.'],['As fotos são pagas?','Não. Sempre que houver cobertura fotográfica, as fotos são disponibilizadas gratuitamente aos participantes.']].filter(function(x){return preOn()||!/pré-inscrição/i.test(x[0]);}).map(function(x){return '<details><summary>'+x[0]+'</summary><p>'+x[1]+'</p></details>';}).join('')+
+  [['Como funciona o VAR?','Cada equipe tem até dois pedidos de desafio por partida, para lances definidos pela organização: pênaltis, impedimentos e agressões ou situações disciplinares específicas.'],['Quem joga a 1ª Temporada tem prioridade?','Sim. Os participantes da 1ª Temporada têm prioridade para continuar na 2ª. Novas vagas só abrem se sobrarem.'],['As fotos são pagas?','Não. Sempre que houver cobertura fotográfica, as fotos são disponibilizadas gratuitamente aos participantes.']].map(function(x){return '<details><summary>'+x[0]+'</summary><p>'+x[1]+'</p></details>';}).join('')+
   '<div class="notice" style="margin-top:24px"><b>Pré-lançamento.</b> Datas, horários, locais, formato de disputa e número de partidas podem ter ajustes pontuais até a divulgação do regulamento oficial.</div></section></div>';
 };
 
-P['pre-inscricao']=function(){
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">FF Soccer Pro League · 1ª Temporada 2027</div><h1>Pré-inscrição</h1><p class="lead">Preencha seus dados para entrar na análise da FF. A pré-inscrição não confirma a vaga automaticamente.</p></div>'+
-  '<div class="formgrid"><form class="card" id="preForm" novalidate style="padding:24px;display:grid;gap:18px">'+
-  '<div class="fset"><label class="fld full">Nome completo<input id="fNome" required placeholder="Como aparece no documento" autocomplete="name"></label>'+
-  '<label class="fld">E-mail<input id="fEmail" type="email" required placeholder="voce@email.com" autocomplete="email"></label>'+
-  '<label class="fld">Celular com DDD<input id="fCel" type="tel" required placeholder="(11) 90000-0000" autocomplete="tel"></label>'+
-  '<label class="fld">Data de nascimento<input id="fNasc" type="date" required></label>'+
-  '<label class="fld">Unidade FF<select id="fUnid" required><option value="">Selecione</option>'+(CONFIG.UNIDADES||UNITS).map(function(u){return '<option>'+u+'</option>';}).join('')+'</select></label></div>'+
-  '<div class="fld">Posições de preferência<div class="tri pos">'+[1,2,3].map(function(n){return '<label class="fld">'+n+'ª opção<select id="fPos'+n+'" required><option value="">Selecione</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></label>';}).join('')+'</div><span class="hint">Escolha três posições diferentes.</span></div>'+
-  '<div class="fld">Personalização da camisa<div class="tri">'+['fNum','fNum2','fNum3'].map(function(id,i){return '<label class="fld">'+(i+1)+'º número<input id="'+id+'" class="fnum" type="text" inputmode="numeric" maxlength="2" required placeholder="1 a 99"></label>';}).join('')+'</div><div class="shirtrow"><label class="fld">Nome na camisa<input id="fNomeC" maxlength="12" required placeholder="Até 12 letras" style="text-transform:uppercase"></label>'+
-  '<div class="shirt" aria-hidden="true"><svg viewBox="0 0 120 130"><path d="M38 6 L20 12 L2 34 L18 48 L26 40 L26 126 L94 126 L94 40 L102 48 L118 34 L100 12 L82 6 Q60 16 38 6 Z" fill="#F2C14D" stroke="#0B0B0A" stroke-width="3"/></svg><span class="sn" id="shN">SEU NOME</span><span class="sm" id="shM">10</span></div></div>'+
-  '<span class="hint">A FF tenta o 1º número. Se já estiver em uso no seu time, passa para o 2º e depois para o 3º.</span></div>'+
-  '<div class="fld">Tamanho do kit<div class="opts">'+['P','M','G','GG','XG'].map(function(s,i){return '<label><input type="radio" name="kit" value="'+s+'"'+(i===1?' checked':'')+'>'+s+'</label>';}).join('')+'</div></div>'+
-  '<input type="text" id="fHp" name="empresa" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">'+
-  '<label class="consent"><input type="checkbox" id="fLgpd"><span id="tLgpd">Autorizo a FF Soccer a analisar meu score financeiro e meu histórico comportamental nas unidades e competições FF para avaliar minha pré-inscrição, conforme a LGPD.</span></label>'+
-  '<label class="consent"><input type="checkbox" id="fTerm"><span id="tTerm">Li e concordo com as condições da FF Soccer Pro League, incluindo a possibilidade de ajustes pontuais no calendário e no formato.</span></label>'+
-  '<div class="err" id="fErr" role="alert"></div><button class="btn primary" id="fSend" type="submit" style="justify-content:center">Enviar pré-inscrição</button><span class="hint">Seus dados são usados só pela FF Soccer para analisar sua pré-inscrição e falar com você sobre a League.</span></form>'+
-  '<div style="display:grid;gap:14px"><div class="card" style="display:grid;gap:12px"><h3>Como funciona</h3><div class="agenda"><div class="between"><span>1 · Pré-inscrição</span><span class="lbl">você envia</span></div><div class="between"><span>2 · Análise da FF</span><span class="lbl">score e histórico</span></div><div class="between"><span>3 · Aprovação</span><span class="lbl">a FF entra em contato</span></div><div class="between"><span>4 · Vaga confirmada</span><span class="lbl">kit de participação</span></div></div></div>'+
-  
-  '<div class="notice"><b>Sobre o pagamento.</b> A inscrição tem valor único para a temporada. Depois da aprovação, a FF orienta o pagamento diretamente com você.</div></div></div></div>';
-};
 
 
 /* ================= ÁREA LOGADA ================= */
@@ -334,8 +310,7 @@ P['minha-area-time']=function(){
 
 P.entrar=function(){
   return '<div class="wrap"><div class="login"><div style="text-align:center;display:grid;gap:10px;justify-items:center"><img src="'+LOGO+'" width="76" height="76" alt="" style="object-fit:contain"><h1 style="font-size:44px">Entrar</h1><p class="muted" style="margin:0">Atletas e equipe FF entram por aqui. O site leva cada um para a sua área.</p></div>'+
-  '<div class="card" id="entrarF"><p class="muted" style="margin:0">Carregando…</p></div>'+
-  (preOn()?'<p class="muted" style="text-align:center;font-size:14px;margin:0">Ainda não é atleta da League? <a class="more" href="#pre-inscricao">Fazer pré-inscrição</a></p>':'')+'</div></div>';
+  '<div class="card" id="entrarF"><p class="muted" style="margin:0">Carregando…</p></div></div></div>';
 };
 P['minha-area']=function(){
   var p=PM[ME],t=TM[p.team],pos=ST.map(function(x){return x.t.id;}).indexOf(p.team),s=ST[pos];
@@ -362,7 +337,6 @@ P['minha-area-inscricao']=function(){
   '<div class="ahead"><div><div class="eyebrow">Inscrição, kit e bônus</div><h1>Minha inscrição</h1></div></div>'+
   '<div class="grid2"><div style="display:grid;gap:16px;align-content:start">'+
    '<div class="card"><div class="between" style="margin-bottom:14px"><h3>1ª Temporada</h3><span class="chip ok">✓ Ativa</span></div><div class="steps">'+
-   (preOn()?'<div class="s"><span class="d">✓</span><div><b>Pré-inscrição enviada</b><small>12/10/2026 · posição Meia · unidade '+p.unit+'</small></div><span class="lbl">Feito</span></div>':'')+
    '<div class="s"><span class="d">✓</span><div><b>Análise da FF</b><small>Score financeiro e histórico comportamental aprovados</small></div><span class="lbl">Feito</span></div>'+
    '<div class="s"><span class="d">✓</span><div><b>Vaga confirmada</b><small>Confirmada pela FF em 28/10/2026</small></div><span class="lbl">Feito</span></div>'+
    '<div class="s"><span class="d">✓</span><div><b>Kit retirado</b><small>Camisa, shorts, meião e mochila · tamanho M · unidade '+p.unit+' em 22/01/2027</small></div><span class="lbl">Feito</span></div></div></div>'+
@@ -422,7 +396,7 @@ var app=document.getElementById('app');
 var ALIAS={'':'a-league'};
 function route(){
   var h=(location.hash||'').replace('#','')||'a-league',page=h,arg=null;
-  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';page=h;
+  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio'||h==='pre-inscricao')h='a-league';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
   if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
@@ -432,7 +406,7 @@ function route(){
   if(/^minha-area/.test(page)&&!ME){page='entrar';}
   if(page==='entrar'&&ME){page='minha-area';}
   if(!P[page])page='a-league';
-  if(ondaDaPagina(page)>ONDA||(page==='pre-inscricao'&&!preOn())){page='a-league';arg=null;try{history.replaceState(null,'',location.pathname+location.search+'#a-league');}catch(e){}}
+  if(ondaDaPagina(page)>ONDA){page='a-league';arg=null;try{history.replaceState(null,'',location.pathname+location.search+'#a-league');}catch(e){}}
   app.innerHTML=P[page](arg);
   var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
   document.getElementById('acct').classList.toggle('on',/^minha-area|entrar/.test(page));
@@ -467,33 +441,6 @@ function bind(page){
     document.querySelectorAll('#nkit input').forEach(function(i){i.addEventListener('change',function(){NEXTKIT=i.value;toast('Tamanho '+i.value+' salvo para a 2ª Temporada.');});});
     var rb=document.getElementById('renewBtn');rb.addEventListener('click',function(){if(RENEW)return;RENEW=true;rb.className='btn';rb.textContent='✓ Interesse registrado · avisaremos em 20/05';toast('Interesse registrado. Sua vaga prioritária está garantida até 20/05.');});
     document.getElementById('editBtn').addEventListener('click',function(){toast('No site final, abre a edição dos seus dados com confirmação por e-mail.');});
-  }
-  if(page==='pre-inscricao'){
-    var fN=document.getElementById('fNum'),fC=document.getElementById('fNomeC');
-    document.querySelectorAll('.fnum').forEach(function(el){el.addEventListener('input',function(){el.value=el.value.replace(/\D/g,'').slice(0,2);document.getElementById('shM').textContent=fN.value||'10';});});
-    fC.addEventListener('input',function(){fC.value=fC.value.replace(/[^A-Za-zÀ-ÿ .'-]/g,'');document.getElementById('shN').textContent=fC.value.trim().toUpperCase()||'SEU NOME';});
-    var fm=document.getElementById('preForm');
-    fm.addEventListener('submit',function(e){e.preventDefault();fm.classList.add('tried');
-      var req=['fNome','fEmail','fCel','fNasc','fUnid','fPos1','fPos2','fPos3','fNum','fNum2','fNum3','fNomeC'],bad=req.filter(function(id){var el=document.getElementById(id);return !el.value.trim()||(el.type==='email'&&!/^\S+@\S+\.\S+$/.test(el.value))||(/^fNum/.test(id)&&!(+el.value>=1&&+el.value<=99));});
-      var err=document.getElementById('fErr');
-      if(bad.length){err.textContent=(/^fNum/.test(bad[0])&&document.getElementById(bad[0]).value)?'Os números da camisa precisam ser de 1 a 99.':'Preencha todos os campos, incluindo as 3 posições, os 3 números e o nome na camisa, para continuar.';document.getElementById(bad[0]).focus();return;}
-      var poss=['fPos1','fPos2','fPos3'].map(function(id){return document.getElementById(id).value;}),nums=['fNum','fNum2','fNum3'].map(function(id){return +document.getElementById(id).value;});
-      if(poss[0]===poss[1]||poss[0]===poss[2]||poss[1]===poss[2]){err.textContent='Escolha três posições diferentes.';document.getElementById('fPos2').focus();return;}
-      if(nums[0]===nums[1]||nums[0]===nums[2]||nums[1]===nums[2]){err.textContent='Escolha três números de camisa diferentes.';document.getElementById('fNum2').focus();return;}
-      if(!document.getElementById('fLgpd').checked||!document.getElementById('fTerm').checked){err.textContent='Para enviar, marque a autorização de análise e o aceite das condições.';return;}
-      var v=function(id){return document.getElementById(id).value.trim();};
-      var chk=function(n){var x=document.querySelector('input[name="'+n+'"]:checked');return x?x.value:'';};
-      var payload={nome:v('fNome'),email:v('fEmail'),celular:v('fCel'),nascimento:v('fNasc'),unidade:v('fUnid'),posicao:poss.map(function(k){return POSN[k];}).join(' · '),posicoes:poss.map(function(k){return POSN[k];}),kit:chk('kit'),numero:nums[0],numeros:nums,nome_camisa:v('fNomeC').toUpperCase(),
-        aceite_lgpd:document.getElementById('tLgpd').textContent,aceite_termos:document.getElementById('tTerm').textContent,versao_termos:CONFIG.VERSAO_TERMOS,origem:location.href.split('#')[0],hp:document.getElementById('fHp').value};
-      if(!CONFIG.SUPABASE_URL||!CONFIG.SUPABASE_KEY){err.textContent='As pré-inscrições abrem em breve. Acompanhe a FF Soccer para saber a data.';return;}
-      var btn=document.getElementById('fSend');btn.disabled=true;btn.textContent='Enviando…';err.textContent='';
-      // grava direto no banco (função enviar_pre_inscricao), que devolve {ok, protocolo, duplicado}
-      fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/enviar_pre_inscricao',{method:'POST',headers:{apikey:CONFIG.SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({dados:payload})}).then(function(r){return r.json();}).then(function(res){
-        if(!res||!res.ok)throw new Error(res&&res.erro||'falha');
-        fm.innerHTML='<div class="okbox"><span class="ck">✓</span><h2>Pré-inscrição recebida</h2><p class="muted" style="margin:0;max-width:44ch">Obrigado, '+esc(payload.nome.split(' ')[0])+'. Sua pré-inscrição entrou na fila de análise da FF. Você recebe o retorno por e-mail ou WhatsApp.</p><span class="chip">Camisa: '+esc(payload.nome_camisa)+' · Nº '+payload.numero+'</span><span class="chip gold">Protocolo '+esc(res.protocolo||'')+'</span>'+(res.duplicado?'<span class="hint">Já tínhamos uma pré-inscrição com este e-mail. Registramos esta como atualização.</span>':'')+'<a class="btn" href="#a-league">Voltar ao início</a></div>';
-        window.scrollTo(0,0);
-      }).catch(function(){btn.disabled=false;btn.textContent='Enviar pré-inscrição';err.textContent='Não conseguimos enviar agora. Confira sua internet e tente de novo em alguns minutos.';});
-    });
   }
 }
 var SEARCH='';

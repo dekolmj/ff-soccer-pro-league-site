@@ -1,5 +1,7 @@
 # Arquitetura do site FF Soccer Pro League
 
+> Atualização de 23/10/2026: a pré-inscrição (formulário, aba do painel, script da planilha, tabela e função no banco) foi apagada. As menções abaixo a ela e ao Apps Script são histórico.
+
 Como o site é organizado hoje e como ele vai crescer. Escrito para quem vai mexer no código; o passo a passo para o Deko fica no `README.md`.
 
 ## Hoje: site estático no GitHub Pages
@@ -27,7 +29,6 @@ Navegador ──► GitHub Pages (arquivos da branch main)
 | `js/tv-canvas.js` | Animação da TV FF. Isolada numa função; expõe só `Scene(canvas)` e `initCanvases()`. |
 | `js/app.js` | Helpers de HTML, páginas (`P[...]`), área logada de demonstração, pop-up de vídeo, roteador (`route`/`bind`), ticker e pré-inscrição. Termina chamando `carregarBanco(...)`, que desenha a primeira página. |
 | `assets/escudo.webp`, `assets/letreiro.webp` | Marca usada no cabeçalho, rodapé e cartões (antes ficavam embutidas no HTML). |
-| `apps-script/Code.gs` | Recebe o POST da pré-inscrição, valida e grava na planilha. |
 
 ### Ordem dos scripts
 
