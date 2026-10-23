@@ -130,8 +130,8 @@ begin
     if coalesce(trim(x->>'motivo'),'') = '' then return jsonb_build_object('ok',false,'erro','Escreva o motivo de cada pedido de VAR.'); end if;
     if coalesce(x->>'resultado','') not in ('pendente','mantida','revertida') then return jsonb_build_object('ok',false,'erro','Resultado do VAR inválido.'); end if;
   end loop;
-  if (select count(*) from jsonb_array_elements(coalesce(dados->'var','[]'::jsonb)) x where x->>'time_id' = j.time_casa) > v_lim
-     or (select count(*) from jsonb_array_elements(coalesce(dados->'var','[]'::jsonb)) x where x->>'time_id' = j.time_fora) > v_lim then
+  if (select count(*) from jsonb_array_elements(coalesce(dados->'var','[]'::jsonb)) y where y->>'time_id' = j.time_casa) > v_lim
+     or (select count(*) from jsonb_array_elements(coalesce(dados->'var','[]'::jsonb)) y where y->>'time_id' = j.time_fora) > v_lim then
     return jsonb_build_object('ok',false,'erro','Cada time tem no máximo '||v_lim||' pedidos de VAR.'); end if;
 
   if v_fechar then
@@ -149,11 +149,11 @@ begin
   insert into public.escalacoes (jogo_id, atleta_id, time_id)
   select jogo, (s->>'atleta_id')::uuid, s->>'time_id' from jsonb_array_elements(v_esc) s;
   insert into public.eventos_jogo (jogo_id, minuto, tipo, time_id, atleta_id, atleta2_id)
-  select jogo, (x->>'minuto')::int, (x->>'tipo')::public.tipo_evento, x->>'time_id', (x->>'atleta_id')::uuid, nullif(x->>'atleta2_id','')::uuid
-    from jsonb_array_elements(coalesce(dados->'eventos','[]'::jsonb)) x;
+  select jogo, (y->>'minuto')::int, (y->>'tipo')::public.tipo_evento, y->>'time_id', (y->>'atleta_id')::uuid, nullif(y->>'atleta2_id','')::uuid
+    from jsonb_array_elements(coalesce(dados->'eventos','[]'::jsonb)) y;
   insert into public.desafios_var (jogo_id, time_id, minuto, motivo, resultado)
-  select jogo, x->>'time_id', coalesce(nullif(x->>'minuto','')::int,0), left(trim(x->>'motivo'),200), (x->>'resultado')::public.resultado_var
-    from jsonb_array_elements(coalesce(dados->'var','[]'::jsonb)) x;
+  select jogo, y->>'time_id', coalesce(nullif(y->>'minuto','')::int,0), left(trim(y->>'motivo'),200), (y->>'resultado')::public.resultado_var
+    from jsonb_array_elements(coalesce(dados->'var','[]'::jsonb)) y;
   update public.jogos set gols_casa = v_gc, gols_fora = v_gf, mvp_atleta_id = v_mvp, sumula_fechada = v_fechar,
          status = case when v_fechar then 'encerrado'::public.status_jogo
                        when status = 'encerrado' then 'agendado'::public.status_jogo else status end
