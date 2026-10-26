@@ -14,23 +14,30 @@ function aplicarOnda(){
   if(semBotoes()||!preOn())document.querySelectorAll('[data-pre]').forEach(function(el){el.hidden=true;});
 }
 /* ================= HELPERS ================= */
-function badge(tid,cls){var t=TM[tid];return '<span class="badge '+(cls||'')+'" style="background:'+t.c+'">'+t.n[0]+'</span>';}
-function tn(tid){return TM[tid].n;}
-function avBg(id){return FOTOS[id]?'background:url('+FOTOS[id]+') center 18%/cover;':'';}function esc(s){return String(s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
-function statusChip(g){if(g.st==='ao vivo')return '<span class="live">Ao vivo · '+g.min+"'</span>";if(g.st==='encerrado')return '<span class="lbl">Encerrado</span>';return '<span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span>';}
-function gameCard(g){
-  var done=g.st!=='agendado',hl=done&&g.gh<g.ga,al=done&&g.ga<g.gh;
-  return '<a class="game'+(g.st==='ao vivo'?' is-live':'')+'" href="#'+g.id+'"><div class="between">'+statusChip(g)+'<span class="lbl">'+g.field+'</span></div>'+
-  '<div class="line'+(hl?' lose':'')+'">'+badge(g.h,'sm')+tn(g.h)+'<b>'+(done?g.gh:'–')+'</b></div>'+
-  '<div class="line'+(al?' lose':'')+'">'+badge(g.a,'sm')+tn(g.a)+'<b>'+(done?g.ga:'–')+'</b></div>'+
-  '<div class="foot"><span>Rodada '+g.r+'</span><span>'+(g.st==='agendado'?'Ao vivo no YouTube':g.st==='ao vivo'?'Assistir ▸':'Replay ▸')+'</span></div></a>';
-}
+function badge(tid,cls){var t=TM[tid]||{n:'?',c:'#555'};
+  if(t.e)return '<span class="badge esc '+(cls||'')+'"><img src="'+esc(t.e)+'" alt="" loading="lazy"></span>';
+  return '<span class="badge '+(cls||'')+'" style="background:'+esc(t.c)+'">'+esc(t.n[0])+'</span>';}
+function tn(tid){return TM[tid]?esc(TM[tid].n):'';}
+function posn(p){return POSN[p.pos]||'';}
+function avBg(id){return FOTOS[id]?'background:url('+FOTOS[id]+') center 18%/cover;':'';}function esc(s){return String(s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+// quando é o jogo: "Qua 04/11 · 19h30" (ou "Data a definir")
+function quando(g){return g.date?fmtD(g.date)+(g.time?' · '+g.time:''):'Data a definir';}
+function jogou(g){return g.st==='encerrado'||g.st==='ao vivo';}
+function statusChip(g){if(g.st==='ao vivo')return '<span class="live">Ao vivo'+(g.min!=null?' · '+g.min+"'":'')+'</span>';if(g.st==='encerrado')return '<span class="lbl">Encerrado</span>';
+  if(g.st==='adiado')return '<span class="lbl">Adiado</span>';if(g.st==='cancelado')return '<span class="lbl">Cancelado</span>';return '<span class="lbl">'+quando(g)+'</span>';}
+function gameCard(g){
+  var done=jogou(g),hl=done&&g.gh<g.ga,al=done&&g.ga<g.gh;
+  return '<a class="game'+(g.st==='ao vivo'?' is-live':'')+'" href="#'+g.id+'"><div class="between">'+statusChip(g)+'<span class="lbl">'+esc(g.field)+'</span></div>'+
+  '<div class="line'+(hl?' lose':'')+'">'+badge(g.h,'sm')+tn(g.h)+'<b>'+(done?g.gh:'–')+'</b></div>'+
+  '<div class="line'+(al?' lose':'')+'">'+badge(g.a,'sm')+tn(g.a)+'<b>'+(done?g.ga:'–')+'</b></div>'+
+  '<div class="foot"><span>Rodada '+g.r+(g.grupo?' · Grupo '+esc(g.grupo):'')+'</span><span>'+(g.st==='ao vivo'?'Acompanhar ▸':g.st==='encerrado'?'Ver lances ▸':'')+'</span></div></a>';
+}
 function tableHTML(rows,full){
   var h='<div class="tblw"><table class="tbl"><thead><tr><th class="l">#</th><th class="l">Time</th><th>Pts</th><th>J</th><th>V</th>'+(full?'<th>E</th><th>D</th><th>GP</th><th>GC</th>':'')+'<th>SG</th>'+(full?'<th class="l">Últimos</th>':'')+'</tr></thead><tbody>';
   rows.forEach(function(x,i){h+='<tr><td class="pos l'+(i<4?' q':'')+'">'+(i+1)+'</td><td class="l"><a class="row" style="gap:8px" href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+x.t.n+'</a></td><td class="pts">'+x.pts+'</td><td>'+x.j+'</td><td>'+x.v+'</td>'+(full?'<td>'+x.e+'</td><td>'+x.d+'</td><td>'+x.gp+'</td><td>'+x.gc+'</td>':'')+'<td>'+(x.sg>0?'+':'')+x.sg+'</td>'+(full?'<td class="l"><span class="form">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'">'+f+'</i>';}).join('')+'</span></td>':'')+'</tr>';});
   return h+'</tbody></table></div>';
 }
-function scorersHTML(list,n,key){key=key||'g';if(!list.length)return '<p class="muted" style="margin:10px 0 0">Nenhum registro ainda.</p>';return '<div class="list">'+list.slice(0,n).map(function(p,i){return '<a class="it" href="#atleta-'+p.id+'"><span class="p">'+(i+1)+'</span><span class="row" style="gap:10px">'+badge(p.team,'sm')+'<span>'+esc(p.n)+'<small>'+tn(p.team)+' · '+POSN[p.pos]+'</small></span></span><b class="v">'+p[key]+'</b></a>';}).join('')+'</div>';}
+function scorersHTML(list,n,key){key=key||'g';if(!list.length)return '<p class="muted" style="margin:10px 0 0">Nenhum registro ainda.</p>';return '<div class="list">'+list.slice(0,n).map(function(p,i){return '<a class="it" href="#atleta-'+p.id+'"><span class="p">'+(i+1)+'</span><span class="row" style="gap:10px">'+badge(p.team,'sm')+'<span>'+esc(p.n)+'<small>'+tn(p.team)+(posn(p)?' · '+posn(p):'')+'</small></span></span><b class="v">'+p[key]+'</b></a>';}).join('')+'</div>';}
 function playerBox(opts){
   return '<div class="player"'+(opts.id?' id="'+opts.id+'"':'')+'><canvas class="bc" data-seed="'+(opts.seed||11)+'"'+(opts.st?' data-static="1"':'')+'></canvas>'+(opts.bug||'')+(opts.live?'<span class="live">Ao vivo</span>':'')+(opts.tag?'<span class="tag">'+opts.tag+'</span>':'')+(opts.bar?'<div class="ytbar"><div class="prog"></div><div class="ctl"><span>● Ao vivo</span><span>'+opts.bar+'</span><span class="sp">HD · ⛶</span></div></div>':'')+(opts.dur?'<span class="dur">'+opts.dur+'</span>':'')+(opts.play?'<span class="play"><i><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z" fill="#fff"/></svg></i></span>':'')+'</div>';
 }
@@ -38,35 +45,39 @@ function liveBug(){return '<div class="bug"><span>'+tn(LIVE.h).slice(0,3).toUppe
 
 /* ================= PAGES ================= */
 var P={};
-P.jogos=function(q){
-  var r=+(q||CUR);if(!(r>=1&&r<=ROUNDS))r=CUR;
-  var gs=GAMES.filter(function(g){return g.r===r;});
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">1ª Temporada · primeira fase</div><h1>Jogos</h1><p class="lead">Quartas e sextas à noite. Todos os jogos com transmissão ao vivo pelo canal oficial da FF no YouTube.</p></div>'+
-  '<div class="days" id="roundSel">'+Array.from({length:ROUNDS},function(_,i){return '<button data-r="'+(i+1)+'" class="'+(i+1===r?'on':'')+'">Rodada '+(i+1)+'</button>';}).join('')+'</div>'+
-  [0,2].map(function(k){return '<h3 style="margin:22px 0 12px">'+fmtD(gs[k].date)+'</h3><div class="games">'+gs.slice(k,k+2).map(gameCard).join('')+'</div>';}).join('')+'</div>';
-};
-
-P.jogo=function(id){
-  var g=GAMES.filter(function(x){return x.id===id;})[0];if(!g)return P.jogos();
-  var done=g.st!=='agendado';
-  var ev=g.ev.slice().reverse().map(function(e){var side=tn(e.side==='h'?g.h:g.a);
-    if(e.t==='gol')return '<div class="ev"><span class="m">'+e.m+"'</span><div>⚽ Gol · <a href=\"#atleta-"+e.p+'">'+esc(PM[e.p].n)+'</a><small>'+side+(e.as?' · assistência de '+esc(PM[e.as].n):'')+'</small></div></div>';
-    if(e.t==='amarelo')return '<div class="ev"><span class="m">'+e.m+"'</span><div>🟨 Cartão amarelo · "+esc(PM[e.p].n)+'<small>'+side+'</small></div></div>';
-    if(e.t==='var')return '<div class="ev"><span class="m">'+e.m+"'</span><div>🖥️ Desafio de VAR · "+side+'<small>'+e.txt+'</small></div></div>';
-    return '<div class="ev"><span class="m">'+e.m+"'</span><div>🔄 Substituições<small>"+e.txt+'</small></div></div>';}).join('');
-  function dots(n){return '<span class="var-dots"><i class="'+(n<2?'u':'')+'"></i><i class="'+(n<1?'u':'')+'"></i></span>';}
-  return '<div class="wrap"><div class="phead"><a class="more" href="#jogos-'+g.r+'">‹ Rodada '+g.r+'</a></div>'+
-  '<div class="grid2"><div style="display:grid;gap:18px">'+
-   '<div class="card" style="padding:24px"><div class="between" style="margin-bottom:14px">'+statusChip(g)+'<span class="lbl">'+fmtD(g.date)+' · '+g.time+' · '+g.field+'</span></div><div class="sb"><a class="t" href="#time-'+g.h+'">'+badge(g.h,'lg')+tn(g.h)+'</a><div class="s">'+(done?g.gh+'<i>:</i>'+g.ga:'<i>x</i>')+'</div><a class="t" href="#time-'+g.a+'">'+badge(g.a,'lg')+tn(g.a)+'</a></div></div>'+
-   (g.st==='agendado'?'<div class="card"><h3>Transmissão ao vivo</h3><p class="muted" style="margin:6px 0 0">Este jogo será transmitido pelo canal oficial da FF no YouTube e aparece aqui na hora do jogo.</p></div>':
-   '<a href="#ao-vivo">'+playerBox(g.st==='ao vivo'?{seed:11,bug:liveBug(),live:1,bar:'186 assistindo'}:{seed:40+g.r*3+g.i,st:1,play:1,dur:'1:32:10',tag:'Replay do jogo completo'})+'</a>')+
-  '</div><div style="display:grid;gap:18px;align-content:start">'+
-   (done?'<div class="card"><h3 style="margin-bottom:8px">Lances</h3><div class="tl">'+(ev||'<p class="muted">Sem lances registrados.</p>')+'</div></div>':'')+
-   '<div class="card" style="display:grid;gap:10px"><h3>Desafios de VAR</h3><div class="between"><span>'+tn(g.h)+'</span>'+dots(g.varH)+'</div><div class="between"><span>'+tn(g.a)+'</span>'+dots(g.varA)+'</div><span class="lbl">2 por equipe · pênalti, impedimento e agressão</span></div>'+
-   (g.mvp?'<a class="card between" href="#atleta-'+g.mvp+'"><div><div class="lbl">Craque do jogo</div><b style="font-family:var(--cond);font-size:20px;text-transform:uppercase">'+esc(PM[g.mvp].n)+'</b></div><span class="chip gold">⭐ MVP</span></a>':'')+
-  '</div></div></div>';
-};
-
+P.jogos=function(q){
+  var r=+(q||CUR);if(RLIST.indexOf(r)<0)r=CUR;
+  var gs=GAMES.filter(function(g){return g.r===r;}),dias=[];
+  gs.forEach(function(g){var k=g.date?fmtD(g.date):'Data a definir';if(dias.indexOf(k)<0)dias.push(k);});
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">'+esc(PRO_NOME||'FF Pro League')+'</div><h1>Jogos</h1><p class="lead">Quartas e sextas à noite.</p></div>'+
+  (RLIST.length?'<div class="days" id="roundSel">'+RLIST.map(function(n){return '<button data-r="'+n+'" class="'+(n===r?'on':'')+'">Rodada '+n+'</button>';}).join('')+'</div>'+
+  dias.map(function(k){return '<h3 style="margin:22px 0 12px">'+k+'</h3><div class="games">'+gs.filter(function(g){return (g.date?fmtD(g.date):'Data a definir')===k;}).map(gameCard).join('')+'</div>';}).join('')
+  :'<div class="card"><p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p></div>')+'</div>';
+};
+
+P.jogo=function(id){
+  var g=ALLGAMES.filter(function(x){return x.id===id;})[0];if(!g)return P.jogos();
+  var done=jogou(g),nm=function(pid){return PM[pid]?esc(PM[pid].n):'';},lnk=function(pid){return PM[pid]?'<a href="#atleta-'+pid+'">'+nm(pid)+'</a>':'';};
+  var ev=g.ev.slice().reverse().map(function(e){var side=tn(e.side==='h'?g.h:g.a),m='<span class="m">'+(e.m!=null?e.m+"'":'')+'</span>';
+    if(e.t==='gol')return '<div class="ev">'+m+'<div>⚽ Gol · '+lnk(e.p)+'<small>'+side+(e.as?' · assistência de '+nm(e.as):'')+'</small></div></div>';
+    if(e.t==='gc')return '<div class="ev">'+m+'<div>⚽ Gol contra · '+nm(e.p)+'<small>'+side+' · conta para '+tn(e.side==='h'?g.a:g.h)+'</small></div></div>';
+    if(e.t==='amarelo')return '<div class="ev">'+m+'<div>🟨 Cartão amarelo · '+nm(e.p)+'<small>'+side+'</small></div></div>';
+    if(e.t==='vermelho')return '<div class="ev">'+m+'<div>🟥 Cartão vermelho · '+nm(e.p)+'<small>'+side+'</small></div></div>';
+    if(e.t==='var')return '<div class="ev">'+m+'<div>🖥️ Desafio de VAR · '+side+'<small>'+esc(e.txt)+'</small></div></div>';
+    return '<div class="ev">'+m+'<div>🔄 Substituições<small>'+esc(e.txt)+'</small></div></div>';}).join('');
+  function dots(n){var h='';for(var k=g.varTot-1;k>=0;k--)h+='<i class="'+(n<=k?'u':'')+'"></i>';return '<span class="var-dots">'+h+'</span>';}
+  var lib=g.comp==='jogo-lib-',volta=lib?'<a class="more" href="#campeonato-libertadores">‹ Libertadores FF'+(g.grupo?' · Grupo '+esc(g.grupo):'')+'</a>':'<a class="more" href="#jogos-'+g.r+'">‹ Rodada '+g.r+'</a>';
+  return '<div class="wrap"><div class="phead">'+volta+'</div>'+
+  '<div class="grid2"><div style="display:grid;gap:18px;align-content:start">'+
+   '<div class="card" style="padding:24px"><div class="between" style="margin-bottom:14px;flex-wrap:wrap;gap:8px">'+statusChip(g)+'<span class="lbl">Rodada '+g.r+(g.grupo?' · Grupo '+esc(g.grupo):'')+' · '+quando(g)+(g.field?' · '+esc(g.field):'')+'</span></div><div class="sb"><a class="t" href="#time-'+g.h+'">'+badge(g.h,'lg')+tn(g.h)+'</a><div class="s">'+(done?g.gh+'<i>:</i>'+g.ga:'<i>x</i>')+'</div><a class="t" href="#time-'+g.a+'">'+badge(g.a,'lg')+tn(g.a)+'</a></div></div>'+
+   (g.st==='ao vivo'&&ondaDaPagina('ao-vivo')<=ONDA?'<a class="card between" href="#ao-vivo"><div><span class="live">Ao vivo</span><div class="muted" style="margin-top:6px">Acompanhe a transmissão na página Ao vivo.</div></div><span class="more">Assistir ›</span></a>':'')+
+   (g.mvp&&PM[g.mvp]?'<a class="card between" href="#atleta-'+g.mvp+'"><div><div class="lbl">Craque do jogo</div><b style="font-family:var(--cond);font-size:20px;text-transform:uppercase">'+nm(g.mvp)+'</b></div><span class="chip gold">⭐ MVP</span></a>':'')+
+  '</div><div style="display:grid;gap:18px;align-content:start">'+
+   (done?'<div class="card"><h3 style="margin-bottom:8px">Lances</h3><div class="tl">'+(ev||'<p class="muted">Sem lances registrados.</p>')+'</div></div>':'')+
+   (g.varTot?'<div class="card" style="display:grid;gap:10px"><h3>Desafios de VAR</h3><div class="between"><span>'+tn(g.h)+'</span>'+dots(g.varH)+'</div><div class="between"><span>'+tn(g.a)+'</span>'+dots(g.varA)+'</div><span class="lbl">'+g.varTot+' por equipe · pênalti, impedimento e agressão</span></div>':'')+
+  '</div></div></div>';
+};
+
 P.classificacao=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">1ª Temporada · primeira fase</div><h1>Classificação</h1><p class="lead">Atualizada automaticamente ao fim de cada súmula. Os 4 primeiros avançam às semifinais.</p></div>'+
   '<div class="clsgrid"><div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Tabela</h2>'+classTable()+'</div>'+
@@ -74,66 +85,60 @@ P.classificacao=function(){
   '<div class="grid3" style="margin-top:18px"><div class="card"><h3>Artilharia</h3>'+scorersHTML(SCORERS,10)+'</div><div class="card"><h3>Assistências</h3>'+scorersHTML(PLAYERS.filter(function(p){return p.a>0;}).sort(function(a,b){return b.a-a.a||b.g-a.g;}),10,'a')+'</div><div class="card"><h3>MVPs</h3>'+scorersHTML(MVPS,10,'mvp')+'</div></div></div>';
 };
 
-/* ================= LIBERTADORES FF: fase de grupos (DADOS DE EXEMPLO) =================
-   3 grupos com 4 times (nenhum brasileiro). Ida e volta: 6 rodadas, 2 jogos por rodada.
-   A tabela é calculada a partir dos placares (r), como na FF Pro League. Por enquanto, sem jogos: todos zerados.
-   Cada placar entra em r na ordem de LIB_JOGOS, ex.: r:[[2,0],[1,1],...]. */
-var LIB_GRUPOS=[
-  {g:'A',t:[['River Plate','#E2463F'],['Peñarol','#F2C14D'],['Colo-Colo','#CFCFCF'],['Barcelona SC','#F08A3C']],
-   r:[]},
-  {g:'B',t:[['Boca Juniors','#3B6FD6'],['Nacional','#8FB8E8'],['Olimpia','#B9B9B9'],['Atlético Nacional','#3FA34D']],
-   r:[]},
-  {g:'C',t:[['Estudiantes','#D9534F'],['LDU Quito','#E9E3D0'],['Cerro Porteño','#C0392B'],['Universitario','#E8D9A8']],
-   r:[]}];
-// confrontos de cada rodada (índices dos times): 1º turno e returno
-var LIB_JOGOS=[[0,1],[2,3],[0,2],[1,3],[0,3],[1,2],[1,0],[3,2],[2,0],[3,1],[3,0],[2,1]];
-function libTabela(G,ate){
-  var s=G.t.map(function(t,i){return {i:i,n:t[0],c:t[1],pts:0,j:0,v:0,e:0,d:0,gp:0,gc:0,f:[]};});
-  LIB_JOGOS.slice(0,ate).forEach(function(m,k){var a=s[m[0]],b=s[m[1]],x=G.r[k][0],y=G.r[k][1];
-    a.j++;b.j++;a.gp+=x;a.gc+=y;b.gp+=y;b.gc+=x;
-    if(x>y){a.v++;a.pts+=3;b.d++;a.f.push('V');b.f.push('D');}else if(x<y){b.v++;b.pts+=3;a.d++;a.f.push('D');b.f.push('V');}else{a.e++;b.e++;a.pts++;b.pts++;a.f.push('E');b.f.push('E');}});
-  s.forEach(function(x){x.sg=x.gp-x.gc;});
-  return s.sort(function(a,b){return b.pts-a.pts||b.v-a.v||b.sg-a.sg||b.gp-a.gp||a.n.localeCompare(b.n);});
-}
-function libGrupoHTML(G){
-  var n=G.r.length,st=libTabela(G,n),antes={};libTabela(G,Math.max(0,n-2)).forEach(function(x,i){antes[x.i]=i;});
-  var cols=['P','J','V','E','D','GP','GC','SG','%'];
-  var h='<div class="tblw"><table class="ctbl libt"><colgroup><col style="width:40px"><col style="width:30%"><col style="width:52px">'+cols.map(function(){return '<col>';}).join('')+'<col style="width:120px"></colgroup><thead><tr><th class="l" colspan="3">Classificação</th>'+cols.map(function(c,i){return '<th class="'+(i%2?'c-odd':'')+'">'+c+'</th>';}).join('')+'<th>Últ. jogos</th></tr></thead><tbody>';
-  st.forEach(function(x,i){
-    var d=antes[x.i]-i,mv=d>0?'<span class="up">▲</span> '+d:d<0?'<span class="dn">▼</span> '+(-d):'<span>■</span> 0';
-    var vals=[x.pts,x.j,x.v,x.e,x.d,x.gp,x.gc,(x.sg>0?'+':'')+x.sg,x.j?Math.round(x.pts/(x.j*3)*100):0];
-    h+='<tr class="'+(i<2?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><span class="row" style="gap:10px"><span class="badge sm" style="background:'+x.c+'">'+x.n[0]+'</span>'+esc(x.n)+'</span></td><td class="mv">'+mv+'</td>'+
-    vals.map(function(v,k){return '<td class="'+(k===0?'pts':(k%2?'c-odd':''))+'">'+v+'</td>';}).join('')+
-    '<td><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'" title="'+({V:'Vitória',E:'Empate',D:'Derrota'})[f]+'"></i>';}).join('')+'</span></td></tr>';
-  });
-  return '<div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Grupo '+G.g+'</h2>'+h+'</tbody></table></div></div>';
-}
-function libEstatHTML(){
-  return '<div class="grid4" style="margin-bottom:40px">'+['Artilharia','Assistências','Cartões amarelos','MVPs'].map(function(x){return '<div class="card"><h3>'+x+'</h3>'+scorersHTML([],10)+'</div>';}).join('')+'</div>';
-}
-// Jogos da Libertadores (DADOS DE EXEMPLO): 6 rodadas às quartas, 2 jogos de cada grupo por rodada.
-// Cada grupo tem o seu quadro de jogos, ao lado da tabela do grupo, com a sua própria rodada (LR).
-var LIB_DATAS=['04/11','11/11','18/11','25/11','02/12','09/12'],LIB_HORA={A:'19h30',B:'20h30',C:'21h30'},LR={A:1,B:1,C:1};
-function libBadge(t){return '<span class="badge sm" style="background:'+t[1]+'">'+t[0][0]+'</span>';}
-function libJogosBox(G){
-  var r=LR[G.g],seta=function(d,dis,pth,lbl){return '<button class="lnav" data-g="'+G.g+'" data-d="'+d+'" aria-label="'+lbl+'"'+(dis?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="'+pth+'"/></svg></button>';};
-  return '<div class="rnav">'+seta(-1,r<=1,'M11 3L5 9l6 6','Rodada anterior')+'<b>'+r+'ª Rodada</b>'+seta(1,r>=6,'M7 3l6 6-6 6','Próxima rodada')+'</div>'+
-  [0,1].map(function(k){var m=LIB_JOGOS[(r-1)*2+k],h=G.t[m[0]],a=G.t[m[1]];return '<div class="rgame"><div class="meta">Campo '+(k+1)+' &nbsp;<b>'+LIB_DATAS[r-1]+' · Quarta · '+LIB_HORA[G.g]+'</b></div>'+
-    '<div class="ln"><span class="h">'+esc(h[0])+libBadge(h)+'</span><span class="sc"></span><span class="x">×</span><span class="sc"></span><span class="a">'+libBadge(a)+esc(a[0])+'</span></div></div>';}).join('');
-}
-document.addEventListener('click',function(e){var b=e.target.closest('button.lnav');if(!b||b.disabled)return;var g=b.dataset.g;LR[g]=Math.min(6,Math.max(1,LR[g]+(+b.dataset.d)));
-  var G=LIB_GRUPOS.filter(function(x){return x.g===g;})[0];document.getElementById('lbox-'+g).innerHTML=libJogosBox(G);});
-function libGruposHTML(){
-  return '<div style="display:grid;gap:18px">'+LIB_GRUPOS.map(function(G){return '<div class="clsgrid" style="align-items:stretch">'+libGrupoHTML(G)+
-    '<div class="card" style="padding:20px"><h2 class="blkh">Jogos · Grupo '+G.g+'</h2><div id="lbox-'+G.g+'">'+libJogosBox(G)+'</div></div></div>';}).join('')+'</div>'+
-  '<div class="legend" style="margin-bottom:40px"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Próxima fase</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div>';
-}
+/* ================= LIBERTADORES FF: fase de grupos =================
+   Times, grupos, jogos e súmulas vêm do painel (banco.js monta LIB). Cada grupo numa linha: a tabela à esquerda
+   e o quadro "Jogos · Grupo X" à direita, com a sua própria rodada (LR). Os 2 primeiros de cada grupo avançam. */
+var LR={};
+function libGrupoHTML(G){
+  var ultR=null,antes={};G.games.forEach(function(g){if(g.st==='encerrado'&&(ultR==null||g.r>ultR))ultR=g.r;});
+  if(ultR!=null&&G.games.some(function(g){return g.r<ultR&&g.st==='encerrado';}))tabelaDe(G.teams,G.games.filter(function(g){return g.r<ultR;})).forEach(function(x,i){antes[x.t.id]=i;});
+  var cols=['P','J','V','E','D','GP','GC','SG','%'];
+  var h='<div class="tblw"><table class="ctbl libt"><colgroup><col style="width:40px"><col style="width:30%"><col style="width:52px">'+cols.map(function(){return '<col>';}).join('')+'<col style="width:120px"></colgroup><thead><tr><th class="l" colspan="3">Classificação</th>'+cols.map(function(c,i){return '<th class="'+(i%2?'c-odd':'')+'">'+c+'</th>';}).join('')+'<th>Últ. jogos</th></tr></thead><tbody>';
+  G.st.forEach(function(x,i){
+    var d=antes[x.t.id]==null?0:antes[x.t.id]-i,mv=d>0?'<span class="up">▲</span> '+d:d<0?'<span class="dn">▼</span> '+(-d):'<span>■</span> 0';
+    var vals=[x.pts,x.j,x.v,x.e,x.d,x.gp,x.gc,(x.sg>0?'+':'')+x.sg,x.j?Math.round(x.pts/(x.j*3)*100):0];
+    h+='<tr class="'+(G.g&&i<2?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><a href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+tn(x.t.id)+'</a></td><td class="mv">'+mv+'</td>'+
+    vals.map(function(v,k){return '<td class="'+(k===0?'pts':(k%2?'c-odd':''))+'">'+v+'</td>';}).join('')+
+    '<td><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'" title="'+({V:'Vitória',E:'Empate',D:'Derrota'})[f]+'"></i>';}).join('')+'</span></td></tr>';
+  });
+  return '<div class="card" style="padding:20px 20px 16px"><h2 class="blkh">'+(G.g?'Grupo '+esc(G.g):'Times sem grupo')+'</h2>'+h+'</tbody></table></div></div>';
+}
+function libEstatHTML(){
+  var yc=LIB.players.filter(function(p){return p.ca>0;}).sort(function(a,b){return b.ca-a.ca;}),as=LIB.players.filter(function(p){return p.a>0;}).sort(function(a,b){return b.a-a.a||b.g-a.g;});
+  return '<div class="grid4" style="margin-bottom:40px"><div class="card"><h3>Artilharia</h3>'+scorersHTML(LIB.scorers,10)+'</div><div class="card"><h3>Assistências</h3>'+scorersHTML(as,10,'a')+'</div>'+
+    '<div class="card"><h3>Cartões amarelos</h3>'+scorersHTML(yc,10,'ca')+'</div><div class="card"><h3>MVPs</h3>'+scorersHTML(LIB.mvps,10,'mvp')+'</div></div>';
+}
+// Linha de um jogo nos quadros de rodada (FF Pro League e Libertadores FF)
+function rgameHTML(g){var done=jogou(g),d=g.date;
+  return '<div class="rgame"><div class="meta">'+esc(g.field)+' &nbsp;<b>'+(d?String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' · '+['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][d.getDay()]+(g.time?' · '+g.time:''):'Data a definir')+'</b></div>'+
+    '<div class="ln"><span class="h">'+tn(g.h)+badge(g.h,'sm')+'</span><span class="sc">'+(done?g.gh:'')+'</span><span class="x">×</span><span class="sc">'+(done?g.ga:'')+'</span><span class="a">'+badge(g.a,'sm')+tn(g.a)+'</span></div>'+
+    '<a class="go'+(g.st==='ao vivo'?' lv':'')+'" href="#'+g.id+'">'+(g.st==='ao vivo'?'● Ao vivo'+(g.min!=null?' · '+g.min+"'":''):g.st==='encerrado'?'Saiba como foi':g.st==='adiado'?'Adiado':g.st==='cancelado'?'Cancelado':'Detalhes do jogo')+'</a></div>';}
+function libJogosBox(G){
+  if(!G.rodadas.length)return '<p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p>';
+  var k=G.rodadas.indexOf(LR[G.g]);if(k<0){var pend=G.games.filter(function(g){return !jogou(g);}).map(function(g){return g.r;});LR[G.g]=pend.length?Math.min.apply(null,pend):G.rodadas[G.rodadas.length-1];k=G.rodadas.indexOf(LR[G.g]);}
+  var r=LR[G.g],seta=function(d,dis,pth,lbl){return '<button class="lnav" data-g="'+esc(G.g)+'" data-d="'+d+'" aria-label="'+lbl+'"'+(dis?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="'+pth+'"/></svg></button>';};
+  return '<div class="rnav">'+seta(-1,k<=0,'M11 3L5 9l6 6','Rodada anterior')+'<b>'+r+'ª Rodada</b>'+seta(1,k>=G.rodadas.length-1,'M7 3l6 6-6 6','Próxima rodada')+'</div>'+
+    G.games.filter(function(g){return g.r===r;}).sort(function(a,b){return a.i-b.i;}).map(rgameHTML).join('');
+}
+document.addEventListener('click',function(e){var b=e.target.closest('button.lnav');if(!b||b.disabled)return;
+  var G=LIB.grupos.filter(function(x){return x.g===b.dataset.g;})[0];if(!G)return;
+  var k=G.rodadas.indexOf(LR[G.g])+(+b.dataset.d);if(k<0||k>=G.rodadas.length)return;LR[G.g]=G.rodadas[k];
+  document.getElementById('lbox-'+(G.g||'x')).innerHTML=libJogosBox(G);});
+function libGruposHTML(){
+  if(!LIB.teams.length)return '<div class="card" style="margin-bottom:40px"><p class="muted" style="margin:0">Nenhum time cadastrado ainda. Os grupos e os jogos aparecem aqui assim que a equipe FF cadastrar no painel.</p></div>';
+  var ex=LIB.extras||[];
+  return '<div style="display:grid;gap:18px">'+LIB.grupos.map(function(G){return '<div class="clsgrid" style="align-items:stretch">'+libGrupoHTML(G)+
+    '<div class="card" style="padding:20px"><h2 class="blkh">Jogos · '+(G.g?'Grupo '+esc(G.g):'Sem grupo')+'</h2><div id="lbox-'+(G.g||'x')+'">'+libJogosBox(G)+'</div></div></div>';}).join('')+
+    (ex.length?'<div class="card" style="padding:20px"><h2 class="blkh">Outros jogos</h2>'+ex.slice().sort(function(a,b){return a.r-b.r||a.i-b.i;}).map(rgameHTML).join('')+'</div>':'')+'</div>'+
+  '<div class="legend" style="margin-bottom:40px"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Próxima fase</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div>';
+}
 
 function camp(tab,body){
   var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas']];
   // Divisão por competição: Libertadores FF (ainda sem dados) e FF Pro League (tudo o que já existe)
   var lib=tab.indexOf('libertadores')===0,comps=[['libertadores','Libertadores FF','campeonato-libertadores'],['pro','FF Pro League','campeonato']];
   return '<div class="wrap"><div class="phead"><div class="eyebrow">'+(lib?'Fut7 · fase de grupos':'1ª Temporada · primeira fase')+'</div><h1>Campeonato</h1><p class="lead">'+(lib?'Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.':'Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.')+'</p></div>'+
+  (BANCO_ERRO?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
   '<nav class="comps" aria-label="Competição">'+comps.map(function(c){return '<a href="#'+c[2]+'" class="'+((c[0]==='libertadores')===lib?'on':'')+'">'+c[1]+'</a>';}).join('')+'</nav>'+
   '<nav class="ctabs">'+(lib?[['libertadores','Tabela e jogos','campeonato-libertadores'],['libertadores-estatisticas','Estatísticas','campeonato-libertadores-estatisticas']]:tabs).map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+body+'</div>';
 }
@@ -167,73 +172,76 @@ function zerarTemporada(){
   ini.st='ao vivo';ini.gh=0;ini.ga=0;ini.min=1;ini.min0=1;LIVE=ini;CUR=1;
   ST=standings();SCORERS=[];MVPS=[];
 }
-var CLR=CUR;
-function prevPositions(){
-  var fin=GAMES.filter(function(g){return g.st==='encerrado';}),last=CUR-1;
-  var S={};TEAMS.forEach(function(t){S[t.id]={id:t.id,pts:0,v:0,sg:0,gp:0};});
-  fin.filter(function(g){return g.r<last;}).forEach(function(g){var h=S[g.h],a=S[g.a];h.gp+=g.gh;a.gp+=g.ga;h.sg+=g.gh-g.ga;a.sg+=g.ga-g.gh;if(g.gh>g.ga){h.pts+=3;h.v++;}else if(g.gh<g.ga){a.pts+=3;a.v++;}else{h.pts++;a.pts++;}});
-  var o=Object.keys(S).map(function(k){return S[k];}).sort(function(a,b){return b.pts-a.pts||b.v-a.v||b.sg-a.sg||b.gp-a.gp;}),m={};o.forEach(function(x,i){m[x.id]=i;});return m;
-}
-function classTable(){
-  var pv=prevPositions();
-  var cols=['P','J','V','E','D','GP','GC','SG','%'];
-  var h='<div class="tblw"><table class="ctbl"><thead><tr><th class="l" colspan="3">Classificação</th>'+cols.map(function(c,i){return '<th class="'+(i%2?'c-odd':'')+'">'+c+'</th>';}).join('')+'<th>Últ. jogos</th></tr></thead><tbody>';
-  ST.forEach(function(x,i){
-    var d=pv[x.t.id]-i,mv=d>0?'<span class="up">▲</span> '+d:d<0?'<span class="dn">▼</span> '+(-d):'<span>■</span> 0';
-    var pct=x.j?Math.round(x.pts/(x.j*3)*100):0;
-    var vals=[x.pts,x.j,x.v,x.e,x.d,x.gp,x.gc,(x.sg>0?'+':'')+x.sg,pct];
-    h+='<tr class="'+(i<4?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><a href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+x.t.n+'</a></td><td class="mv">'+mv+'</td>'+
-    vals.map(function(v,k){return '<td class="'+(k===0?'pts':(k%2?'c-odd':''))+'">'+v+'</td>';}).join('')+
-    '<td><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'" title="'+({V:'Vitória',E:'Empate',D:'Derrota'})[f]+'"></i>';}).join('')+'</span></td></tr>';
-  });
-  return h+'</tbody></table></div><div class="legend"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Semifinais</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div>';
-}
-function roundBox(r){
-  var gs=GAMES.filter(function(g){return g.r===r;});
-  return '<div class="rnav"><button id="rPrev" aria-label="Rodada anterior"'+(r<=1?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 3L5 9l6 6"/></svg></button><b>'+r+'ª Rodada</b><button id="rNext" aria-label="Próxima rodada"'+(r>=ROUNDS?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 3l6 6-6 6"/></svg></button></div>'+
-  gs.map(function(g){var done=g.st!=='agendado';
-    return '<div class="rgame"><div class="meta">'+g.field+' &nbsp;<b>'+String(g.date.getDate()).padStart(2,'0')+'/'+String(g.date.getMonth()+1).padStart(2,'0')+' · '+({0:'Domingo',3:'Quarta',5:'Sexta'})[g.date.getDay()]+' · '+g.time+'</b></div>'+
-    '<div class="ln"><span class="h">'+tn(g.h)+badge(g.h,'sm')+'</span><span class="sc">'+(done?g.gh:'')+'</span><span class="x">×</span><span class="sc">'+(done?g.ga:'')+'</span><span class="a">'+badge(g.a,'sm')+tn(g.a)+'</span></div>'+
-    '<a class="go'+(g.st==='ao vivo'?' lv':'')+'" href="#'+g.id+'">'+(g.st==='ao vivo'?'● Ao vivo · '+g.min+"'":g.st==='encerrado'?'Saiba como foi':'Transmissão ao vivo')+'</a></div>';}).join('');
-}
-function bindRound(){
-  var p=document.getElementById('rPrev'),n=document.getElementById('rNext');
-  if(p)p.addEventListener('click',function(){if(CLR>1){CLR--;document.getElementById('rbox').innerHTML=roundBox(CLR);bindRound();}});
-  if(n)n.addEventListener('click',function(){if(CLR<ROUNDS){CLR++;document.getElementById('rbox').innerHTML=roundBox(CLR);bindRound();}});
-}
+var CLR=CUR;
+// posições antes da última rodada com jogo encerrado (para as setas ▲▼ da tabela)
+function prevPositions(){
+  var ultR=null;GAMES.forEach(function(g){if(g.st==='encerrado'&&(ultR==null||g.r>ultR))ultR=g.r;});
+  var m={},ant=GAMES.filter(function(g){return g.r<ultR;});if(ultR==null||!ant.some(function(g){return g.st==='encerrado';}))return m;
+  tabelaDe(TEAMS,ant).forEach(function(x,i){m[x.t.id]=i;});return m;
+}
+function classTable(){
+  if(!ST.length)return '<p class="muted" style="margin:0">Nenhum time cadastrado ainda. A tabela aparece aqui assim que a equipe FF cadastrar os times no painel.</p>';
+  var pv=prevPositions();
+  var cols=['P','J','V','E','D','GP','GC','SG','%'];
+  var h='<div class="tblw"><table class="ctbl"><thead><tr><th class="l" colspan="3">Classificação</th>'+cols.map(function(c,i){return '<th class="'+(i%2?'c-odd':'')+'">'+c+'</th>';}).join('')+'<th>Últ. jogos</th></tr></thead><tbody>';
+  ST.forEach(function(x,i){
+    var d=pv[x.t.id]==null?0:pv[x.t.id]-i,mv=d>0?'<span class="up">▲</span> '+d:d<0?'<span class="dn">▼</span> '+(-d):'<span>■</span> 0';
+    var pct=x.j?Math.round(x.pts/(x.j*3)*100):0;
+    var vals=[x.pts,x.j,x.v,x.e,x.d,x.gp,x.gc,(x.sg>0?'+':'')+x.sg,pct];
+    h+='<tr class="'+(i<4?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><a href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+tn(x.t.id)+'</a></td><td class="mv">'+mv+'</td>'+
+    vals.map(function(v,k){return '<td class="'+(k===0?'pts':(k%2?'c-odd':''))+'">'+v+'</td>';}).join('')+
+    '<td><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'" title="'+({V:'Vitória',E:'Empate',D:'Derrota'})[f]+'"></i>';}).join('')+'</span></td></tr>';
+  });
+  return h+'</tbody></table></div><div class="legend"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Semifinais</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div>';
+}
+function roundBox(r){
+  if(!RLIST.length)return '<p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p>';
+  var k=RLIST.indexOf(r);if(k<0){r=CUR||RLIST[0];k=RLIST.indexOf(r);CLR=r;}
+  var gs=GAMES.filter(function(g){return g.r===r;}).sort(function(a,b){return a.i-b.i;});
+  return '<div class="rnav"><button id="rPrev" aria-label="Rodada anterior"'+(k<=0?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 3L5 9l6 6"/></svg></button><b>'+r+'ª Rodada</b><button id="rNext" aria-label="Próxima rodada"'+(k>=RLIST.length-1?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 3l6 6-6 6"/></svg></button></div>'+
+  gs.map(rgameHTML).join('');
+}
+function bindRound(){
+  var p=document.getElementById('rPrev'),n=document.getElementById('rNext'),mv=function(d){var k=RLIST.indexOf(CLR)+d;if(k<0||k>=RLIST.length)return;CLR=RLIST[k];document.getElementById('rbox').innerHTML=roundBox(CLR);bindRound();};
+  if(p)p.addEventListener('click',function(){mv(-1);});
+  if(n)n.addEventListener('click',function(){mv(1);});
+}
+
+P.atletas=function(){
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">'+PLAYERS.length+(PLAYERS.length===1?' atleta':' atletas')+' · '+TEAMS.length+(TEAMS.length===1?' time':' times')+'</div><h1>Atletas</h1><p class="lead">Cada jogo passa a fazer parte da sua história. Encontre qualquer atleta da League.</p></div>'+
+  '<div class="filters"><input id="aq" type="search" placeholder="Buscar por nome ou número"><select id="at"><option value="">Todos os times</option>'+TEAMS.map(function(t){return '<option value="'+t.id+'">'+esc(t.n)+'</option>';}).join('')+'</select><select id="ap"><option value="">Todas as posições</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></div>'+
+  '<div class="athletes" id="alist"></div></div>';
+};
+function athCard(p){return '<a class="ath" href="#atleta-'+p.id+'"><span class="n">'+p.num+'</span><div class="row"><div class="avatar" style="width:44px;height:44px;'+avBg(p.id)+'"></div><div><b>'+esc(p.n)+'</b><div class="lbl" style="margin-top:3px">'+tn(p.team)+(posn(p)?' · '+posn(p):'')+'</div></div></div><div class="st"><span><b>'+p.j+'</b>jogos</span><span><b>'+p.g+'</b>gols</span><span><b>'+p.mvp+'</b>MVP</span></div></a>';}
 
-P.atletas=function(){
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">160 atletas · 8 times</div><h1>Atletas</h1><p class="lead">Cada jogo passa a fazer parte da sua história. Encontre qualquer atleta da League.</p></div>'+
-  '<div class="filters"><input id="aq" type="search" placeholder="Buscar por nome ou número"><select id="at"><option value="">Todos os times</option>'+TEAMS.map(function(t){return '<option value="'+t.id+'">'+t.n+'</option>';}).join('')+'</select><select id="ap"><option value="">Todas as posições</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></div>'+
-  '<div class="athletes" id="alist"></div></div>';
-};
-function athCard(p){return '<a class="ath" href="#atleta-'+p.id+'"><span class="n">'+p.num+'</span><div class="row"><div class="avatar" style="width:44px;height:44px;'+avBg(p.id)+'"></div><div><b>'+esc(p.n)+'</b><div class="lbl" style="margin-top:3px">'+tn(p.team)+' · '+POSN[p.pos]+'</div></div></div><div class="st"><span><b>'+p.j+'</b>jogos</span><span><b>'+p.g+'</b>gols</span><span><b>'+p.mvp+'</b>MVP</span></div></a>';}
-
-P.atleta=function(id,dentro){
-  var p=PM[id];if(!p)return P.atletas();var t=TM[p.team];
-  var rows=p.games.map(function(x){var g=GAMES.filter(function(y){return y.id===x.g;})[0],home=g.h===p.team,op=home?g.a:g.h,my=home?g.gh:g.ga,th=home?g.ga:g.gh,res=my>th?'V':my<th?'D':'E';
-    return '<tr><td class="l">'+g.r+'</td><td class="l"><a href="#'+g.id+'" class="row" style="gap:8px">'+badge(op,'sm')+tn(op)+'</a></td><td><span class="form"><i class="'+res+'">'+res+'</i></span> '+my+' x '+th+'</td><td>'+(x.gl||'–')+'</td><td>'+(g.mvp===p.id?'⭐':'')+'</td></tr>';}).join('');
-  var mvpR=GAMES.filter(function(g){return g.mvp===p.id;}).map(function(g){return '<span class="chip gold">⭐ MVP · rodada '+g.r+'</span>';}).join('');
-  var corpo='<div class="prof" data-n="'+p.num+'"><div class="avatar'+(FOTOS[p.id]?' ret':'')+'" style="'+avBg(p.id)+'"></div><div style="display:grid;gap:8px;position:relative"><span class="k">'+POSN[p.pos]+' · '+t.n+' · Nº '+p.num+'</span><h1>'+esc(p.n)+'</h1><div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Unidade '+p.unit+'</span><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Atleta FF desde 2026</span></div></div></div>'+
-  '<div class="lbl" style="margin:26px 0 10px">1ª Temporada</div><div class="stats" style="grid-template-columns:repeat(4,1fr)"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div>'+
-  '<div class="grid2" style="margin-top:18px"><div class="card"><h3 style="margin-bottom:6px">Jogos na temporada</h3>'+(rows?'<div class="tblw"><table class="tbl"><thead><tr><th class="l">Rod.</th><th class="l">Adversário</th><th>Placar</th><th>Gols</th><th>MVP</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">Ainda sem jogos.</p>')+'</div>'+
-  '<div style="display:grid;gap:18px;align-content:start"><div class="card" style="display:grid;gap:10px"><h3>Conquistas</h3><div class="row" style="flex-wrap:wrap;gap:6px">'+(mvpR||'')+'<span class="chip ok">✓ 1ª Temporada</span><span class="chip ok">✓ Festival FF</span><span class="chip">🔒 Campeão</span><span class="chip">🔒 Artilheiro</span></div></div>'+
-  '<div class="card" style="display:grid;gap:10px"><h3>Carreira FF</h3><div class="agenda"><div class="between"><span>Temporadas</span><b class="num">1</b></div><div class="between"><span>Títulos</span><b class="num">0</b></div><div class="between"><span>Copa FF 2026</span><span class="chip">Participou</span></div></div></div></div></div>';
-  // dentro = mostrado na área do atleta (Meu perfil público), sem o “‹ Atletas” do Campeonato
-  if(dentro)return corpo;
-  return '<div class="wrap"><div class="phead"><a class="more" href="#atletas">‹ Atletas</a></div>'+corpo+'</div>';
-};
+P.atleta=function(id,dentro){
+  var p=PM[id];if(!p)return P.atletas();var t=TM[p.team],lib=t.comp==='jogo-lib-';
+  var rows=p.games.map(function(x){var g=ALLGAMES.filter(function(y){return y.id===x.g;})[0];if(!g)return '';var home=g.h===p.team,op=home?g.a:g.h,my=home?g.gh:g.ga,th=home?g.ga:g.gh,res=my>th?'V':my<th?'D':'E';
+    return '<tr><td class="l">'+g.r+'</td><td class="l"><a href="#'+g.id+'" class="row" style="gap:8px">'+badge(op,'sm')+tn(op)+'</a></td><td><span class="form"><i class="'+res+'">'+res+'</i></span> '+my+' x '+th+'</td><td>'+(x.gl||'–')+'</td><td>'+(g.mvp===p.id?'⭐':'')+'</td></tr>';}).join('');
+  var mvpR=ALLGAMES.filter(function(g){return g.mvp===p.id;}).map(function(g){return '<span class="chip gold">⭐ MVP · rodada '+g.r+'</span>';}).join('');
+  var corpo='<div class="prof" data-n="'+p.num+'"><div class="avatar'+(FOTOS[p.id]?' ret':'')+'" style="'+avBg(p.id)+'"></div><div style="display:grid;gap:8px;position:relative"><span class="k">'+(posn(p)?posn(p)+' · ':'')+esc(t.n)+' · Nº '+p.num+'</span><h1>'+esc(p.n)+'</h1>'+
+    (p.unit?'<div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip" style="background:rgba(0,0,0,.6);color:#FAF9F5;border-color:transparent">Unidade '+esc(p.unit)+'</span></div>':'')+'</div></div>'+
+  '<div class="lbl" style="margin:26px 0 10px">'+(lib?'Libertadores FF':esc(PRO_NOME||'FF Pro League'))+'</div><div class="stats" style="grid-template-columns:repeat(4,1fr)"><div><b>'+p.j+'</b><span>Jogos</span></div><div><b>'+p.g+'</b><span>Gols</span></div><div><b>'+p.a+'</b><span>Assist.</span></div><div><b>'+p.mvp+'</b><span>MVPs</span></div></div>'+
+  '<div class="grid2" style="margin-top:18px"><div class="card"><h3 style="margin-bottom:6px">Jogos na competição</h3>'+(rows?'<div class="tblw"><table class="tbl"><thead><tr><th class="l">Rod.</th><th class="l">Adversário</th><th>Placar</th><th>Gols</th><th>MVP</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">Ainda sem jogos.</p>')+'</div>'+
+  '<div style="display:grid;gap:18px;align-content:start"><div class="card" style="display:grid;gap:10px"><h3>Conquistas</h3>'+(mvpR?'<div class="row" style="flex-wrap:wrap;gap:6px">'+mvpR+'</div>':'<p class="muted" style="margin:0">Nenhuma conquista ainda.</p>')+'</div></div></div>';
+  // dentro = mostrado na área do atleta (Meu perfil público), sem o “‹ Atletas” do Campeonato
+  if(dentro)return corpo;
+  return '<div class="wrap"><div class="phead">'+(lib?'<a class="more" href="#time-'+t.id+'">‹ '+esc(t.n)+'</a>':'<a class="more" href="#atletas">‹ Atletas</a>')+'</div>'+corpo+'</div>';
+};
 P['minha-area-perfil']=function(){
   return area('perfil','<div class="ahead"><div><div class="eyebrow">Como os outros atletas veem você</div><h1>Meu perfil público</h1></div></div>'+P.atleta(ME,1));
 };
 
-P.time=function(id){
-  var t=TM[id];if(!t)return P.classificacao();var pos=ST.map(function(x){return x.t.id;}).indexOf(id),s=ST[pos];
-  var gs=GAMES.filter(function(g){return g.h===id||g.a===id;});
-  return '<div class="wrap"><div class="phead"><a class="more" href="#campeonato">‹ Campeonato</a><div class="row" style="gap:16px">'+badge(id,'lg')+'<h1>'+t.n+'</h1></div><p class="lead">'+(pos+1)+'º lugar · '+s.pts+' pontos · '+s.v+' vitórias, '+s.e+' empates e '+s.d+' derrotas.</p></div>'+
-  '<div class="grid2"><div class="card"><h3 style="margin-bottom:6px">Elenco</h3><div class="athletes" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'+t.roster.map(athCard).join('')+'</div></div><div class="card"><h3 style="margin-bottom:10px">Jogos</h3><div style="display:grid;gap:10px">'+gs.map(gameCard).join('')+'</div></div></div></div>';
-};
-
+P.time=function(id){
+  var t=TM[id];if(!t)return P.campeonato();var lib=t.comp==='jogo-lib-',G=lib?LIB.grupos.filter(function(x){return x.teams.indexOf(t)>=0;})[0]:null;
+  var tab=G?G.st:ST,pos=tab.map(function(x){return x.t.id;}).indexOf(id),s=tab[pos];
+  var gs=ALLGAMES.filter(function(g){return g.h===id||g.a===id;}).sort(function(a,b){return a.r-b.r||a.i-b.i;});
+  return '<div class="wrap"><div class="phead"><a class="more" href="#'+(lib?'campeonato-libertadores':'campeonato')+'">‹ '+(lib?'Libertadores FF':'Campeonato')+'</a><div class="row" style="gap:16px">'+badge(id,'lg')+'<h1>'+esc(t.n)+'</h1></div>'+
+  (s?'<p class="lead">'+(G&&G.g?'Grupo '+esc(G.g)+' · ':'')+(pos+1)+'º lugar · '+s.pts+(s.pts===1?' ponto':' pontos')+' · '+s.v+(s.v===1?' vitória, ':' vitórias, ')+s.e+(s.e===1?' empate e ':' empates e ')+s.d+(s.d===1?' derrota.':' derrotas.')+'</p>':'')+'</div>'+
+  '<div class="grid2"><div class="card"><h3 style="margin-bottom:6px">Elenco</h3>'+(t.roster.length?'<div class="athletes" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'+t.roster.map(athCard).join('')+'</div>':'<p class="muted" style="margin:0">Elenco ainda não cadastrado.</p>')+'</div>'+
+  '<div class="card"><h3 style="margin-bottom:10px">Jogos</h3>'+(gs.length?'<div style="display:grid;gap:10px">'+gs.map(gameCard).join('')+'</div>':'<p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p>')+'</div></div></div>';
+};
+
 /* Ao vivo: a transmissão vem do painel (aba Ao vivo, tabela transmissao): link da live do YouTube, título e ligada/desligada.
    Ligada: vídeo do YouTube e, no computador, o chat da live. Desligada: aviso e link para o canal. */
 var YT_CANAL='https://www.youtube.com/@FFsocceracademy';
@@ -458,7 +466,7 @@ function route(){
   var orig=(location.hash||'').replace('#',''),h=orig||'a-league',page=h,arg=null;
   if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
-  if(/^jogo-\d+-\d+$/.test(h)){page='jogo';arg=h;}
+  if(/^jogo-(lib-)?\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
   else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}
   else if(h.indexOf('time-')===0){page='time';arg=h.slice(5);}
@@ -546,6 +554,7 @@ window.addEventListener('hashchange',route);
 
 /* ticker + live clock */
 function ticker(){
+  if(!document.getElementById('ticker'))return;  // faixa de resultados tirada em 23/10/2026
   var items=GAMES.filter(function(g){return g.r===CUR;}).map(function(g){
     var s=g.st==='ao vivo'?'<span class="live">'+g.min+"'</span>":g.st==='encerrado'?'<span class="lbl">Fim</span>':'<span class="lbl">'+fmtD(g.date)+' '+g.time+'</span>';
     return '<a href="#'+g.id+'">'+s+' '+tn(g.h)+' <b>'+(g.gh==null?'':g.gh)+'</b> x <b>'+(g.ga==null?'':g.ga)+'</b> '+tn(g.a)+'</a>';});
@@ -555,7 +564,7 @@ function ticker(){
 acct();
 ticker();
 setInterval(function(){
-  if(LIVE.min<90){LIVE.min++;
+  if(LIVE&&LIVE.min0&&LIVE.min<90){LIVE.min++;
     document.querySelectorAll('[data-livemin],[data-livemin2]').forEach(function(e){e.textContent=LIVE.min+"'";});
     document.querySelectorAll('[data-livepill]').forEach(function(e){e.textContent=(LIVE.min<=45?'1º':'2º')+' tempo · '+LIVE.min+"'";});
     var v=186+Math.floor((LIVE.min-(LIVE.min0||67))*2.3);document.querySelectorAll('[data-viewers]').forEach(function(e){e.textContent=v;});
@@ -566,5 +575,5 @@ aplicarOnda();
 // Desenha só depois de todos os scripts (o painel.js vem depois deste arquivo e define o login).
 document.addEventListener('DOMContentLoaded',function(){
   if(ONDA<2)route();  // onda 1 não mostra dados de jogos: não espera o banco
-  else carregarBanco(function(){zerarTemporada();CLR=CUR;ticker();route();});
+  else carregarBanco(function(){if(ME&&!PM[ME])ME=null;acct();CLR=CUR;ticker();route();});
 });
