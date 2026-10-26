@@ -3,7 +3,7 @@ var LOGO='assets/escudo.webp';
 /* ================= ONDAS DE LANÇAMENTO =================
    CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
 var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
-function ondaDaPagina(pg){return ({libertadores:1,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?4:2);}
+function ondaDaPagina(pg){return ({libertadores:2,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?4:2);}
 // CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
 function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
 // CONFIG.PRE_INSCRICAO = false esconde tudo da pré-inscrição (botões, links, página, pergunta frequente), inclusive com ?demo. Nada é apagado.
