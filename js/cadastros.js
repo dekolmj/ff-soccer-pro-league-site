@@ -33,8 +33,8 @@ function cdCarregar(cb){
     CD.ok=true;cb();
   });
 }
-function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,jogos:cdJogos,usuarios:cdUsuarios,historico:cdHistorico})[aba]();};
-  if(aba==='historico'||CD.ok)ir();else cdCarregar(ir);}
+function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,jogos:cdJogos,aovivo:cdAoVivo,usuarios:cdUsuarios,historico:cdHistorico})[aba]();};
+  if(aba==='historico'||aba==='aovivo'||CD.ok)ir();else cdCarregar(ir);}
 function cdRecarregar(){CD.ok=false;cdAba(PN.aba);}
 
 // Competições: a temporada mais recente de cada uma.
@@ -406,8 +406,47 @@ function cdImportaLigar(pend){
     cdUsuarios();cdFoco();});});
 }
 
+/* ================= AO VIVO =================
+   Uma transmissão por vez: o link da live do YouTube (ou do canal), um título e o botão Ligar/Desligar.
+   Ligada, o vídeo (e o chat do YouTube, no computador) aparece na página Ao vivo do site. */
+function cdAoVivo(){
+  SB.from('transmissao').select('link,titulo,no_ar,atualizado_em').eq('id',1).maybeSingle().then(function(r){
+    var el=cdEl();if(!el||PN.aba!=='aovivo')return;
+    if(r.error){cdMsg('Não foi possível carregar a transmissão. Recarregue a página.');console.warn(r.error);return;}
+    var t=r.data||{link:'',titulo:'',no_ar:false};
+    el.innerHTML='<div class="cdav">'+
+      '<div class="card cdavst"><span class="chip '+(t.no_ar?'ok':'')+'">'+(t.no_ar?'● Transmissão ligada':'Transmissão desligada')+'</span>'+
+        '<p class="muted" style="margin:0">'+(t.no_ar?'O vídeo está aparecendo na página Ao vivo do site.':'Nada aparece no site. Cole o link e clique em "Ligar transmissão" quando a live começar.')+
+        ((CONFIG.ONDA||99)<3?' <b>Por enquanto a página Ao vivo só aparece na versão de apresentação (endereço com ?demo).</b>':'')+'</p></div>'+
+      '<form class="card cdform" id="cdForm" novalidate><h3>Transmissão</h3><div class="cdcampos">'+
+        cdCampo('Link da live no YouTube *','<input id="avLink" maxlength="300" placeholder="https://www.youtube.com/live/…" value="'+esc(t.link||'')+'">','full')+
+        cdCampo('Título (opcional)','<input id="avTit" maxlength="80" placeholder="Ex.: Tigres x Lobos · Rodada 3" value="'+esc(t.titulo||'')+'">','full')+
+      '</div><p class="muted" style="margin:10px 0 0;font-size:14px">Use o link da live (no YouTube, botão <b>Compartilhar</b> da transmissão). Com o link da live, o chat do YouTube também aparece no site. '+
+        'O link do canal só funciona no formato youtube.com/channel/UC… e mostra o vídeo sem o chat.</p>'+
+      '<div id="avPrev"></div><div class="err" id="cdErr" role="alert"></div><div class="cdbts">'+
+        (t.no_ar?'<button class="btn primary" type="submit">Salvar alterações</button><button class="btn cdapaga" type="button" id="avDesliga">Desligar transmissão</button>'
+                :'<button class="btn primary" type="submit">Ligar transmissão</button><button class="btn" type="button" id="avSalva">Só salvar o link</button>')+
+      '</div></form></div>';
+    var li=document.getElementById('avLink'),pv=document.getElementById('avPrev'),er=document.getElementById('cdErr');
+    var prev=function(){var y=ytInfo(li.value);pv.innerHTML=!li.value.trim()?'':y.erro?'<p class="err" style="margin:10px 0 0">'+y.erro+'</p>':
+      '<p class="lbl" style="margin:12px 0 6px">Prévia</p><div class="ytbox cdavprev"><iframe src="'+ytEmbed(y)+'" title="Prévia da transmissão" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>';};
+    var t0=null;li.addEventListener('input',function(){clearTimeout(t0);t0=setTimeout(prev,500);});prev();
+    var grava=function(noAr,bt,msg){var link=li.value.trim(),y=ytInfo(link);
+      if(noAr&&!link){er.textContent='Cole o link da live antes de ligar.';return;}
+      if(link&&y.erro){er.textContent=y.erro;return;}
+      bt.disabled=true;er.textContent='';
+      SB.from('transmissao').update({link:link||null,titulo:document.getElementById('avTit').value.trim()||null,no_ar:noAr,atualizado_em:new Date().toISOString()}).eq('id',1).then(function(r){bt.disabled=false;
+        if(r.error){er.textContent='Não foi possível salvar. Tente de novo.';console.warn(r.error);return;}
+        toast(msg);cdAoVivo();});};
+    var fm=document.getElementById('cdForm');
+    fm.addEventListener('submit',function(e){e.preventDefault();grava(true,fm.querySelector('[type=submit]'),t.no_ar?'Transmissão atualizada.':'Transmissão ligada.');});
+    var sv=document.getElementById('avSalva');if(sv)sv.addEventListener('click',function(){grava(false,sv,'Link salvo. A transmissão continua desligada.');});
+    var dl=document.getElementById('avDesliga');if(dl)dl.addEventListener('click',function(){if(!confirm('Desligar a transmissão? O vídeo sai do site.'))return;grava(false,dl,'Transmissão desligada.');});
+  });
+}
+
 /* ================= HISTÓRICO ================= */
-var CD_TAB={times:'Time',atletas:'Atleta',elencos:'Elenco',jogos:'Jogo',rodadas:'Rodada'};
+var CD_TAB={times:'Time',atletas:'Atleta',elencos:'Elenco',jogos:'Jogo',rodadas:'Rodada',transmissao:'Transmissão'};
 function cdHistorico(){
   SB.from('historico').select('quando,quem,tabela,acao,resumo').order('quando',{ascending:false}).limit(200).then(function(r){
     var el=cdEl();if(!el||PN.aba!=='historico')return;

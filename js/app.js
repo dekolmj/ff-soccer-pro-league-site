@@ -234,16 +234,42 @@ P.time=function(id){
   '<div class="grid2"><div class="card"><h3 style="margin-bottom:6px">Elenco</h3><div class="athletes" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'+t.roster.map(athCard).join('')+'</div></div><div class="card"><h3 style="margin-bottom:10px">Jogos</h3><div style="display:grid;gap:10px">'+gs.map(gameCard).join('')+'</div></div></div></div>';
 };
 
-P['ao-vivo']=function(){
-  var up=GAMES.filter(function(g){return g.st==='agendado';}).slice(0,5);
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">Canal oficial FF Soccer · YouTube</div><h1>TV FF Soccer</h1></div>'+
-  '<div class="livegrid"><div style="display:grid;gap:14px;align-content:start">'+playerBox({seed:11,bug:liveBug(),live:1,tag:'Transmissão oferecida por · espaço do patrocinador',bar:'<span data-viewers>186</span> assistindo'})+
-  '<div class="between wrapm" style="flex-wrap:wrap"><div style="min-width:0"><h2 style="font-size:32px">'+tn(LIVE.h)+' x '+tn(LIVE.a)+'</h2><div class="lbl" style="margin-top:6px">Rodada '+LIVE.r+' · '+LIVE.field+' · <span data-viewers>186</span> assistindo agora</div></div><div class="row"><a class="btn sm" href="#'+LIVE.id+'">Lances e VAR</a><span class="btn primary sm">Inscrever-se no canal</span></div></div></div>'+
-  '<div style="display:grid;gap:14px;align-content:start"><div class="card"><div class="between" style="margin-bottom:10px"><span class="lbl">Chat da torcida</span><span class="lbl">moderado pela FF</span></div><div class="chat" id="chat">'+(CONFIG.TEMPORADA_ZERADA?'<div><b>Cláudia Tavares</b>Começou a temporada! ⚽</div><div><b>Ju Sampaio</b>Bora '+tn(LIVE.h)+'!</div><div><b>Carlos · '+tn(LIVE.a)+'</b>Hoje é nosso, '+tn(LIVE.a)+' 💪</div><div><b>Tio Beto</b>Assistindo de Campinas</div><div class="ff"><b>FF Soccer</b>Bem-vindos à 1ª rodada da FF Soccer Pro League!</div>':'<div><b>Cláudia Tavares</b>VAI FILHO!!! Que gol ⚽</div><div><b>Ju Sampaio</b>Diego jogando muito hoje</div><div><b>Carlos · Lobos</b>Era pênalti, o VAR foi generoso 😅</div><div><b>Tio Beto</b>Assistindo de Campinas, bora Falcões</div><div class="ff"><b>FF Soccer</b>O replay do gol já está na TV FF Soccer.</div>')+'</div><form id="chatF"><input class="chat-in" id="chatIn" type="text" placeholder="Mande sua mensagem para a torcida" maxlength="140"></form></div>'+
-  '<div class="card agenda"><div class="lbl" style="margin-bottom:4px">Próximas transmissões</div>'+up.map(function(g){return '<a class="between" href="#'+g.id+'"><span>'+tn(g.h)+' x '+tn(g.a)+'</span><span class="lbl">'+fmtD(g.date)+' · '+g.time+'</span></a>';}).join('')+'</div></div></div></div>';
-};
-
-
+/* Ao vivo: a transmissão vem do painel (aba Ao vivo, tabela transmissao): link da live do YouTube, título e ligada/desligada.
+   Ligada: vídeo do YouTube e, no computador, o chat da live. Desligada: aviso e link para o canal. */
+var YT_CANAL='https://www.youtube.com/@FFsocceracademy';
+function ytInfo(l){l=String(l||'').trim();
+  var m=l.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|live\/|embed\/|shorts\/))([\w-]{11})/);if(m)return {video:m[1]};
+  m=l.match(/youtube\.com\/channel\/(UC[\w-]{22})/);if(m)return {canal:m[1]};
+  if(/youtube\.com\/@/.test(l))return {erro:'Esse é o link do canal pelo nome (@…). Cole o link da live (botão Compartilhar da transmissão) ou o link do canal no formato youtube.com/channel/UC….'};
+  return {erro:'Link do YouTube não reconhecido. Cole o link da live (botão Compartilhar da transmissão).'};}
+function ytEmbed(y){return y.video?'https://www.youtube.com/embed/'+y.video+'?rel=0':'https://www.youtube.com/embed/live_stream?channel='+y.canal+'&rel=0';}
+function ytAssistir(y){return y.video?'https://www.youtube.com/watch?v='+y.video:'https://www.youtube.com/channel/'+y.canal+'/live';}
+P['ao-vivo']=function(){
+  setTimeout(aoVivoCarregar,0);
+  return '<div class="wrap" id="aovivo"><div class="phead"><div class="eyebrow">Canal oficial FF Soccer · YouTube</div><h1>TV FF Soccer</h1></div><p class="muted" id="avMsg">Carregando a transmissão…</p></div>';
+};
+function aoVivoCarregar(){
+  var el=document.getElementById('aovivo');if(!el)return;
+  var mostra=function(t){if(!document.getElementById('aovivo'))return;
+    var y=t&&t.no_ar?ytInfo(t.link):null,cab='<div class="phead"><div class="eyebrow">Canal oficial FF Soccer · YouTube</div><h1>TV FF Soccer</h1></div>';
+    if(!y||y.erro){el.innerHTML=cab+'<div class="card avoff"><span class="chip">Sem transmissão agora</span><h2>Nenhum jogo ao vivo neste momento</h2>'+
+      '<p class="muted" style="margin:0">Quando houver transmissão, o jogo aparece aqui, com o chat do YouTube. Enquanto isso, acompanhe o canal oficial da FF Soccer.</p>'+
+      '<a class="btn primary" href="'+YT_CANAL+'" target="_blank" rel="noopener">Abrir o canal no YouTube</a></div>';return;}
+    var chat=y.video?'https://www.youtube.com/live_chat?v='+y.video+'&embed_domain='+encodeURIComponent(location.hostname):'';
+    el.innerHTML=cab+'<div class="livegrid'+(chat?'':' semchat')+'"><div style="display:grid;gap:14px;align-content:start">'+
+      '<div class="ytbox"><iframe src="'+ytEmbed(y)+'" title="'+esc(t.titulo||'Transmissão ao vivo')+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>'+
+      '<div class="between wrapm" style="flex-wrap:wrap;gap:10px"><div style="min-width:0"><span class="live">Ao vivo</span>'+(t.titulo?'<h2 style="font-size:32px;margin-top:8px">'+esc(t.titulo)+'</h2>':'')+'</div>'+
+      '<div class="row" style="flex-wrap:wrap;gap:8px"><a class="btn sm" href="'+ytAssistir(y)+'" target="_blank" rel="noopener">Assistir no YouTube</a>'+
+      (chat?'<a class="btn sm avchatbtn" href="'+ytAssistir(y)+'" target="_blank" rel="noopener">Abrir o chat no YouTube</a>':'')+'</div></div></div>'+
+      (chat?'<div class="card avchat"><div class="between" style="margin-bottom:10px"><span class="lbl">Chat da live</span><span class="lbl">YouTube</span></div>'+
+        '<iframe src="'+chat+'" title="Chat da transmissão no YouTube"></iframe><p class="muted" style="margin:8px 0 0;font-size:13px">Para comentar, entre com sua conta do YouTube.</p></div>':'')+'</div>';
+  };
+  if(!CONFIG.SUPABASE_URL)return mostra(null);
+  fetch(CONFIG.SUPABASE_URL+'/rest/v1/transmissao?select=link,titulo,no_ar&id=eq.1',{headers:{apikey:CONFIG.SUPABASE_KEY,Authorization:'Bearer '+CONFIG.SUPABASE_KEY}})
+    .then(function(r){return r.ok?r.json():[];}).then(function(d){mostra(d&&d[0]);}).catch(function(){mostra(null);});
+}
+
+
 P['libertadores']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">A última edição da nossa tradicional Copa FF no formato Fut7 antes do novo calendário de competições de 2027.</p></div>'+
   '<div class="feat" style="margin:8px 0 64px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Novo uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div></div>';
@@ -468,7 +494,6 @@ function bind(page){
       out.innerHTML=list.length?list.slice(0,60).map(athCard).join(''):'<p class="muted">Nenhum atleta encontrado.</p>';}
     [q,t,ps].forEach(function(el){el.addEventListener('input',f);});f();
   }
-  if(page==='ao-vivo'){var cf=document.getElementById('chatF'),ci=document.getElementById('chatIn'),ch=document.getElementById('chat');cf.addEventListener('submit',function(e){e.preventDefault();var v=ci.value.trim();if(!v)return;var d=document.createElement('div');d.innerHTML='<b>Você</b>';d.appendChild(document.createTextNode(v));ch.appendChild(d);ch.scrollTop=ch.scrollHeight;ci.value='';});}
   if(page==='entrar'){
     var db=document.getElementById('demoBtn');if(db)db.addEventListener('click',function(){login('falcoes-10');toast('Bem-vindo, André!');});
     if(window.entrarIniciar)entrarIniciar();
