@@ -158,6 +158,7 @@ P.campeonato=function(tab){
   if(tab==='atletas'){
     return camp('atletas','<div class="filters"><input id="aq" type="search" placeholder="Buscar por nome ou número"><select id="at"><option value="">Todos os times</option>'+TEAMS.map(function(t){return '<option value="'+t.id+'">'+t.n+'</option>';}).join('')+'</select><select id="ap"><option value="">Todas as posições</option>'+Object.keys(POSN).map(function(k){return '<option value="'+k+'">'+POSN[k]+'</option>';}).join('')+'</select></div><div class="athletes" id="alist"></div>');
   }
+  if(!TEAMS.length)return camp('tabela','<div class="card" style="margin-bottom:40px"><p class="muted" style="margin:0">Nenhum time cadastrado ainda. A tabela e os jogos aparecem aqui assim que a equipe FF cadastrar no painel.</p></div>');
   return camp('tabela','<div class="clsgrid"><div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Tabela</h2>'+classTable()+'</div><div class="card" style="padding:20px"><h2 class="blkh">Jogos</h2><div id="rbox">'+roundBox(CLR)+'</div></div></div>');
 };
 
