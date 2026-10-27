@@ -1117,3 +1117,6 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
 .cdcor.on{outline:3px solid var(--gold);outline-offset:2px}
 .cdcorout{width:auto;height:34px;border-radius:20px;display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 4px;background:var(--bg2);font-size:14px;color:var(--ink)}
 .cdcorout input{width:26px;height:26px;border:0;padding:0;background:none;cursor:pointer;border-radius:50%}
+/* Libertadores FF: linha entre os cartões de divulgação e a competição (tabela, jogos e estatísticas) */
+.libsep{border:0;border-top:1px solid var(--line2);margin:48px 0 36px}
+.libtit{font-size:clamp(34px,6vw,56px);margin:6px 0 0}

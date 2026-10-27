@@ -68,7 +68,7 @@ P.jogo=function(id){
     if(e.t==='var')return '<div class="ev">'+m+'<div>🖥️ Desafio de VAR · '+side+'<small>'+esc(e.txt)+'</small></div></div>';
     return '<div class="ev">'+m+'<div>🔄 Substituições<small>'+esc(e.txt)+'</small></div></div>';}).join('');
   function dots(n){var h='';for(var k=g.varTot-1;k>=0;k--)h+='<i class="'+(n<=k?'u':'')+'"></i>';return '<span class="var-dots">'+h+'</span>';}
-  var lib=g.comp==='jogo-lib-',volta=lib?'<a class="more" href="#campeonato-libertadores">‹ Libertadores FF'+(g.grupo?' · Grupo '+esc(g.grupo):'')+'</a>':'<a class="more" href="#jogos-'+g.r+'">‹ Rodada '+g.r+'</a>';
+  var lib=g.comp==='jogo-lib-',volta=lib?'<a class="more" href="#libertadores">‹ Libertadores FF'+(g.grupo?' · Grupo '+esc(g.grupo):'')+'</a>':'<a class="more" href="#jogos-'+g.r+'">‹ Rodada '+g.r+'</a>';
   return '<div class="wrap"><div class="phead">'+volta+'</div>'+
   '<div class="grid2"><div style="display:grid;gap:18px;align-content:start">'+
    '<div class="card" style="padding:24px"><div class="between" style="margin-bottom:14px;flex-wrap:wrap;gap:8px">'+statusChip(g)+'<span class="lbl">Rodada '+g.r+(g.grupo?' · Grupo '+esc(g.grupo):'')+' · '+quando(g)+(g.field?' · '+esc(g.field):'')+'</span></div><div class="sb"><a class="t" href="#time-'+g.h+'">'+badge(g.h,'lg')+tn(g.h)+'</a><div class="s">'+(done?g.gh+'<i>:</i>'+g.ga:'<i>x</i>')+'</div><a class="t" href="#time-'+g.a+'">'+badge(g.a,'lg')+tn(g.a)+'</a></div></div>'+
@@ -135,23 +135,15 @@ function libGruposHTML(){
   '<div class="legend" style="margin-bottom:40px"><span><i style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block"></i>Próxima fase</span><span><span class="dots"><i class="V"></i></span>Vitória</span><span><span class="dots"><i class="E"></i></span>Empate</span><span><span class="dots"><i class="D"></i></span>Derrota</span></div>';
 }
 
-function camp(tab,body){
-  var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas']];
-  // Divisão por competição: Libertadores FF (ainda sem dados) e FF Pro League (tudo o que já existe)
-  var lib=tab.indexOf('libertadores')===0,comps=[['libertadores','Libertadores FF','campeonato-libertadores'],['pro','FF Pro League','campeonato']];
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">'+(lib?'Fut7 · fase de grupos':'1ª Temporada · primeira fase')+'</div><h1>Campeonato</h1><p class="lead">'+(lib?'Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.':'Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.')+'</p></div>'+
+function camp(tab,body){
+  var tabs=[['tabela','Tabela e jogos','campeonato'],['estatisticas','Estatísticas','campeonato-estatisticas']];
+  // Desde 27/10/2026 o Campeonato é só da FF Pro League; a Libertadores FF tem tudo na página dela (#libertadores)
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">1ª Temporada · primeira fase</div><h1>Campeonato</h1><p class="lead">Tabela, jogos, números e todos os atletas da FF Soccer Pro League, atualizados a cada súmula.</p></div>'+
   (BANCO_ERRO?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
-  '<nav class="comps" aria-label="Competição">'+comps.map(function(c){return '<a href="#'+c[2]+'" class="'+((c[0]==='libertadores')===lib?'on':'')+'">'+c[1]+'</a>';}).join('')+'</nav>'+
-  '<nav class="ctabs">'+(lib?[['libertadores','Tabela e jogos','campeonato-libertadores'],['libertadores-estatisticas','Estatísticas','campeonato-libertadores-estatisticas']]:tabs).map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+body+'</div>';
-}
+  '<nav class="ctabs">'+tabs.map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+body+'</div>';
+}
 P.campeonato=function(tab){
   tab=tab||'tabela';
-  if(tab==='libertadores'){
-    return camp('libertadores',libGruposHTML());
-  }
-  if(tab==='libertadores-estatisticas'){
-    return camp('libertadores-estatisticas',libEstatHTML());
-  }
   if(tab==='estatisticas'){
     var yc=PLAYERS.filter(function(p){return p.ca>0;}).sort(function(a,b){return b.ca-a.ca;});
     // 4 colunas, igual à Libertadores FF: Artilharia, Assistências, Cartões amarelos e MVPs
@@ -239,7 +231,7 @@ P.time=function(id){
   var t=TM[id];if(!t)return P.campeonato();var lib=t.comp==='jogo-lib-',G=lib?LIB.grupos.filter(function(x){return x.teams.indexOf(t)>=0;})[0]:null;
   var tab=G?G.st:ST,pos=tab.map(function(x){return x.t.id;}).indexOf(id),s=tab[pos];
   var gs=ALLGAMES.filter(function(g){return g.h===id||g.a===id;}).sort(function(a,b){return a.r-b.r||a.i-b.i;});
-  return '<div class="wrap"><div class="phead"><a class="more" href="#'+(lib?'campeonato-libertadores':'campeonato')+'">‹ '+(lib?'Libertadores FF':'Campeonato')+'</a><div class="row" style="gap:16px">'+badge(id,'lg')+'<h1>'+esc(t.n)+'</h1></div>'+
+  return '<div class="wrap"><div class="phead"><a class="more" href="#'+(lib?'libertadores':'campeonato')+'">‹ '+(lib?'Libertadores FF':'Campeonato')+'</a><div class="row" style="gap:16px">'+badge(id,'lg')+'<h1>'+esc(t.n)+'</h1></div>'+
   (s?'<p class="lead">'+(G&&G.g?'Grupo '+esc(G.g)+' · ':'')+(pos+1)+'º lugar · '+s.pts+(s.pts===1?' ponto':' pontos')+' · '+s.v+(s.v===1?' vitória, ':' vitórias, ')+s.e+(s.e===1?' empate e ':' empates e ')+s.d+(s.d===1?' derrota.':' derrotas.')+'</p>':'')+'</div>'+
   '<div class="grid2"><div class="card"><h3 style="margin-bottom:6px">Elenco</h3>'+(t.roster.length?'<div class="athletes" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'+t.roster.map(athCard).join('')+'</div>':'<p class="muted" style="margin:0">Elenco ainda não cadastrado.</p>')+'</div>'+
   '<div class="card"><h3 style="margin-bottom:10px">Jogos</h3>'+(gs.length?'<div style="display:grid;gap:10px">'+gs.map(gameCard).join('')+'</div>':'<p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p>')+'</div></div></div>';
@@ -281,10 +273,16 @@ function aoVivoCarregar(){
 }
 
 
-P['libertadores']=function(){
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">A última edição da nossa tradicional Copa FF no formato Fut7 antes do novo calendário de competições de 2027.</p></div>'+
-  '<div class="feat" style="margin:8px 0 64px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Novo uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div></div>';
-};
+P['libertadores']=function(tab){
+  var est=tab==='estatisticas';
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">A última edição da nossa tradicional Copa FF no formato Fut7 antes do novo calendário de competições de 2027.</p></div>'+
+  '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Novo uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
+  // abaixo dos cartões: a competição (antes ficava na página do Campeonato), separada por uma linha
+  '<hr class="libsep"><div class="phead" style="padding-top:0"><div class="eyebrow">Fut7 · fase de grupos</div><h2 class="libtit">Campeonato</h2><p class="lead">Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.</p></div>'+
+  (BANCO_ERRO?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
+  '<nav class="ctabs">'+[['','Tabela e jogos','libertadores'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+((t[0]==='estatisticas')===est?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+
+  (est?libEstatHTML():libGruposHTML())+'</div>';
+};
 P['a-league']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Uma nova era começa agora</div><h1>A Pro League</h1><p class="lead">Mais do que um campeonato, a FF Soccer Pro League é uma experiência de temporada. Você vive cada momento: time fixo, uniforme personalizado, jogos transmitidos ao vivo, seus números registrados rodada a rodada e, claro, VAR.</p></div>'+
   '<div class="feat"><div><span class="big">11×11</span><b>Futebol de campo</b><p>Cerca de 20 atletas por equipe.</p></div><div><span class="big">Turno único</span><b>Todos contra todos</b><p>Sem contar as fases finais.</p></div><div><span class="big">6 meses</span><b>Temporada completa</b><p>Do primeiro jogo até as finais.</p></div></div>'+
@@ -467,8 +465,9 @@ window.addEventListener('pagehide',function(){try{sessionStorage.setItem('ffl_ro
 function trocaEndereco(h){try{history.replaceState(history.state,'',location.pathname+location.search+'#'+h);}catch(e){}}
 function route(){
   var orig=(location.hash||'').replace('#',''),h=orig||'a-league',page=h,arg=null;
-  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';page=h;
+  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';if(h==='campeonato-libertadores')h='libertadores';if(h==='campeonato-libertadores-estatisticas')h='libertadores-estatisticas';page=h;
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
+  if(h==='libertadores-estatisticas'){page='libertadores';arg='estatisticas';}
   if(/^jogo-(lib-)?\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
   else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}
