@@ -275,8 +275,8 @@ function aoVivoCarregar(){
 
 P['libertadores']=function(tab){
   var est=tab==='estatisticas';
-  return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1><p class="lead">A última edição da nossa tradicional Copa FF no formato Fut7 antes do novo calendário de competições de 2027.</p></div>'+
-  '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Novo uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
+  return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1></div>'+
+  '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
   // abaixo dos cartões: a competição (antes ficava na página do Campeonato), separada por uma linha
   '<hr class="libsep"><div class="phead" style="padding-top:0"><div class="eyebrow">Fut7 · fase de grupos</div><h2 class="libtit">Campeonato</h2><p class="lead">Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.</p></div>'+
   (BANCO_ERRO?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
