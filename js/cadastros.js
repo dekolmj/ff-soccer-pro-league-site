@@ -47,7 +47,7 @@ function cdCompLigar(fn){document.querySelectorAll('.cdcomp [data-comp]').forEac
 function cdTime(id){return CD.times.filter(function(t){return t.id===id;})[0];}
 function cdEscudo(t,tam){tam=tam||40;
   return t&&t.escudo_url?'<img src="'+esc(t.escudo_url)+'" alt="" width="'+tam+'" height="'+tam+'" style="object-fit:contain;flex:none">'
-    :'<span class="cdbola" style="width:'+tam+'px;height:'+tam+'px;background:'+esc(t?t.cor:'#333')+'">'+esc(t?t.nome[0]:'?')+'</span>';}
+    :'<span class="cdbola" style="width:'+tam+'px;height:'+tam+'px;background:'+esc(t?t.cor:'#333')+';color:'+corTexto(t?t.cor:'#333')+'">'+esc(t?t.nome[0]:'?')+'</span>';}
 function cdSlug(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'time';}
 
 // Envia escudo/foto para o armazenamento público 'marca' e devolve o endereço.
@@ -175,11 +175,23 @@ function cdElencoLigar(f){
   });
 }
 
+// Cores para escolher com um clique (e "Outra cor" para qualquer tom)
+var CD_CORES=[['#D62828','Vermelho'],['#7A1E2C','Vinho'],['#F08A24','Laranja'],['#F2C14D','Amarelo'],['#2E9E4F','Verde'],['#1F5E3A','Verde-escuro'],
+  ['#6EC1E4','Azul-celeste'],['#2F6FD6','Azul'],['#1D2F6F','Azul-marinho'],['#7B4BC4','Roxo'],['#E05A9C','Rosa'],['#8B5A2B','Marrom'],
+  ['#8C8C8C','Cinza'],['#F5F5F5','Branco'],['#1A1A1A','Preto']];
+function cdCorHTML(cor){cor=String(cor||'#F2C14D').toUpperCase();var nossa=CD_CORES.some(function(c){return c[0]===cor;});
+  return '<div class="cdcores" role="radiogroup" aria-label="Cor do time">'+CD_CORES.map(function(c){return '<button type="button" class="cdcor'+(c[0]===cor?' on':'')+'" data-cor="'+c[0]+'" style="background:'+c[0]+'" title="'+c[1]+'" aria-label="'+c[1]+'" role="radio" aria-checked="'+(c[0]===cor)+'"></button>';}).join('')+
+    '<label class="cdcor cdcorout'+(nossa?'':' on')+'" title="Outra cor"><input id="tCorOutra" type="color" value="'+esc(cor)+'" aria-label="Outra cor"><span>Outra cor</span></label></div>'+
+    '<input type="hidden" id="tCor" value="'+esc(cor)+'"><span class="lbl" id="tCorNome">'+esc((CD_CORES.filter(function(c){return c[0]===cor;})[0]||[0,'Outra cor'])[1])+'</span>';}
+function cdCorLigar(){var h=document.getElementById('tCor'),nm=document.getElementById('tCorNome'),out=document.getElementById('tCorOutra');
+  var marca=function(v,nome,el){h.value=v.toUpperCase();nm.textContent=nome;document.querySelectorAll('.cdcores .cdcor').forEach(function(b){b.classList.toggle('on',b===el);if(b.dataset.cor)b.setAttribute('aria-checked',String(b===el));});};
+  document.querySelectorAll('.cdcores [data-cor]').forEach(function(b){b.addEventListener('click',function(){marca(b.dataset.cor,b.title,b);out.value=b.dataset.cor.toLowerCase();});});
+  out.addEventListener('input',function(){marca(out.value,'Outra cor',out.parentNode);});}
 function cdTimeForm(f){
   return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Novo time · '+CD_COMP[CD.comp]:'Editar '+esc(f.nome))+'</h3><div class="cdcampos">'+
     cdCampo('Nome do time *','<input id="tNome" maxlength="40" value="'+esc(f.nome||'')+'">')+
     cdCampo('Técnico','<input id="tTec" maxlength="60" value="'+esc(f.tecnico||'')+'">')+
-    cdCampo('Cor','<input id="tCor" type="color" value="'+esc(f.cor||'#F2C14D')+'">')+
+    cdCampo('Cor','<div style="display:grid;gap:8px">'+cdCorHTML(f.cor)+'</div>','full')+
     cdCampo('Ordem no site','<input id="tOrdem" type="number" min="0" max="99" value="'+esc(f.ordem==null?'':f.ordem)+'">')+
     (CD.comp==='libertadores'?cdCampo('Grupo','<select id="tGrupo"><option value="">Sem grupo</option>'+cdOpcoes(CD_GRUPOS.map(function(g){return [g,'Grupo '+g];}),f.grupo)+'</select>'):'')+
     cdCampo('Escudo (PNG, JPG, WEBP ou SVG, até 2 MB)','<div class="cdimg">'+(f.escudo_url?'<img src="'+esc(f.escudo_url)+'" alt="" width="48" height="48">':'')+'<input id="tEsc" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></div>','full')+
@@ -188,7 +200,7 @@ function cdTimeForm(f){
     (!f.novo&&cdAdmin()?'<button class="btn cdapaga" type="button" id="cdApaga">Apagar time</button>':'')+'</div></form>';
 }
 function cdTimeLigar(f,qtd){
-  var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr');
+  var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr');cdCorLigar();
   document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdTimes();});
   var ap=document.getElementById('cdApaga');
   if(ap)ap.addEventListener('click',function(){

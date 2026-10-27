@@ -16,7 +16,9 @@ function aplicarOnda(){
 /* ================= HELPERS ================= */
 function badge(tid,cls){var t=TM[tid]||{n:'?',c:'#555'};
   if(t.e)return '<span class="badge esc '+(cls||'')+'"><img src="'+esc(t.e)+'" alt="" loading="lazy"></span>';
-  return '<span class="badge '+(cls||'')+'" style="background:'+esc(t.c)+'">'+esc(t.n[0])+'</span>';}
+  return '<span class="badge '+(cls||'')+'" style="background:'+esc(t.c)+';color:'+corTexto(t.c)+'">'+esc(t.n[0])+'</span>';}
+// letra escura em cor clara e letra branca em cor escura (time preto, azul-marinho…)
+function corTexto(hex){var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||''));if(!m)return '#0B0B0A';var n=parseInt(m[1],16),r=n>>16,g=n>>8&255,b=n&255;return (r*299+g*587+b*114)/1000<110?'#FAF9F5':'#0B0B0A';}
 function tn(tid){return TM[tid]?esc(TM[tid].n):'';}
 function posn(p){return POSN[p.pos]||'';}
 function avBg(id){return FOTOS[id]?'background:url('+FOTOS[id]+') center 18%/cover;':'';}function esc(s){return String(s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
