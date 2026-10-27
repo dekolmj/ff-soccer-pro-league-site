@@ -14,7 +14,7 @@ function cdMsg(t){var el=cdEl();if(el)el.innerHTML='<p class="muted" style="padd
 function cdCarregar(cb){
   Promise.all([
     SB.from('temporadas').select('id,nome,competicao,desafios_var_por_jogo').order('id'),
-    SB.from('times').select('id,nome,cor,escudo_url,tecnico,ordem,exemplo,temporada_id,grupo').order('ordem').order('nome'),
+    SB.from('times').select('id,nome,cor,escudo_url,unidade_id,ordem,exemplo,temporada_id,grupo').order('ordem').order('nome'),
     SB.from('atletas').select('id,nome,apelido,posicao,unidade_id,foto_url,ativo,exemplo,user_id,atletas_privado(email,celular,nascimento),elencos(time_id,numero,nome_camisa,kit,temporada_id)').order('nome'),
     SB.from('unidades').select('id,nome').eq('ativa',true).order('nome'),
     !preOn()?Promise.resolve({data:[]}):SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome'),
@@ -97,7 +97,7 @@ function cdTimes(){
   var n={},tid=cdTempId(CD.comp),lib=CD.comp==='libertadores',ts=cdTimesDa(CD.comp);CD.atletas.forEach(function(a){var e=a.els[tid];if(e)n[e.time_id]=(n[e.time_id]||0)+1;});
   var cartao=function(t){
       return '<div class="card cdtime"><div class="row">'+cdEscudo(t,48)+'<div style="min-width:0"><b>'+esc(t.nome)+'</b>'+
-        '<div class="lbl">'+(n[t.id]||0)+((n[t.id]||0)===1?' atleta':' atletas')+(t.tecnico?' · Técnico: '+esc(t.tecnico):'')+'</div>'+
+        '<div class="lbl">'+(n[t.id]||0)+((n[t.id]||0)===1?' atleta':' atletas')+(cdUnidade(t.unidade_id)?' · '+esc(cdUnidade(t.unidade_id)):'')+'</div>'+
         (t.exemplo?'<span class="chip">exemplo</span>':'')+'</div></div>'+
         '<div class="cdtbts">'+(lib?'<select class="cdgsel" data-grupo="'+esc(t.id)+'" aria-label="Grupo do '+esc(t.nome)+'"><option value="">Sem grupo</option>'+cdOpcoes(CD_GRUPOS.map(function(g){return [g,'Grupo '+g];}),t.grupo)+'</select>':'')+
         '<button class="btn sm" data-elenco="'+esc(t.id)+'">Elenco</button><button class="btn sm" data-editar="'+esc(t.id)+'">Editar</button></div></div>';};
@@ -113,7 +113,7 @@ function cdTimes(){
   cdCompLigar(cdTimes);cdGuiaLigar(cdTimes);
   document.getElementById('cdNovoTime').addEventListener('click',function(){CD.form={tipo:'time',novo:true,cor:'#F2C14D',ordem:ts.length+1};cdTimes();cdFoco();});
   el.querySelectorAll('[data-editar]').forEach(function(b){b.addEventListener('click',function(){var t=cdTime(b.dataset.editar);
-    CD.form={tipo:'time',id:t.id,nome:t.nome,cor:t.cor,tecnico:t.tecnico||'',ordem:t.ordem,escudo_url:t.escudo_url,grupo:t.grupo};cdTimes();cdFoco();});});
+    CD.form={tipo:'time',id:t.id,nome:t.nome,cor:t.cor,unidade_id:t.unidade_id,ordem:t.ordem,escudo_url:t.escudo_url,grupo:t.grupo};cdTimes();cdFoco();});});
   el.querySelectorAll('[data-elenco]').forEach(function(b){b.addEventListener('click',function(){CD.form={tipo:'elenco',id:b.dataset.elenco};cdTimes();cdFoco();});});
   el.querySelectorAll('[data-grupo]').forEach(function(s){s.addEventListener('change',function(){var t=cdTime(s.dataset.grupo),g=s.value||null;s.disabled=true;
     SB.from('times').update({grupo:g}).eq('id',t.id).then(function(r){
@@ -187,10 +187,11 @@ function cdCorLigar(){var h=document.getElementById('tCor'),nm=document.getEleme
   var marca=function(v,nome,el){h.value=v.toUpperCase();nm.textContent=nome;document.querySelectorAll('.cdcores .cdcor').forEach(function(b){b.classList.toggle('on',b===el);if(b.dataset.cor)b.setAttribute('aria-checked',String(b===el));});};
   document.querySelectorAll('.cdcores [data-cor]').forEach(function(b){b.addEventListener('click',function(){marca(b.dataset.cor,b.title,b);out.value=b.dataset.cor.toLowerCase();});});
   out.addEventListener('input',function(){marca(out.value,'Outra cor',out.parentNode);});}
+function cdUnidade(id){var u=CD.unidades.filter(function(x){return x.id===id;})[0];return u?u.nome:'';}
 function cdTimeForm(f){
   return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Novo time · '+CD_COMP[CD.comp]:'Editar '+esc(f.nome))+'</h3><div class="cdcampos">'+
     cdCampo('Nome do time *','<input id="tNome" maxlength="40" value="'+esc(f.nome||'')+'">')+
-    cdCampo('Técnico','<input id="tTec" maxlength="60" value="'+esc(f.tecnico||'')+'">')+
+    cdCampo('Unidade','<select id="tUni"><option value="">Escolha a unidade</option>'+cdOpcoes(CD.unidades.map(function(u){return [u.id,u.nome];}),f.unidade_id)+'</select>')+
     cdCampo('Cor','<div style="display:grid;gap:8px">'+cdCorHTML(f.cor)+'</div>','full')+
     cdCampo('Ordem no site','<input id="tOrdem" type="number" min="0" max="99" value="'+esc(f.ordem==null?'':f.ordem)+'">')+
     (CD.comp==='libertadores'?cdCampo('Grupo','<select id="tGrupo"><option value="">Sem grupo</option>'+cdOpcoes(CD_GRUPOS.map(function(g){return [g,'Grupo '+g];}),f.grupo)+'</select>'):'')+
@@ -210,7 +211,7 @@ function cdTimeLigar(f,qtd){
       CD.form=null;toast('Time apagado.');cdRecarregar();});
   });
   fm.addEventListener('submit',function(e){e.preventDefault();
-    var nome=document.getElementById('tNome').value.trim(),dados={nome:nome,tecnico:document.getElementById('tTec').value.trim()||null,
+    var nome=document.getElementById('tNome').value.trim(),dados={nome:nome,unidade_id:+document.getElementById('tUni').value||null,
       cor:document.getElementById('tCor').value.toUpperCase(),ordem:parseInt(document.getElementById('tOrdem').value,10)||0};
     var gr=document.getElementById('tGrupo');if(gr)dados.grupo=gr.value||null;
     if(!nome){er.textContent='Preencha o nome do time.';return;}
