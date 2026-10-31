@@ -1136,3 +1136,6 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 .side .me.atme{justify-items:stretch}
 .side .me.atme .avatar.ret{width:100%!important;height:auto!important;aspect-ratio:4/5;border-radius:12px}
 .side .me.atme b{font-size:22px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* fundo dourado até embaixo, para o nome e as informações (letra escura) ficarem legíveis */
+.side .me.atme{background:linear-gradient(165deg,#F6CF6A,#F2C14D 45%,#D9A12C)}
+.side .me.atme span{color:#2A2108}
