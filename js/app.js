@@ -130,7 +130,7 @@ document.addEventListener('click',function(e){var b=e.target.closest('button.lna
   document.getElementById('lbox-'+(G.g||'x')).innerHTML=libJogosBox(G);});
 function libGruposHTML(){
   if(!LIB.teams.length)return '<div class="card" style="margin-bottom:40px"><p class="muted" style="margin:0">Nenhum time cadastrado ainda. Os grupos e os jogos aparecem aqui assim que a equipe FF cadastrar no painel.</p></div>';
-  var ex=LIB.extras||[];
+  var mm=libMataMata(),usados=[mm.sf[0].j,mm.sf[1].j,mm.fin.j].filter(Boolean).map(function(g){return g.id;}),ex=(LIB.extras||[]).filter(function(g){return usados.indexOf(g.id)<0;});
   return '<div style="display:grid;gap:18px">'+LIB.grupos.map(function(G){return '<div class="clsgrid" style="align-items:stretch">'+libGrupoHTML(G)+
     '<div class="card" style="padding:20px"><h2 class="blkh">Jogos · '+(G.g?'Grupo '+esc(G.g):'Sem grupo')+'</h2><div id="lbox-'+(G.g||'x')+'">'+libJogosBox(G)+'</div></div></div>';}).join('')+
     (ex.length?'<div class="card" style="padding:20px"><h2 class="blkh">Outros jogos</h2>'+ex.slice().sort(function(a,b){return a.r-b.r||a.i-b.i;}).map(rgameHTML).join('')+'</div>':'')+'</div>'+
@@ -275,15 +275,50 @@ function aoVivoCarregar(){
 }
 
 
+/* Mata-mata da Libertadores FF (31/10/2026, pedido do Deko): Semifinal cruzada (1º A × 2º B e 1º B × 2º A) e Final (vencedores das semifinais).
+   Os times saem da tabela quando todos os jogos do grupo terminam (antes disso aparece "hoje: …"). Os jogos são os cadastrados no painel
+   sem grupo, entre os times certos; o placar e o vencedor vêm da súmula fechada. */
+function libGrupoFim(G){return !!G&&G.games.length>0&&G.games.every(function(g){return g.st==='encerrado'||g.st==='cancelado';});}
+function libVaga(letra,pos){var G=LIB.grupos.filter(function(x){return x.g===letra;})[0],x=G&&G.st[pos-1],jogou=G&&G.games.some(function(g){return g.st==='encerrado';});
+  return {lbl:pos+'º do Grupo '+letra,t:libGrupoFim(G)&&x?x.t:null,hoje:!libGrupoFim(G)&&jogou&&x?x.t:null};}
+function libJogoEntre(a,b){if(!a||!b)return null;return (LIB.extras||[]).filter(function(g){return (g.h===a.id&&g.a===b.id)||(g.h===b.id&&g.a===a.id);})[0]||null;}
+function libVencedor(j){if(!j||j.st!=='encerrado'||j.gh==null||j.gh===j.ga)return null;return TM[j.gh>j.ga?j.h:j.a];}
+function libMataMata(){
+  var sf=[[libVaga('A',1),libVaga('B',2)],[libVaga('B',1),libVaga('A',2)]].map(function(v){return {v:v,j:libJogoEntre(v[0].t,v[1].t)};});
+  sf.forEach(function(x){x.w=libVencedor(x.j);});
+  var fv=[{lbl:'Vencedor da Semifinal 1',t:sf[0].w,hoje:null},{lbl:'Vencedor da Semifinal 2',t:sf[1].w,hoje:null}],fj=libJogoEntre(fv[0].t,fv[1].t);
+  return {sf:sf,fin:{v:fv,j:fj,w:libVencedor(fj)}};
+}
+function libMMCard(titulo,v,j,w,final){
+  var done=j&&jogou(j),gl=function(t){if(!done||!t)return '';return j.h===t.id?j.gh:j.ga;};
+  var lin=function(x){return '<div class="mmln'+(w&&x.t&&w.id===x.t.id?' mmw':'')+'">'+(x.t?badge(x.t.id):'<span class="badge mmph">?</span>')+
+    '<div class="mmnm"><b>'+(x.t?tn(x.t.id):esc(x.lbl))+'</b><small>'+(x.t?esc(x.lbl):x.hoje?'Hoje: '+tn(x.hoje.id):'A definir')+'</small></div><span class="mmsc">'+gl(x.t)+'</span></div>';};
+  var rod=!j?'<span class="lbl">'+(v[0].t&&v[1].t?'Jogo ainda não cadastrado':'Aguardando '+(final?'as semifinais':'a fase de grupos'))+'</span>':
+    j.st==='encerrado'?(w?'<a class="go" href="#'+j.id+'">Saiba como foi</a>':'<span class="lbl">Empate no tempo normal</span> <a class="go" href="#'+j.id+'">Saiba como foi</a>'):
+    '<a class="go'+(j.st==='ao vivo'?' lv':'')+'" href="#'+j.id+'">'+(j.st==='ao vivo'?'● Ao vivo':'Detalhes do jogo')+'</a>';
+  return '<div class="card mmcard'+(final?' mmfinal':'')+'"><div class="between" style="flex-wrap:wrap;gap:6px"><h3>'+titulo+'</h3><span class="lbl">'+(j?quando(j)+(j.field?' · '+esc(j.field):''):'Data a definir')+'</span></div>'+
+    lin(v[0])+lin(v[1])+(final&&w?'<div class="mmcamp">🏆 Campeão: '+tn(w.id)+'</div>':'')+'<div class="mmrod">'+rod+'</div></div>';
+}
+function libSemiHTML(){
+  if(!LIB.teams.length)return libGruposHTML();
+  var m=libMataMata();
+  return '<p class="muted" style="margin:0 0 16px">Semifinais cruzadas: o 1º do Grupo A enfrenta o 2º do Grupo B, e o 1º do Grupo B enfrenta o 2º do Grupo A. Os vencedores vão para a final.</p>'+
+    '<div class="grid2" style="margin-bottom:40px">'+libMMCard('Semifinal 1',m.sf[0].v,m.sf[0].j,m.sf[0].w)+libMMCard('Semifinal 2',m.sf[1].v,m.sf[1].j,m.sf[1].w)+'</div>';
+}
+function libFinalHTML(){
+  if(!LIB.teams.length)return libGruposHTML();
+  var m=libMataMata();
+  return '<p class="muted" style="margin:0 0 16px">A final reúne os vencedores das duas semifinais.</p><div style="max-width:640px;margin-bottom:40px">'+libMMCard('Final',m.fin.v,m.fin.j,m.fin.w,true)+'</div>';
+}
 P['libertadores']=function(tab){
-  var est=tab==='estatisticas';
+  tab=tab||'';
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1></div>'+
   '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
   // abaixo dos cartões: a competição (antes ficava na página do Campeonato), separada por uma linha
   '<hr class="libsep"><div class="phead" style="padding-top:0"><div class="eyebrow">Fut7 · fase de grupos</div><h2 class="libtit">Campeonato</h2><p class="lead">Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.</p></div>'+
   (BANCO_ERRO?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
-  '<nav class="ctabs">'+[['','Tabela e jogos','libertadores'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+((t[0]==='estatisticas')===est?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+
-  (est?libEstatHTML():libGruposHTML())+'</div>';
+  '<nav class="ctabs">'+[['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+
+  (tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
 };
 P['a-league']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Uma nova era começa agora</div><h1>A Pro League</h1><p class="lead">Mais do que um campeonato, a FF Soccer Pro League é uma experiência de temporada. Você vive cada momento: time fixo, uniforme personalizado, jogos transmitidos ao vivo, seus números registrados rodada a rodada e, claro, VAR.</p></div>'+
@@ -471,7 +506,7 @@ function route(){
   // a aba Campeonato saiu em 31/10/2026, a pedido do Deko: cada competição fica na sua página (Libertadores FF em #libertadores;
   // a FF Pro League vai para #a-league quando tiver jogos). Os endereços do Campeonato levam para a FF Pro League.
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page=h='a-league';arg=null;}
-  if(h==='libertadores-estatisticas'){page='libertadores';arg='estatisticas';}
+  if(/^libertadores-(estatisticas|semifinal|final)$/.test(h)){page='libertadores';arg=h.slice(13);}
   if(/^jogo-(lib-)?\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
   else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}

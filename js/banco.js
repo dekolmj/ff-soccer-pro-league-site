@@ -109,7 +109,8 @@ function montarDados(d){
   var gs=[];lib.teams.forEach(function(t){if(gs.indexOf(t.grupo)<0)gs.push(t.grupo);});
   gs.sort(function(a,b){return !a?1:!b?-1:a.localeCompare(b);});
   lib.grupos=gs.map(function(G){var ts=lib.teams.filter(function(t){return t.grupo===G;}),ids=ts.map(function(t){return t.id;});
-    var js=lib.games.filter(function(g){return G?(g.grupo===G||(!g.grupo&&ids.indexOf(g.h)>=0&&ids.indexOf(g.a)>=0)):(ids.indexOf(g.h)>=0||ids.indexOf(g.a)>=0)&&!g.grupo;});
+    // só conta no grupo o jogo cadastrado com a letra do grupo; jogo sem grupo é mata-mata (semifinal e final)
+    var js=lib.games.filter(function(g){return G?g.grupo===G:false;});
     var rs=[];js.forEach(function(g){if(rs.indexOf(g.r)<0)rs.push(g.r);});rs.sort(function(a,b){return a-b;});
     return {g:G,teams:ts,games:js,rodadas:rs,st:tabelaDe(ts,js)};});
   var noGrupo={};lib.grupos.forEach(function(G){G.games.forEach(function(g){noGrupo[g.id]=1;});});

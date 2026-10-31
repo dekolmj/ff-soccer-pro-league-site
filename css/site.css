@@ -1139,3 +1139,16 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 /* fundo dourado até embaixo, para o nome e as informações (letra escura) ficarem legíveis */
 .side .me.atme{background:linear-gradient(165deg,#F6CF6A,#F2C14D 45%,#D9A12C)}
 .side .me.atme span{color:#2A2108}
+/* Libertadores: semifinal e final */
+.mmcard{display:grid;gap:12px;align-content:start}
+.mmln{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
+.mmln.mmw{border-color:var(--gold)}
+.mmnm{display:grid;min-width:0;flex:1}
+.mmnm b{font-family:var(--cond);text-transform:uppercase;font-size:18px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmnm small{color:var(--mute);font-size:13px}
+.mmsc{font-family:var(--disp);font-weight:900;font-size:28px;min-width:24px;text-align:right}
+.mmph{background:var(--card2);color:var(--mute)}
+.mmrod{text-align:center}
+.mmcamp{text-align:center;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);font-size:18px}
+.mmfinal{border-color:var(--gold)}
+.mmrod .go{font-family:var(--cond);font-weight:700;font-size:13.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}.mmrod .go.lv{color:var(--red)}
