@@ -522,9 +522,14 @@ function route(){
   // guarda a altura da página que está saindo; página nova abre no topo, página do histórico volta para onde estava
   if(NAV.k)NAV.pos[NAV.k]=window.scrollY;
   var st=history.state;
+  // troca de aba dentro da mesma página (ex.: Libertadores → Estatísticas): a página fica na mesma altura, sem voltar ao topo
+  var mesmaPag=page==='libertadores'&&NAV.pag===page&&!(st&&st.k),tb0=mesmaPag&&document.querySelector('#app .ctabs'),tbTela=tb0?tb0.getBoundingClientRect().top:null;NAV.pag=page;
   if(st&&st.k){NAV.k=st.k;}else{NAV.k=Date.now()+'-'+(++NAV.n);try{history.replaceState({k:NAV.k},'',location.href);}catch(e){}}
   NAV.ant=NAV.atual;NAV.atual='#'+h;
-  app.innerHTML=P[page](arg);
+  app.style.minHeight=mesmaPag?app.offsetHeight+'px':'';app.innerHTML=P[page](arg);  // segura a altura enquanto troca de aba, para o navegador não puxar a página para cima
+  // abas da Libertadores: a barra de abas fica no mesmo lugar da tela (e a página tem altura para isso, mesmo com uma aba curta)
+  var tb1=page==='libertadores'&&document.querySelector('#app .ctabs');
+  if(tb1){var tbAbs=tb1.getBoundingClientRect().top+window.scrollY;app.style.minHeight=Math.round(tbAbs+window.innerHeight)+'px';if(tbTela!=null)NAV.pos[NAV.k]=Math.max(0,Math.round(tbAbs-tbTela));}
   var navKey={jogos:'a-league',jogo:'a-league',atletas:'a-league',atleta:'a-league',time:'a-league'}[page]||page;
   var tLib=page==='time'?TM[arg]:page==='atleta'&&PM[arg]?TM[PM[arg].team]:null;
   if((page==='jogo'&&/^jogo-lib-/.test(arg||''))||(tLib&&tLib.comp==='jogo-lib-'))navKey='libertadores';
