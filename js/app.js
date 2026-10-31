@@ -14,8 +14,36 @@ function aplicarOnda(){
   if(semBotoes()||!preOn())document.querySelectorAll('[data-pre]').forEach(function(el){el.hidden=true;});
 }
 /* ================= HELPERS ================= */
+// Escudos do mesmo tamanho (31/10/2026, pedido do Deko): cada arquivo tem uma margem diferente em volta do desenho,
+// então o site corta essa margem (fundo transparente ou da cor do canto) e o escudo ocupa o quadrado inteiro.
+// Fica guardado em ESC_CORTE; se o navegador não deixar ler a imagem, usa o arquivo original.
+var ESC_CORTE={},ESC_PEDIDO={};
+function escCortar(url){
+  if(!url||ESC_PEDIDO[url])return;ESC_PEDIDO[url]=1;
+  var im=new Image();im.crossOrigin='anonymous';
+  im.onload=function(){try{
+    var W=im.naturalWidth,H=im.naturalHeight;if(!W||!H)return;var k=Math.min(1,256/Math.max(W,H)),w=Math.round(W*k),h=Math.round(H*k);
+    var cv=document.createElement('canvas');cv.width=w;cv.height=h;var cx=cv.getContext('2d');cx.drawImage(im,0,0,w,h);
+    var px=cx.getImageData(0,0,w,h).data,c0=[px[0],px[1],px[2],px[3]],alfa=c0[3]<200;
+    var x0=w,y0=h,x1=-1,y1=-1;
+    for(var y=0;y<h;y++)for(var x=0;x<w;x++){var o=(y*w+x)*4,dentro=alfa?px[o+3]>24:(Math.abs(px[o]-c0[0])+Math.abs(px[o+1]-c0[1])+Math.abs(px[o+2]-c0[2])>60);
+      if(dentro){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
+    if(x1<0)return;var bw=x1-x0+1,bh=y1-y0+1;if(alfa&&bw>w*.97&&bh>h*.97)return;  // já sem margem
+    var L=Math.max(bw,bh),sx=x0/k,sy=y0/k,sw=bw/k,sh=bh/k,q=document.createElement('canvas');q.width=q.height=Math.min(256,Math.round(L/k));
+    var f=q.width/Math.max(sw,sh),qx=q.getContext('2d');qx.drawImage(im,sx,sy,sw,sh,(q.width-sw*f)/2,(q.height-sh*f)/2,sw*f,sh*f);
+    if(!alfa){  // fundo sólido (ex.: JPG branco): apaga só o fundo ligado às bordas, sem mexer no branco de dentro do escudo
+      var Q=q.width,dd=qx.getImageData(0,0,Q,Q),P=dd.data,vis=new Uint8Array(Q*Q),fila=[];
+      for(var i=0;i<Q;i++){fila.push(i,(Q-1)*Q+i,i*Q,i*Q+Q-1);}
+      while(fila.length){var n=fila.pop();if(vis[n])continue;vis[n]=1;var o2=n*4;
+        if(P[o2+3]>0&&Math.abs(P[o2]-c0[0])+Math.abs(P[o2+1]-c0[1])+Math.abs(P[o2+2]-c0[2])>60)continue;
+        P[o2+3]=0;var nx=n%Q,ny=(n-nx)/Q;if(nx>0)fila.push(n-1);if(nx<Q-1)fila.push(n+1);if(ny>0)fila.push(n-Q);if(ny<Q-1)fila.push(n+Q);}
+      qx.putImageData(dd,0,0);}
+    ESC_CORTE[url]=q.toDataURL('image/png');
+    document.querySelectorAll('img[data-esc]').forEach(function(e){if(e.getAttribute('data-esc')===url)e.src=ESC_CORTE[url];});
+  }catch(e){}};
+  im.src=url;}
 function badge(tid,cls){var t=TM[tid]||{n:'?',c:'#555'};
-  if(t.e)return '<span class="badge esc '+(cls||'')+'"><img src="'+esc(t.e)+'" alt="" loading="lazy"></span>';
+  if(t.e){escCortar(t.e);return '<span class="badge esc '+(cls||'')+'"><img src="'+esc(ESC_CORTE[t.e]||t.e)+'" data-esc="'+esc(t.e)+'" alt=""></span>';}
   return '<span class="badge '+(cls||'')+'" style="background:'+esc(t.c)+';color:'+corTexto(t.c)+'">'+esc(t.n[0])+'</span>';}
 // letra escura em cor clara e letra branca em cor escura (time preto, azul-marinho…)
 function corTexto(hex){var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||''));if(!m)return '#0B0B0A';var n=parseInt(m[1],16),r=n>>16,g=n>>8&255,b=n&255;return (r*299+g*587+b*114)/1000<110?'#FAF9F5':'#0B0B0A';}
@@ -631,5 +659,5 @@ aplicarOnda();
 // Desenha só depois de todos os scripts (o painel.js vem depois deste arquivo e define o login).
 document.addEventListener('DOMContentLoaded',function(){
   if(ONDA<2)route();  // onda 1 não mostra dados de jogos: não espera o banco
-  else carregarBanco(function(){if(ME&&!PM[ME])ME=null;acct();CLR=CUR;ticker();route();});
+  else carregarBanco(function(){if(ME&&!PM[ME])ME=null;acct();CLR=CUR;ticker();route();Object.keys(TM).forEach(function(id){escCortar(TM[id].e);});});
 });
