@@ -233,7 +233,7 @@ P.time=function(id){
   var t=TM[id];if(!t)return P.campeonato();var lib=t.comp==='jogo-lib-',G=lib?LIB.grupos.filter(function(x){return x.teams.indexOf(t)>=0;})[0]:null;
   var tab=G?G.st:ST,pos=tab.map(function(x){return x.t.id;}).indexOf(id),s=tab[pos];
   var gs=ALLGAMES.filter(function(g){return g.h===id||g.a===id;}).sort(function(a,b){return a.r-b.r||a.i-b.i;});
-  return '<div class="wrap"><div class="phead"><a class="more" href="#'+(lib?'libertadores':'campeonato')+'">‹ '+(lib?'Libertadores FF':'Campeonato')+'</a><div class="row" style="gap:16px">'+badge(id,'lg')+'<h1>'+esc(t.n)+'</h1></div>'+
+  return '<div class="wrap"><div class="phead"><a class="more" href="#'+(lib?'libertadores':'a-league')+'">‹ '+(lib?'Libertadores FF':'FF Pro League')+'</a><div class="row" style="gap:16px">'+badge(id,'lg')+'<h1>'+esc(t.n)+'</h1></div>'+
   (s?'<p class="lead">'+(G&&G.g?'Grupo '+esc(G.g)+' · ':'')+(pos+1)+'º lugar · '+s.pts+(s.pts===1?' ponto':' pontos')+' · '+s.v+(s.v===1?' vitória, ':' vitórias, ')+s.e+(s.e===1?' empate e ':' empates e ')+s.d+(s.d===1?' derrota.':' derrotas.')+'</p>':'')+'</div>'+
   '<div class="grid2"><div class="card"><h3 style="margin-bottom:6px">Elenco</h3>'+(t.roster.length?'<div class="athletes" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'+t.roster.map(athCard).join('')+'</div>':'<p class="muted" style="margin:0">Elenco ainda não cadastrado.</p>')+'</div>'+
   '<div class="card"><h3 style="margin-bottom:10px">Jogos</h3>'+(gs.length?'<div style="display:grid;gap:10px">'+gs.map(gameCard).join('')+'</div>':'<p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p>')+'</div></div></div>';
@@ -468,7 +468,9 @@ function trocaEndereco(h){try{history.replaceState(history.state,'',location.pat
 function route(){
   var orig=(location.hash||'').replace('#',''),h=orig||'a-league',page=h,arg=null;
   if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';if(h==='campeonato-libertadores')h='libertadores';if(h==='campeonato-libertadores-estatisticas')h='libertadores-estatisticas';page=h;
-  if(h==='campeonato'||h.indexOf('campeonato-')===0){page='campeonato';arg=h.slice(11)||'tabela';}
+  // a aba Campeonato saiu em 31/10/2026, a pedido do Deko: cada competição fica na sua página (Libertadores FF em #libertadores;
+  // a FF Pro League vai para #a-league quando tiver jogos). Os endereços do Campeonato levam para a FF Pro League.
+  if(h==='campeonato'||h.indexOf('campeonato-')===0){page=h='a-league';arg=null;}
   if(h==='libertadores-estatisticas'){page='libertadores';arg='estatisticas';}
   if(/^jogo-(lib-)?\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
@@ -487,7 +489,9 @@ function route(){
   if(st&&st.k){NAV.k=st.k;}else{NAV.k=Date.now()+'-'+(++NAV.n);try{history.replaceState({k:NAV.k},'',location.href);}catch(e){}}
   NAV.ant=NAV.atual;NAV.atual='#'+h;
   app.innerHTML=P[page](arg);
-  var navKey={jogos:'campeonato',jogo:'campeonato',atletas:'campeonato',atleta:'campeonato',time:'campeonato'}[page]||page;
+  var navKey={jogos:'a-league',jogo:'a-league',atletas:'a-league',atleta:'a-league',time:'a-league'}[page]||page;
+  var tLib=page==='time'?TM[arg]:page==='atleta'&&PM[arg]?TM[PM[arg].team]:null;
+  if((page==='jogo'&&/^jogo-lib-/.test(arg||''))||(tLib&&tLib.comp==='jogo-lib-'))navKey='libertadores';
   document.getElementById('acct').classList.toggle('on',/^minha-area|entrar/.test(page));
   document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('on',a.dataset.r===navKey);});
   document.getElementById('drawer').hidden=true;document.getElementById('burger').setAttribute('aria-expanded','false');
