@@ -20,6 +20,8 @@ function badge(tid,cls){var t=TM[tid]||{n:'?',c:'#555'};
 // letra escura em cor clara e letra branca em cor escura (time preto, azul-marinho…)
 function corTexto(hex){var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||''));if(!m)return '#0B0B0A';var n=parseInt(m[1],16),r=n>>16,g=n>>8&255,b=n&255;return (r*299+g*587+b*114)/1000<110?'#FAF9F5':'#0B0B0A';}
 function tn(tid){return TM[tid]?esc(TM[tid].n):'';}
+// nome do time com a unidade FF dele, nas tabelas de classificação: "Boca Juniors - Tucuruvi"
+function tnU(tid){var t=TM[tid];return tn(tid)+(t&&t.u?'<span class="tuni"><i class="tsep"> - </i>'+esc(t.u)+'</span>':'');}
 function posn(p){return POSN[p.pos]||'';}
 function avBg(id){return FOTOS[id]?'background:url('+FOTOS[id]+') center 18%/cover;':'';}function esc(s){return String(s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
 // quando é o jogo: "Qua 04/11 · 19h30" (ou "Data a definir")
@@ -99,7 +101,7 @@ function libGrupoHTML(G){
   G.st.forEach(function(x,i){
     var d=antes[x.t.id]==null?0:antes[x.t.id]-i,mv=d>0?'<span class="up">▲</span> '+d:d<0?'<span class="dn">▼</span> '+(-d):'<span>■</span> 0';
     var vals=[x.pts,x.j,x.v,x.e,x.d,x.gp,x.gc,(x.sg>0?'+':'')+x.sg,x.j?Math.round(x.pts/(x.j*3)*100):0];
-    h+='<tr class="'+(G.g&&i<2?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><a href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+tn(x.t.id)+'</a></td><td class="mv">'+mv+'</td>'+
+    h+='<tr class="'+(G.g&&i<2?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><a href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+'<span>'+tnU(x.t.id)+'</span></a></td><td class="mv">'+mv+'</td>'+
     vals.map(function(v,k){return '<td class="'+(k===0?'pts':(k%2?'c-odd':''))+'">'+v+'</td>';}).join('')+
     '<td><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'" title="'+({V:'Vitória',E:'Empate',D:'Derrota'})[f]+'"></i>';}).join('')+'</span></td></tr>';
   });
@@ -183,7 +185,7 @@ function classTable(){
     var d=pv[x.t.id]==null?0:pv[x.t.id]-i,mv=d>0?'<span class="up">▲</span> '+d:d<0?'<span class="dn">▼</span> '+(-d):'<span>■</span> 0';
     var pct=x.j?Math.round(x.pts/(x.j*3)*100):0;
     var vals=[x.pts,x.j,x.v,x.e,x.d,x.gp,x.gc,(x.sg>0?'+':'')+x.sg,pct];
-    h+='<tr class="'+(i<4?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><a href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+tn(x.t.id)+'</a></td><td class="mv">'+mv+'</td>'+
+    h+='<tr class="'+(i<4?'q':'')+'"><td class="pos">'+(i+1)+'</td><td class="team"><a href="#time-'+x.t.id+'">'+badge(x.t.id,'sm')+'<span>'+tnU(x.t.id)+'</span></a></td><td class="mv">'+mv+'</td>'+
     vals.map(function(v,k){return '<td class="'+(k===0?'pts':(k%2?'c-odd':''))+'">'+v+'</td>';}).join('')+
     '<td><span class="dots">'+x.f.slice(-5).map(function(f){return '<i class="'+f+'" title="'+({V:'Vitória',E:'Empate',D:'Derrota'})[f]+'"></i>';}).join('')+'</span></td></tr>';
   });

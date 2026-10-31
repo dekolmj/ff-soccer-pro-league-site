@@ -52,7 +52,7 @@ function montarComp(d,temp,pre,tm,pm,fotos){
   var ORD={GOL:0,LAT:1,ZAG:2,VOL:3,MEI:4,ATA:5},un={},at={},sid={};
   d.unidades.forEach(function(u){un[u.id]=u.nome;});
   d.atletas.forEach(function(a){at[a.id]=a;});
-  c.teams=d.times.filter(function(t){return t.temporada_id===tid;}).map(function(t){var x={id:t.id,n:t.nome,c:t.cor||'#888',e:t.escudo_url||'',grupo:t.grupo||'',comp:pre,roster:[]};tm[t.id]=x;return x;});
+  c.teams=d.times.filter(function(t){return t.temporada_id===tid;}).map(function(t){var x={id:t.id,n:t.nome,c:t.cor||'#888',e:t.escudo_url||'',u:un[t.unidade_id]||'',grupo:t.grupo||'',comp:pre,roster:[]};tm[t.id]=x;return x;});
   // id do atleta no site = <time>-<número da camisa>, como nas rotas #atleta-falcoes-10
   d.elencos.forEach(function(e){var a=at[e.atleta_id];if(e.temporada_id!==tid||!a||!tm[e.time_id]||a.ativo===false)return;
     var p={id:e.time_id+'-'+e.numero,n:a.nome,num:e.numero,pos:a.posicao||'',team:e.time_id,unit:un[a.unidade_id]||'',g:0,a:0,j:0,mvp:0,min:0,ca:0,cv:0,games:[]};
@@ -129,7 +129,7 @@ function carregarBanco(pronto){
   Promise.all([
     sbGet('temporadas','select=id,nome,desafios_var_por_jogo,competicao&order=id.desc'),
     sbGet('unidades','select=id,nome'),
-    sbGet('times','select=id,nome,cor,escudo_url,ordem,temporada_id,grupo&order=ordem,nome'),
+    sbGet('times','select=id,nome,cor,escudo_url,unidade_id,ordem,temporada_id,grupo&order=ordem,nome'),
     sbGet('atletas','select=id,nome,posicao,unidade_id,foto_url,ativo&order=id'),
     sbGet('elencos','select=time_id,atleta_id,numero,temporada_id&order=id'),
     sbGet('jogos','select=id,temporada_id,rodada,ordem,grupo,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,minuto_atual,mvp_atleta_id,sumula_fechada&order=rodada,ordem'),

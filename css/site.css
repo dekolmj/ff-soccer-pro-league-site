@@ -1120,3 +1120,8 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
 /* Libertadores FF: linha entre os cartões de divulgação e a competição (tabela, jogos e estatísticas) */
 .libsep{border:0;border-top:1px solid var(--line2);margin:48px 0 36px}
 .libtit{font-size:clamp(34px,6vw,56px);margin:6px 0 0}
+/* unidade FF ao lado do nome do time nas tabelas */
+.tuni{color:var(--mute);font-weight:400}
+.tuni .tsep{font-style:normal}
+/* a unidade fica numa segunda linha, menor, embaixo do nome (no lugar do " - ", para não cortar o nome) */
+td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis}td.team .tuni .tsep{display:none}td.team a>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
