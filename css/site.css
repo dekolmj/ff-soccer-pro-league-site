@@ -1127,3 +1127,8 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
 td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis}td.team .tuni .tsep{display:none}td.team a>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .list .it.eu{background:var(--card2);border-radius:10px}
 .ctbl .team > span.semlink{display:flex;align-items:center;gap:10px}.semlink.game{cursor:default}
+/* área do atleta: mais espaço entre "Libertadores FF · Grupo X" e o nome; escudo inteiro, sem cortar em círculo */
+#atArea .ahead .eyebrow{margin-bottom:10px}
+.badge.esc{border-radius:0;overflow:visible}
+.badge.esc img{object-fit:contain}
+#atArea .ahead .badge.esc.lg{width:64px;height:64px}
