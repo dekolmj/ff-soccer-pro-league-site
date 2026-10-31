@@ -318,7 +318,7 @@ P['libertadores']=function(tab){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1></div>'+
   '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
   // abaixo dos cartões: barra da competição (como a barra de seções de um portal de esporte; 31/10/2026, pedido do Deko)
-  '<div class="libbar"><div class="libbar-t"><span>Fut7 · Libertadores FF</span><h2>Campeonato</h2></div>'+
+  '<div class="libbar"><div class="libbar-t"><h2>Campeonato</h2></div>'+
   '<nav class="ctabs">'+[['formato','Formato','libertadores-formato'],['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav></div>'+
   (BANCO_ERRO&&tab!=='formato'?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
   (tab==='formato'?libFormatoHTML():tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
