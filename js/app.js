@@ -311,7 +311,7 @@ function libSemiHTML(){
 function libFinalHTML(){
   if(!LIB.teams.length)return libGruposHTML();
   var m=libMataMata();
-  return '<p class="muted" style="margin:0 0 16px">A final reúne os vencedores das duas semifinais.</p><div style="max-width:640px;margin-bottom:40px">'+libMMCard('Final',m.fin.v,m.fin.j,m.fin.w,true)+'</div>';
+  return '<p class="muted" style="margin:0 0 16px;text-align:center">A final reúne os vencedores das duas semifinais.</p><div style="max-width:640px;margin:0 auto 40px">'+libMMCard('Final',m.fin.v,m.fin.j,m.fin.w,true)+'</div>';
 }
 P['libertadores']=function(tab){
   tab=tab||'';
