@@ -317,17 +317,19 @@ P['libertadores']=function(tab){
   tab=tab||'';
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Competição FF</div><h1>Libertadores FF</h1></div>'+
   '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
-  // abaixo dos cartões: a competição (antes ficava na página do Campeonato), separada por uma linha
-  '<hr class="libsep"><div class="phead" style="padding-top:0"><div class="eyebrow">Fut7 · fase de grupos</div><h2 class="libtit">Campeonato</h2><p class="lead">Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.</p></div>'+
-  // formato da disputa (31/10/2026, pedido do Deko): três etapas, de grupos até a final
-  '<div class="formato" aria-label="Formato da disputa"><div class="lbl" style="margin-bottom:10px">⚽ Formato da disputa</div><ol>'+
+  // abaixo dos cartões: barra da competição (como a barra de seções de um portal de esporte; 31/10/2026, pedido do Deko)
+  '<div class="libbar"><div class="libbar-t"><span>Fut7 · Libertadores FF</span><h2>Campeonato</h2></div>'+
+  '<nav class="ctabs">'+[['formato','Formato','libertadores-formato'],['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav></div>'+
+  (BANCO_ERRO&&tab!=='formato'?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
+  (tab==='formato'?libFormatoHTML():tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
+};
+// formato da disputa (aba Formato): três etapas, de grupos até a final
+function libFormatoHTML(){
+  return '<div class="formato" aria-label="Formato da disputa"><ol>'+
     [['Fase de grupos',['Todos contra todos dentro de cada grupo.','4 jogos por equipe.','Os 2 primeiros de cada grupo avançam.']],
      ['Semifinais',['Cruzadas: 1º A × 2º B e 1º B × 2º A.']],
-     ['Final',['Os vencedores das semifinais disputam a grande final.']]].map(function(x,i){return '<li><span class="fn">'+(i+1)+'</span><div><b>'+x[0]+'</b>'+x[1].map(function(t){return '<p>'+t+'</p>';}).join('')+'</div></li>';}).join('')+'</ol></div>'+
-  (BANCO_ERRO?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
-  '<nav class="ctabs">'+[['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+
-  (tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
-};
+     ['Final',['Os vencedores das semifinais disputam a grande final.']]].map(function(x,i){return '<li><span class="fn">'+(i+1)+'</span><div><b>'+x[0]+'</b>'+x[1].map(function(t){return '<p>'+t+'</p>';}).join('')+'</div></li>';}).join('')+'</ol></div>';
+}
 P['a-league']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Uma nova era começa agora</div><h1>A Pro League</h1><p class="lead">Mais do que um campeonato, a FF Soccer Pro League é uma experiência de temporada. Você vive cada momento: time fixo, uniforme personalizado, jogos transmitidos ao vivo, seus números registrados rodada a rodada e, claro, VAR.</p></div>'+
   '<div class="feat"><div><span class="big">11×11</span><b>Futebol de campo</b><p>Cerca de 20 atletas por equipe.</p></div><div><span class="big">Turno único</span><b>Todos contra todos</b><p>Sem contar as fases finais.</p></div><div><span class="big">6 meses</span><b>Temporada completa</b><p>Do primeiro jogo até as finais.</p></div></div>'+
@@ -514,7 +516,7 @@ function route(){
   // a aba Campeonato saiu em 31/10/2026, a pedido do Deko: cada competição fica na sua página (Libertadores FF em #libertadores;
   // a FF Pro League vai para #a-league quando tiver jogos). Os endereços do Campeonato levam para a FF Pro League.
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page=h='a-league';arg=null;}
-  if(/^libertadores-(estatisticas|semifinal|final)$/.test(h)){page='libertadores';arg=h.slice(13);}
+  if(/^libertadores-(formato|estatisticas|semifinal|final)$/.test(h)){page='libertadores';arg=h.slice(13);}
   if(/^jogo-(lib-)?\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
   else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}

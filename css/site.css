@@ -1165,3 +1165,12 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 .formato .fn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#1B1606;display:inline-flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:700}
 .formato b{display:block;font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em;font-size:17px;margin-bottom:4px}
 .formato p{margin:0;color:var(--mute);font-size:14px;line-height:1.45}
+/* Libertadores: barra da competição (título + abas), no estilo de barra de seções */
+.libbar{background:var(--gold);color:#1B1606;border-radius:14px;margin:36px 0 22px;overflow:hidden}
+.libbar-t{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px 10px;border-bottom:1px solid rgba(27,22,6,.18)}
+.libbar-t h2{margin:0;color:#1B1606;font-size:34px;line-height:1}
+.libbar-t span{order:2;font-family:var(--cond);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.7}
+.libbar .ctabs{margin:0;border-bottom:0;padding:0 8px}
+.libbar .ctabs a{color:rgba(27,22,6,.55);border-bottom:3px solid transparent;margin-bottom:0}
+.libbar .ctabs a:hover{color:#1B1606}
+.libbar .ctabs a.on{color:#1B1606;border-bottom-color:#1B1606}
