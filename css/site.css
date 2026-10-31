@@ -1132,3 +1132,7 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 .badge.esc{border-radius:0;overflow:visible}
 .badge.esc img{object-fit:contain}
 #atArea .ahead .badge.esc.lg{width:64px;height:64px}
+/* área do atleta: foto ocupando a largura do cartão e nome numa linha só */
+.side .me.atme{justify-items:stretch}
+.side .me.atme .avatar.ret{width:100%!important;height:auto!important;aspect-ratio:4/5;border-radius:12px}
+.side .me.atme b{font-size:22px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
