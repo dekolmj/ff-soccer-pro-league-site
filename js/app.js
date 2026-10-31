@@ -319,6 +319,11 @@ P['libertadores']=function(tab){
   '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
   // abaixo dos cartões: a competição (antes ficava na página do Campeonato), separada por uma linha
   '<hr class="libsep"><div class="phead" style="padding-top:0"><div class="eyebrow">Fut7 · fase de grupos</div><h2 class="libtit">Campeonato</h2><p class="lead">Tabela, jogos e números da Libertadores FF, atualizados a cada súmula.</p></div>'+
+  // formato da disputa (31/10/2026, pedido do Deko): três etapas, de grupos até a final
+  '<div class="formato" aria-label="Formato da disputa"><div class="lbl" style="margin-bottom:10px">⚽ Formato da disputa</div><ol>'+
+    [['Fase de grupos',['Todos contra todos dentro de cada grupo.','4 jogos por equipe.','Os 2 primeiros de cada grupo avançam.']],
+     ['Semifinais',['Cruzadas: 1º A × 2º B e 1º B × 2º A.']],
+     ['Final',['Os vencedores das semifinais disputam a grande final.']]].map(function(x,i){return '<li><span class="fn">'+(i+1)+'</span><div><b>'+x[0]+'</b>'+x[1].map(function(t){return '<p>'+t+'</p>';}).join('')+'</div></li>';}).join('')+'</ol></div>'+
   (BANCO_ERRO?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
   '<nav class="ctabs">'+[['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav>'+
   (tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
