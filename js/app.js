@@ -3,7 +3,7 @@ var LOGO='assets/escudo.webp';
 /* ================= ONDAS DE LANÇAMENTO =================
    CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
 var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
-function ondaDaPagina(pg){return ({libertadores:2,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?4:2);}
+function ondaDaPagina(pg){return ({libertadores:2,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?1:2);}  // área do atleta: só com login de atleta (desde 31/10/2026, com os dados reais)
 // CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
 function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
 // CONFIG.PRE_INSCRICAO = false esconde tudo da pré-inscrição (botões, links, página, pergunta frequente), inclusive com ?demo. Nada é apagado.
@@ -321,7 +321,7 @@ P['pre-inscricao']=function(){
 
 
 /* ================= ÁREA LOGADA ================= */
-var ME=null;try{if(localStorage.getItem('ffl_user'))ME=localStorage.getItem('ffl_user');}catch(e){}
+var ME=null;try{localStorage.removeItem('ffl_user');}catch(e){}  // a área de demonstração (André) saiu em 31/10/2026: a área do atleta usa o login real (painel.js)
 if(ONDA<4)ME=null;  // área do atleta de demonstração só a partir da onda 4
 var CONF=null,RENEW=false,SEL={},NEXTKIT='M';
 function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on');},2600);}
@@ -332,7 +332,7 @@ function perfilSalvo(){try{return localStorage.getItem('ffl_perfil')||'';}catch(
 function sessaoEmail(){try{var ref=(CONFIG.SUPABASE_URL||'').split('//')[1].split('.')[0],v=JSON.parse(localStorage.getItem('sb-'+ref+'-auth-token')||'null');return (v&&v.user&&v.user.email)||'';}catch(e){return '';}}
 function acct(){var a=document.getElementById('acct'),d=document.getElementById('drawAcct');
   if(ME){var p=PM[ME];a.className='acct';a.href='#minha-area';a.innerHTML='<span class="av">'+p.n[0]+'</span><span class="nm">'+esc(p.n.split(' ')[0])+'</span>';d.firstChild.textContent='Minha área ';}
-  else if(sessaoEmail()){var em=sessaoEmail(),dest=perfilSalvo()==='atleta'?'#entrar':'#painel';a.className='acct so';a.href=dest;a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+(dest==='#painel'?'. Abrir o painel':'. Abrir a minha conta'));d.firstChild.textContent=dest==='#painel'?'Painel ':'Minha conta ';d.href=dest;}
+  else if(sessaoEmail()){var em=sessaoEmail(),dest=perfilSalvo()==='atleta'?'#minha-area':'#painel';a.className='acct so';a.href=dest;a.innerHTML='<span class="av">'+esc(em[0].toUpperCase())+'</span>';a.title='Conectado como '+em;a.setAttribute('aria-label','Conectado como '+em+(dest==='#painel'?'. Abrir o painel':'. Abrir a minha conta'));d.firstChild.textContent=dest==='#painel'?'Painel ':'Minha conta ';d.href=dest;}
   else{a.className='acct out';a.href='#entrar';a.textContent='Entrar';a.removeAttribute('title');a.removeAttribute('aria-label');d.firstChild.textContent='Entrar ';d.href='#entrar';}
   if(ME)d.href='#minha-area';
   a.hidden=d.hidden=semBotoes()&&!ME&&!sessaoEmail();}
@@ -467,7 +467,7 @@ window.addEventListener('pagehide',function(){try{sessionStorage.setItem('ffl_ro
 function trocaEndereco(h){try{history.replaceState(history.state,'',location.pathname+location.search+'#'+h);}catch(e){}}
 function route(){
   var orig=(location.hash||'').replace('#',''),h=orig||'a-league',page=h,arg=null;
-  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';if(h==='campeonato-libertadores')h='libertadores';if(h==='campeonato-libertadores-estatisticas')h='libertadores-estatisticas';page=h;
+  if(h==='classificacao'||h==='hall-da-fama'||h==='campeonato-times')h='campeonato';if(h==='minha-area-fotos'||h==='minha-area-inscricao'||h==='minha-area-campeonatos'||h==='minha-area-perfil')h='minha-area';if(h==='inicio')h='a-league';if(h==='campeonato-atletas')h='atletas';if(h==='campeonato-libertadores')h='libertadores';if(h==='campeonato-libertadores-estatisticas')h='libertadores-estatisticas';page=h;
   // a aba Campeonato saiu em 31/10/2026, a pedido do Deko: cada competição fica na sua página (Libertadores FF em #libertadores;
   // a FF Pro League vai para #a-league quando tiver jogos). Os endereços do Campeonato levam para a FF Pro League.
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page=h='a-league';arg=null;}
@@ -478,8 +478,6 @@ function route(){
   else if(h.indexOf('time-')===0){page='time';arg=h.slice(5);}
   else if(h.indexOf('painel-')===0){page='painel';arg=h.slice(7);}
   if(h==='sair'){logout();return;}
-  if(/^minha-area/.test(page)&&!ME){page=h='entrar';}
-  if(page==='entrar'&&ME){page=h='minha-area';}
   if(!P[page])page=h='a-league';
   if(ondaDaPagina(page)>ONDA||(page==='pre-inscricao'&&!preOn())){page=h='a-league';arg=null;}
   if(orig&&h!==orig)trocaEndereco(h);
@@ -514,10 +512,10 @@ function bind(page){
     var db=document.getElementById('demoBtn');if(db)db.addEventListener('click',function(){login('falcoes-10');toast('Bem-vindo, André!');});
     if(window.entrarIniciar)entrarIniciar();
   }
-  if(/^minha-area/.test(page)){var lo=document.getElementById('doLogout');lo.addEventListener('click',function(e){e.preventDefault();logout();});}
-  if(page==='minha-area'){document.querySelectorAll('[data-conf]').forEach(function(b){b.addEventListener('click',function(){CONF=b.dataset.conf;document.querySelectorAll('[data-conf]').forEach(function(x){x.classList.toggle('on',x===b);});toast(CONF==='sim'?'Presença confirmada. Bom jogo!':'Tudo bem. A equipe FF foi avisada.');});});}
+  if(/^minha-area/.test(page)&&ME){var lo=document.getElementById('doLogout');lo.addEventListener('click',function(e){e.preventDefault();logout();});}
+  if(page==='minha-area'&&ME){document.querySelectorAll('[data-conf]').forEach(function(b){b.addEventListener('click',function(){CONF=b.dataset.conf;document.querySelectorAll('[data-conf]').forEach(function(x){x.classList.toggle('on',x===b);});toast(CONF==='sim'?'Presença confirmada. Bom jogo!':'Tudo bem. A equipe FF foi avisada.');});});}
 
-  if(page==='minha-area-time'){
+  if(page==='minha-area-time'&&ME){
     document.querySelectorAll('[data-conf2]').forEach(function(b){b.addEventListener('click',function(){CONF=b.dataset.conf2;toast(CONF==='sim'?'Presença confirmada. Bom jogo!':'Tudo bem. A equipe FF foi avisada.');route();});});
   }
   if(page==='minha-area-inscricao'){

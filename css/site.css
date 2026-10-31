@@ -1125,3 +1125,5 @@ footer{border-top:1px solid var(--line);padding-block:40px 30px;margin-top:40px;
 .tuni .tsep{font-style:normal}
 /* a unidade fica numa segunda linha, menor, embaixo do nome (no lugar do " - ", para não cortar o nome) */
 td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis}td.team .tuni .tsep{display:none}td.team a>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.list .it.eu{background:var(--card2);border-radius:10px}
+.ctbl .team > span.semlink{display:flex;align-items:center;gap:10px}.semlink.game{cursor:default}

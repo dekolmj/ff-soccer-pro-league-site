@@ -104,19 +104,10 @@ function enDestino(user){
   pnPerfil(function(p){
     acct();
     if(p&&p.tipo==='equipe'){PN.equipe=p;toast('Bem-vindo, '+p.nome.split(' ')[0]+'!');location.replace('#painel');return;}
+    if(p&&p.tipo==='atleta'){location.replace('#minha-area');return;}  // atleta vai direto para a área dele (31/10/2026)
     var el=enEl();if(!el)return;
     var sair='<button class="btn" id="enSair" style="justify-content:center">Sair</button>';
-    if(p&&p.tipo==='atleta'){
-      // A área do atleta com os dados reais abre na onda 4, quando o atleta já estiver num time do site.
-      var id=p.time_id&&p.numero?p.time_id+'-'+p.numero:'',abre=ONDA>=4&&id&&PM[id];
-      el.innerHTML='<div style="display:grid;gap:12px;text-align:center;justify-items:center">'+pnSelo(p)+'<h3 style="margin:0">Olá, '+esc(p.nome.split(' ')[0])+'!</h3>'+
-        '<p class="muted" style="margin:0">Sua conta de atleta está ativa'+(p.time?' no <b>'+esc(p.time)+'</b>'+(p.numero?', camisa '+p.numero:''):'')+'. '+
-        (abre?'':'A sua área de atleta abre aqui quando a temporada começar.')+'</p>'+
-        (abre?'<button class="btn primary" id="enArea" style="justify-content:center;width:100%">Abrir minha área</button>':'')+sair+'</div>';
-      if(abre)document.getElementById('enArea').addEventListener('click',function(){login(id);});
-    }else{
       el.innerHTML='<div style="display:grid;gap:12px;text-align:center"><h3>Acesso ainda não liberado</h3><p class="muted" style="margin:0">Você entrou como <b>'+esc(user.email)+'</b>, mas este e-mail ainda não está ligado a um atleta nem à equipe FF. Fale com a FF para liberar o seu acesso.</p>'+sair+'</div>';
-    }
     document.getElementById('enSair').addEventListener('click',function(){SB.auth.signOut().then(function(){EN.modo='entrar';pnGuardaPerfil(null);acct();enForm();});});
   });
 }
@@ -124,7 +115,7 @@ function enDestino(user){
 function pnCarregar(){
   pnPerfil(function(p){
     PN.equipe=p&&p.tipo==='equipe'?p:null;
-    if(p&&p.tipo==='atleta'){location.replace('#entrar');return;}
+    if(p&&p.tipo==='atleta'){location.replace('#minha-area');return;}
     if(!PN.equipe){var el=pnEl();if(!el)return;
       el.innerHTML='<div class="login"><div class="card" style="display:grid;gap:12px;text-align:center"><h2>Acesso ainda não liberado</h2><p class="muted" style="margin:0">Você entrou como <b>'+esc(PN.user.email)+'</b>, mas este e-mail ainda não faz parte da equipe FF. Peça a liberação ao administrador.</p><button class="btn" id="pnSair" style="justify-content:center">Sair</button></div></div>';
       document.getElementById('pnSair').addEventListener('click',pnSair);return;}
@@ -286,3 +277,87 @@ function pnZip(arq){
 }
 
 window.addEventListener('hashchange',function(){if(PN.canal&&location.hash.indexOf('#painel')!==0){SB.removeChannel(PN.canal);PN.canal=null;}});
+
+/* ================= ÁREA DO ATLETA (dados reais) =================
+   Desde 31/10/2026 (pedido do Deko): o atleta com login entra em #minha-area e vê os dados do painel:
+   Meu painel (próximo jogo, números, avisos e resultados), Meu time (tabela, elenco e jogos) e Meus dados (cadastro, só leitura).
+   Usa o time mais recente do atleta (a competição ativa). Substitui a área de demonstração antiga. */
+var AT={atleta:null,carregando:false};
+function atEl(){return document.getElementById('atArea');}
+function atTela(tab){setTimeout(function(){atCarregar(tab);},0);
+  return '<div class="wrap"><div class="area" id="atArea"><p class="muted" style="padding:40px 0">Carregando a sua área…</p></div></div>';}
+P['minha-area']=function(){return atTela('painel');};
+P['minha-area-time']=function(){return atTela('time');};
+P['minha-area-dados']=function(){return atTela('dados');};
+
+function atCarregar(tab){
+  if(!CONFIG.SUPABASE_URL){var e0=atEl();if(e0)e0.innerHTML='<p class="muted">Área indisponível.</p>';return;}
+  pnSb(function(){SB.auth.getSession().then(function(r){var s=r.data&&r.data.session;if(!s)return location.replace('#entrar');
+    PN.user=s.user;
+    var segue=function(){if(!atEl())return;
+      // os jogos, times e números vêm do mesmo lugar do Campeonato (banco.js)
+      if(!BANCO_OK&&!BANCO_ERRO){if(AT.carregando)return;AT.carregando=true;carregarBanco(function(){AT.carregando=false;if(atEl())atMostra(tab);});return;}
+      atMostra(tab);};
+    if(AT.atleta&&AT.atleta.user_id===s.user.id)return segue();
+    SB.from('atletas').select('id,nome,posicao,posicoes,unidade_id,foto_url,user_id,unidades(nome),elencos(time_id,numero,nome_camisa,temporada_id),atletas_privado(email,celular,nascimento)')
+      .eq('user_id',s.user.id).maybeSingle().then(function(q){
+        if(q.error||!q.data){  // não é atleta: equipe vai para o painel; os outros, para a tela Entrar
+          pnPerfil(function(p){location.replace(p&&p.tipo==='equipe'?'#painel':'#entrar');});return;}
+        AT.atleta=q.data;pnGuardaPerfil('atleta');acct();segue();});
+  });});
+}
+function atPosicoes(a){var ps=a.posicoes&&a.posicoes.length?a.posicoes:(a.posicao?[a.posicao]:[]);return ps.map(function(p){return POSN[p]||p;}).join(' · ');}
+function atDataBr(d){return d?String(d).split('-').reverse().join('/'):'';}
+function atMostra(tab){
+  var el=atEl();if(!el)return;var a=AT.atleta;
+  var els=(a.elencos||[]).slice().sort(function(x,y){return y.temporada_id-x.temporada_id;}),e=els[0]||null;
+  var pid=e?e.time_id+'-'+e.numero:'',p=PM[pid]||null,t=e?TM[e.time_id]:null,lib=t&&t.comp==='jogo-lib-';
+  var comp=t?(lib?'Libertadores FF':(PRO_NOME||'FF Pro League')):'';
+  var cab='<nav class="side"><div class="me"><div class="avatar'+(a.foto_url?' ret':'')+'" style="width:52px;height:52px;border:2px solid #0B0B0A;'+(a.foto_url?'background:url('+esc(a.foto_url)+') center 18%/cover;':'')+'"></div>'+
+      '<b>'+esc(a.nome).replace(' ','<br>')+'</b><span>'+esc(atPosicoes(a).split(' · ')[0]||'Atleta')+(t?' · '+esc(t.n)+' · Nº '+e.numero:'')+'</span></div>'+
+    [['painel','minha-area','🏠 Meu painel'],['time','minha-area-time','⚽ Meu time'],['dados','minha-area-dados','👤 Meus dados']].map(function(x){return '<a href="#'+x[1]+'" class="'+(tab===x[0]?'on':'')+'">'+x[2]+'</a>';}).join('')+
+    '<a href="#entrar" id="atSair">↩ Sair</a></nav>';
+  var corpo='';
+  if(tab==='dados'){
+    var pv=Array.isArray(a.atletas_privado)?a.atletas_privado[0]:a.atletas_privado;pv=pv||{};
+    var lin=function(k,v){return '<div class="between"><span class="muted">'+k+'</span><b>'+(v?esc(v):'–')+'</b></div>';};
+    corpo='<div class="ahead"><div><div class="eyebrow">Meus dados</div><h1>'+esc(a.nome.split(' ')[0])+'</h1></div></div>'+
+      '<div class="grid2"><div class="card agenda" style="display:grid;gap:12px"><h3>Cadastro</h3>'+lin('Nome',a.nome)+lin('Posições',atPosicoes(a))+lin('Unidade FF',a.unidades&&a.unidades.nome)+
+        lin('E-mail (login)',pv.email)+lin('Celular',pv.celular)+lin('Nascimento',atDataBr(pv.nascimento))+'</div>'+
+      '<div class="card agenda" style="display:grid;gap:12px;align-content:start"><h3>Camisa</h3>'+lin('Competição',comp)+lin('Time',t&&t.n)+lin('Número',e&&String(e.numero))+lin('Nome na camisa',e&&e.nome_camisa)+'</div></div>'+
+      '<p class="muted" style="margin:16px 0 0;font-size:14px">Algum dado errado? Fale com a equipe FF para corrigir. Estes dados não aparecem no site, só o nome, o time e a camisa.</p>';
+  }else if(!t){
+    corpo='<div class="ahead"><div><div class="eyebrow">Área do atleta</div><h1>Olá, '+esc(a.nome.split(' ')[0])+'!</h1></div></div>'+
+      '<div class="card"><p class="muted" style="margin:0">Você ainda não está em um time. Assim que a equipe FF colocar você num time, os seus jogos e números aparecem aqui.</p></div>';
+  }else{
+    var jogosT=ALLGAMES.filter(function(g){return g.h===t.id||g.a===t.id;}).sort(function(x,y){return (x.date||9e15)-(y.date||9e15)||x.r-y.r||x.i-y.i;});
+    var prox=jogosT.filter(function(g){return g.st==='agendado'||g.st==='ao vivo'||g.st==='adiado';});
+    var fins=jogosT.filter(function(g){return g.st==='encerrado';});
+    if(tab==='time'){
+      var G=lib?LIB.grupos.filter(function(x){return x.teams.indexOf(t)>=0;})[0]:null;
+      corpo='<div class="ahead"><div><div class="eyebrow">'+esc(comp)+(G&&G.g?' · Grupo '+esc(G.g):'')+'</div><h1>'+esc(t.n)+'</h1></div>'+badge(t.id,'lg')+'</div>'+
+        (G?libGrupoHTML(G):ST.length?'<div class="card" style="padding:20px 20px 16px"><h2 class="blkh">Tabela</h2>'+classTable()+'</div>':'')+
+        '<div class="grid2" style="margin-top:18px"><div class="card"><h3 style="margin-bottom:10px">Elenco · '+t.roster.length+(t.roster.length===1?' atleta':' atletas')+'</h3>'+
+          (t.roster.length?'<div class="list">'+t.roster.map(function(x){var at=posn(x);return '<div class="it'+(x.id===pid?' eu':'')+'"><span class="p">'+x.num+'</span><span>'+esc(x.n)+(x.id===pid?' <span class="chip gold">Você</span>':'')+'<small>'+esc(at)+'</small></span></div>';}).join('')+'</div>':'<p class="muted" style="margin:0">Elenco ainda não cadastrado.</p>')+'</div>'+
+        '<div class="card"><h3 style="margin-bottom:10px">Jogos do time</h3>'+(jogosT.length?'<div style="display:grid;gap:10px">'+jogosT.map(gameCard).join('')+'</div>':'<p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p>')+'</div></div>';
+    }else{
+      // suspensão: cartão vermelho no último jogo encerrado do time
+      var ult=fins[fins.length-1],susp=ult&&ult.ev.some(function(x){return x.t==='vermelho'&&x.p===pid;});
+      var n=p||{j:0,g:0,a:0,ca:0,cv:0,mvp:0};
+      corpo='<div class="ahead"><div><div class="eyebrow">'+esc(comp)+' · '+esc(t.n)+' · Nº '+e.numero+'</div><h1>Olá, '+esc(a.nome.split(' ')[0])+'!</h1></div></div>'+
+        (susp?'<div class="notice" style="margin-bottom:18px"><b>Suspenso no próximo jogo.</b> Você levou cartão vermelho contra '+tn(ult.h===t.id?ult.a:ult.h)+' e cumpre suspensão no jogo seguinte do time.</div>':'')+
+        '<div class="grid2"><div style="display:grid;gap:18px;align-content:start">'+
+          '<div class="card"><h3 style="margin-bottom:10px">Próximo jogo</h3>'+(prox[0]?gameCard(prox[0]):'<p class="muted" style="margin:0">Nenhum jogo marcado ainda.</p>')+'</div>'+
+          '<div class="card"><h3 style="margin-bottom:10px">Meus números · '+esc(comp)+'</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">'+
+            [[n.j,'Jogos'],[n.g,'Gols'],[n.a,'Assist.'],[n.ca,'Amarelos'],[n.cv,'Vermelhos'],[n.mvp,'MVPs']].map(function(x){return '<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>'+
+            '<p class="muted" style="margin:10px 0 0;font-size:13px">Contam os jogos com a súmula fechada pela equipe FF.</p></div></div>'+
+        '<div class="card" style="align-content:start"><h3 style="margin-bottom:10px">Últimos resultados do time</h3>'+(fins.length?'<div style="display:grid;gap:10px">'+fins.slice(-3).reverse().map(gameCard).join('')+'</div>':'<p class="muted" style="margin:0">O time ainda não jogou.</p>')+
+          (prox.length>1?'<h3 style="margin:18px 0 10px">Depois</h3><div style="display:grid;gap:10px">'+prox.slice(1,4).map(gameCard).join('')+'</div>':'')+'</div></div>';
+    }
+  }
+  el.innerHTML=cab+'<div>'+corpo+'</div>';
+  // páginas de jogo, time e atleta ainda não estão abertas ao público: os cartões viram texto, sem link
+  if(ondaDaPagina('jogo')>ONDA)el.querySelectorAll('a[href^="#jogo"],a[href^="#time-"],a[href^="#atleta-"]').forEach(function(x){var s=document.createElement(x.classList.contains('game')?'div':'span');s.className=x.className+' semlink';s.innerHTML=x.innerHTML;
+    var f=s.querySelector('.foot span:last-child');if(f)f.textContent='';x.parentNode.replaceChild(s,x);});
+  document.getElementById('atSair').addEventListener('click',function(ev){ev.preventDefault();SB.auth.signOut().then(function(){AT.atleta=null;pnGuardaPerfil(null);acct();location.hash='entrar';toast('Você saiu.');});});
+}
