@@ -119,27 +119,6 @@ function montarDados(d){
   return true;
 }
 
-// SIMULAÇÃO só para ver como fica (31/10/2026, pedido do Deko): com ?demo&simular no endereço, cria na tela (não grava no banco)
-// as rodadas da fase de grupos da Libertadores: todos contra todos em cada grupo, às quartas a partir de 04/11/2026, 19:30,
-// no local da unidade do time mandante. Só entra se o grupo ainda não tiver jogos cadastrados.
-function simularLib(d){
-  var temp=d.temporadas.filter(function(t){return t.competicao==='libertadores';}).sort(function(a,b){return b.id-a.id;})[0];if(!temp)return;
-  var un={};d.unidades.forEach(function(u){un[u.id]=u.nome;});
-  var gr={};d.times.forEach(function(t){if(t.temporada_id===temp.id&&t.grupo)(gr[t.grupo]=gr[t.grupo]||[]).push(t);});
-  var ordem={},ini=Date.UTC(2026,10,4,22,30);  // 04/11/2026 19:30 em Brasília
-  Object.keys(gr).sort().forEach(function(G){
-    if(d.jogos.some(function(j){return j.temporada_id===temp.id&&j.grupo===G;}))return;
-    var ts=gr[G].slice();if(ts.length%2)ts.push(null);  // número ímpar: um time folga por rodada
-    var n=ts.length;
-    for(var r=0;r<n-1;r++){
-      for(var k=0;k<n/2;k++){var h=ts[k],a=ts[n-1-k];if(!h||!a)continue;if((r+k)%2){var x=h;h=a;a=x;}
-        ordem[r+1]=(ordem[r+1]||0)+1;
-        d.jogos.push({id:'sim-'+G+'-'+(r+1)+'-'+k,temporada_id:temp.id,rodada:r+1,ordem:ordem[r+1],grupo:G,data_hora:new Date(ini+r*7*864e5).toISOString(),
-          local:un[h.unidade_id]||'',time_casa:h.id,time_fora:a.id,status:'agendado',gols_casa:null,gols_fora:null,minuto_atual:null,mvp_atleta_id:null,sumula_fechada:false});}
-      ts.splice(1,0,ts.pop());}  // gira os times (o primeiro fica parado)
-  });
-}
-
 // Chama pronto() uma única vez: com os dados do banco ou, se o banco falhar ou demorar, com o Campeonato vazio e um aviso.
 // Se o banco responder depois do prazo, a página é desenhada de novo com os dados.
 function carregarBanco(pronto){
@@ -160,7 +139,6 @@ function carregarBanco(pronto){
     sbGet('desafios_var','select=jogo_id,time_id,minuto,motivo&order=minuto,criado_em,id')
   ]).then(function(r){
     var d={};T.forEach(function(k,i){d[k]=r[i];});
-    if(/[?&]simular\b/.test(location.search))simularLib(d);
     try{BANCO_OK=montarDados(d);BANCO_ERRO=false;}catch(e){console.error('Erro ao montar o Campeonato.',e);campVazio();BANCO_ERRO=true;}
     clearTimeout(prazo);
     if(feito){if(typeof route==='function')route();return;}
