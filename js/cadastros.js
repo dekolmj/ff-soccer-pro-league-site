@@ -15,7 +15,7 @@ function cdCarregar(cb){
   Promise.all([
     SB.from('temporadas').select('id,nome,competicao,desafios_var_por_jogo').order('id'),
     SB.from('times').select('id,nome,cor,escudo_url,unidade_id,ordem,exemplo,temporada_id,grupo').order('ordem').order('nome'),
-    SB.from('atletas').select('id,nome,apelido,posicao,unidade_id,foto_url,ativo,exemplo,user_id,atletas_privado(email,celular,nascimento),elencos(time_id,numero,nome_camisa,kit,temporada_id)').order('nome'),
+    SB.from('atletas').select('id,nome,apelido,posicao,posicoes,unidade_id,foto_url,ativo,exemplo,user_id,atletas_privado(email,celular,nascimento),elencos(time_id,numero,nome_camisa,kit,temporada_id)').order('nome'),
     SB.from('unidades').select('id,nome').eq('ativa',true).order('nome'),
     !preOn()?Promise.resolve({data:[]}):SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome'),
     SB.rpc('listar_acessos'),
@@ -133,15 +133,14 @@ function cdElencoHTML(f){
   var ops=CD.atletas.filter(function(a){return a.ativo!==false;}).map(function(a){var e=a.els[tid],ot=e&&e.time_id!==f.id?cdTime(e.time_id):null;
     return [a.id,a.nome+(e&&e.time_id===f.id?' · já no time, nº '+e.numero:ot?' · hoje no '+ot.nome:'')];});
   return '<div class="card cdform" id="cdForm"><div class="between" style="flex-wrap:wrap;gap:8px"><h3>Elenco · '+esc(t.nome)+'</h3><span class="lbl">'+CD_COMP[CD.comp]+' · '+el.length+(el.length===1?' atleta':' atletas')+'</span></div>'+
-    (el.length?'<div class="tblw"><table class="tbl cdeltab"><thead><tr><th>Nº</th><th class="l">Atleta</th><th class="l">Camisa</th><th>Kit</th><th>Posição</th><th></th></tr></thead><tbody>'+
-      el.map(function(a){var e=a.els[tid];return '<tr><td data-l="Nº"><b>'+e.numero+'</b></td><td data-l="Atleta" class="l">'+esc(a.nome)+'</td><td data-l="Camisa" class="l">'+esc(e.nome_camisa)+'</td><td data-l="Kit">'+esc(e.kit)+'</td><td data-l="Posição">'+esc(a.posicao||'')+'</td>'+
+    (el.length?'<div class="tblw"><table class="tbl cdeltab"><thead><tr><th>Nº</th><th class="l">Atleta</th><th class="l">Camisa</th><th class="l">Posição</th><th></th></tr></thead><tbody>'+
+      el.map(function(a){var e=a.els[tid];return '<tr><td data-l="Nº"><b>'+e.numero+'</b></td><td data-l="Atleta" class="l">'+esc(a.nome)+'</td><td data-l="Camisa" class="l">'+esc(e.nome_camisa)+'</td><td data-l="Posição" class="l">'+esc(cdPosicoes(a))+'</td>'+
         '<td><div class="pnacoes"><button class="btn sm" data-eledita="'+a.id+'">Editar</button><button class="btn sm" data-eltira="'+a.id+'">Tirar do time</button></div></td></tr>';}).join('')+'</tbody></table></div>'
       :'<p class="muted" style="margin:6px 0 0">Nenhum atleta neste time ainda.</p>')+
     '<form id="cdElF" novalidate style="margin-top:16px"><h4 style="margin:0 0 8px">'+(e0?'Editar '+esc(ed.nome):'Colocar atleta no time')+'</h4><div class="cdcampos">'+
       cdCampo('Atleta *','<select id="eAt"'+(e0?' disabled':'')+'><option value="">Escolha</option>'+cdOpcoes(ops,f.atleta)+'</select>','full')+
       cdCampo('Número *','<input id="eNum" type="number" min="1" max="99" value="'+esc(e0?e0.numero:'')+'">')+
       cdCampo('Nome na camisa *','<input id="eCam" maxlength="12" value="'+esc(e0?e0.nome_camisa:'')+'">')+
-      cdCampo('Kit *','<select id="eKit">'+cdOpcoes(CD_KIT.map(function(k){return [k,k];}),e0?e0.kit:'M')+'</select>')+
     '</div><p class="muted" style="margin:8px 0 0;font-size:14px">Atleta ainda não cadastrado? Crie em <a class="more" href="#painel-usuarios">Usuários</a> e volte aqui.</p>'+
     '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">'+(e0?'Salvar':'Colocar no time')+'</button>'+
     (e0?'<button class="btn" type="button" id="cdElNovo">Cancelar edição</button>':'')+'<button class="btn" type="button" id="cdCancela">Fechar elenco</button></div></form></div>';
@@ -150,10 +149,9 @@ function cdElencoLigar(f){
   var tid=cdTempId(CD.comp),er=document.getElementById('cdErr'),fm=document.getElementById('cdElF'),at=document.getElementById('eAt');
   document.getElementById('cdCancela').addEventListener('click',function(){CD.form=null;cdTimes();});
   var nv=document.getElementById('cdElNovo');if(nv)nv.addEventListener('click',function(){CD.form={tipo:'elenco',id:f.id};cdTimes();});
-  // ao escolher o atleta, sugere nome na camisa e kit do cadastro dele
+  // ao escolher o atleta, sugere o nome na camisa do cadastro dele
   at.addEventListener('change',function(){var a=cdAtleta(at.value);if(!a)return;var e=a.els[tid]||a.el||(a.elencos||[])[0];
-    var cam=document.getElementById('eCam');if(!cam.value)cam.value=(e&&e.nome_camisa)||String(a.apelido||a.nome.split(' ')[0]).toUpperCase().slice(0,12);
-    if(e&&e.kit)document.getElementById('eKit').value=e.kit;});
+    var cam=document.getElementById('eCam');if(!cam.value)cam.value=(e&&e.nome_camisa)||String(a.apelido||a.nome.split(' ')[0]).toUpperCase().slice(0,12);});
   document.querySelectorAll('[data-eledita]').forEach(function(b){b.addEventListener('click',function(){CD.form={tipo:'elenco',id:f.id,atleta:b.dataset.eledita};cdTimes();
     var fe=document.getElementById('cdElF');if(fe)fe.scrollIntoView({block:'center',behavior:'smooth'});});});
   document.querySelectorAll('[data-eltira]').forEach(function(b){b.addEventListener('click',function(){var a=cdAtleta(b.dataset.eltira);
@@ -162,7 +160,7 @@ function cdElencoLigar(f){
       if(r.error){b.disabled=false;er.textContent='Não foi possível tirar do time. Tente de novo.';return;}
       toast(a.nome.split(' ')[0]+' saiu do time.');cdRecarregar();});});});
   fm.addEventListener('submit',function(e){e.preventDefault();
-    var a=cdAtleta(f.atleta||at.value),num=parseInt(document.getElementById('eNum').value,10),cam=document.getElementById('eCam').value.trim().toUpperCase(),kit=document.getElementById('eKit').value;
+    var a=cdAtleta(f.atleta||at.value),num=parseInt(document.getElementById('eNum').value,10),cam=document.getElementById('eCam').value.trim().toUpperCase();
     if(!a){er.textContent='Escolha o atleta.';return;}
     if(!(num>=1&&num<=99)){er.textContent='Número de 1 a 99.';return;}
     if(!cam){er.textContent='Preencha o nome na camisa.';return;}
@@ -171,7 +169,7 @@ function cdElencoLigar(f){
     var ant=a.els[tid],ot=ant&&ant.time_id!==f.id?cdTime(ant.time_id):null;
     if(ot&&!confirm(a.nome+' está no '+ot.nome+'. Passar para o '+cdTime(f.id).nome+'?'))return;
     var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
-    SB.from('elencos').upsert({temporada_id:tid,time_id:f.id,atleta_id:a.id,numero:num,nome_camisa:cam,kit:kit},{onConflict:'temporada_id,atleta_id'}).then(function(r){bt.disabled=false;
+    SB.from('elencos').upsert({temporada_id:tid,time_id:f.id,atleta_id:a.id,numero:num,nome_camisa:cam},{onConflict:'temporada_id,atleta_id'}).then(function(r){bt.disabled=false;
       if(r.error){er.textContent=/numero|duplicate|unique/i.test(r.error.message)?'Este número já está em uso neste time.':'Não foi possível salvar. Tente de novo.';console.warn(r.error);return;}
       CD.form={tipo:'elenco',id:f.id};toast(a.nome.split(' ')[0]+(ant&&!ot?' atualizado.':' entrou no time.'));cdRecarregar();});
   });
@@ -190,6 +188,8 @@ function cdCorLigar(){var h=document.getElementById('tCor'),nm=document.getEleme
   document.querySelectorAll('.cdcores [data-cor]').forEach(function(b){b.addEventListener('click',function(){marca(b.dataset.cor,b.title,b);out.value=b.dataset.cor.toLowerCase();});});
   out.addEventListener('input',function(){marca(out.value,'Outra cor',out.parentNode);});}
 function cdUnidade(id){var u=CD.unidades.filter(function(x){return x.id===id;})[0];return u?u.nome:'';}
+// posições do atleta (até 3, em ordem de preferência), ex.: "Meia · Volante"
+function cdPosicoes(a){var ps=a.posicoes&&a.posicoes.length?a.posicoes:(a.posicao?[a.posicao]:[]);return ps.map(function(p){return POSN[p]||p;}).join(' · ');}
 function cdTimeForm(f){
   return '<form class="card cdform" id="cdForm" novalidate><h3>'+(f.novo?'Novo time · '+CD_COMP[CD.comp]:'Editar '+esc(f.nome))+'</h3><div class="cdcampos">'+
     cdCampo('Nome do time *','<input id="tNome" maxlength="40" value="'+esc(f.nome||'')+'">')+
@@ -249,7 +249,7 @@ function cdLinhas(){
   var at=CD.atletas.map(function(a){var ac=CD.acesso[a.id]||{};
     var tms=Object.keys(a.els).map(function(k){var e=a.els[k],tt=cdTime(e.time_id);return tt?(cdCompDe(+k)==='libertadores'?'Lib: ':'')+tt.nome+' · nº '+e.numero:'';}).filter(Boolean);
     return {tipo:'atleta',id:a.id,nome:a.nome,foto:a.foto_url,email:a.pv.email||'',tel:a.pv.celular||'',
-      funcao:POSN[a.posicao]||a.posicao,detalhe:tms.length?tms.join(' | '):'Sem time',times:Object.keys(a.els).map(function(k){return a.els[k].time_id;}),
+      funcao:cdPosicoes(a),detalhe:tms.length?tms.join(' | '):'Sem time',times:Object.keys(a.els).map(function(k){return a.els[k].time_id;}),
       situacao:a.user_id?'ativa':'sem_acesso',ultimo:ac.ultimo_acesso,exemplo:a.exemplo,inativo:!a.ativo,a:a};});
   var fu=CD.equipe.map(function(x){
     return {tipo:'func',id:x.email,nome:x.nome,email:x.email,tel:x.telefone||'',funcao:x.cargo||'Funcionário',
@@ -306,7 +306,7 @@ function cdUsuariosLista(){
   box.querySelectorAll('[data-ed]').forEach(function(b){b.addEventListener('click',function(){
     var p=b.dataset.ed.split('|'),tipo=p[0],id=p.slice(1).join('|');
     if(tipo==='atleta'){var a=CD.atletas.filter(function(x){return x.id===id;})[0];
-      CD.form={tipo:'atleta',id:a.id,nome:a.nome,apelido:a.apelido,posicao:a.posicao,unidade_id:a.unidade_id,foto_url:a.foto_url,
+      CD.form={tipo:'atleta',id:a.id,nome:a.nome,apelido:a.apelido,posicao:a.posicao,posicoes:a.posicoes,unidade_id:a.unidade_id,foto_url:a.foto_url,
         email:a.pv.email,celular:a.pv.celular,nascimento:a.pv.nascimento,els:a.els,conta:!!a.user_id};}
     else{var x=CD.equipe.filter(function(e){return e.email===id;})[0];
       CD.form={tipo:'func',email:x.email,nome:x.nome,telefone:x.telefone,cargo:x.cargo,papel:x.papel,eu:x.eu};}
@@ -354,7 +354,8 @@ function cdAtletaForm(f){var e=f.el||{};
     (f.origem?'<p class="muted" style="margin:-4px 0 12px;font-size:14px">Dados da pré-inscrição '+esc(f.origem)+'. Confira e escolha o time.</p>':'')+
     '<div class="lbl cdsec">Dados do atleta</div><div class="cdcampos">'+
     cdCampo('Nome completo *','<input id="aNome" maxlength="120" value="'+esc(f.nome||'')+'">','full')+
-    cdCampo('Posição *','<select id="aPos"><option value="">Escolha</option>'+cdOpcoes(CD_POS.map(function(p){return [p,POSN[p]];}),f.posicao)+'</select>')+
+    (function(){var ps=f.posicoes&&f.posicoes.length?f.posicoes:(f.posicao?[f.posicao]:[]);
+      return [1,2,3].map(function(n){return cdCampo(n===1?'Posição · 1ª opção *':'Posição · '+n+'ª opção','<select id="aPos'+n+'"><option value="">'+(n===1?'Escolha':'Nenhuma')+'</option>'+cdOpcoes(CD_POS.map(function(p){return [p,POSN[p]];}),ps[n-1]||'')+'</select>');}).join('');})()+
     cdCampo('Unidade FF','<select id="aUni"><option value="">Nenhuma</option>'+cdOpcoes(CD.unidades.map(function(u){return [u.id,u.nome];}),f.unidade_id)+'</select>')+
     cdCampo('Foto (até 2 MB)','<div class="cdimg">'+(f.foto_url?'<img src="'+esc(f.foto_url)+'" alt="" width="48" height="48">':'')+'<input id="aFoto" type="file" accept="image/png,image/jpeg,image/webp"></div>')+
     '</div><div class="lbl cdsec">Contato (não aparece no site) · o e-mail é o login do atleta</div><div class="cdcampos">'+
@@ -366,7 +367,7 @@ function cdAtletaForm(f){var e=f.el||{};
       cdCampo('Time','<select id="aTime_'+c+'"><option value="">Sem time</option>'+cdOpcoes(cdTimesDa(c).map(function(t){return [t.id,t.nome+(t.grupo?' · Grupo '+t.grupo:'')];}),e.time_id)+'</select>')+
       cdCampo('Número (1 a 99)','<input id="aNum_'+c+'" type="number" min="1" max="99" value="'+esc(e.numero||'')+'">')+
       cdCampo('Nome na camisa','<input id="aCam_'+c+'" maxlength="12" style="text-transform:uppercase" value="'+esc(e.nome_camisa||'')+'">')+
-      cdCampo('Kit','<select id="aKit_'+c+'"><option value="">Escolha</option>'+cdOpcoes(CD_KIT.map(function(k){return [k,k];}),e.kit)+'</select>')+'</div>';}).join('')+
+      '</div>';}).join('')+
     '</div><div class="err" id="cdErr" role="alert"></div><div class="cdbts">'+
     '<button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button>'+
     (!f.novo&&cdAdmin()?'<button class="btn cdapaga" type="button" id="cdApaga">Apagar atleta</button>':'')+'</div></form>';
@@ -382,12 +383,15 @@ function cdAtletaLigar(f){
       CD.form=null;toast(r.data.inativado?'O atleta já jogou: ficou inativo e saiu do time.':'Atleta apagado.');cdRecarregar();});
   });
   fm.addEventListener('submit',function(e){e.preventDefault();
-    var d={id:f.id||null,nome:v('aNome'),apelido:f.apelido||'',posicao:v('aPos'),unidade_id:v('aUni'),foto_url:f.foto_url||'',
+    var pos=[v('aPos1'),v('aPos2'),v('aPos3')].filter(Boolean);
+    var d={id:f.id||null,nome:v('aNome'),apelido:f.apelido||'',posicao:pos[0]||'',posicoes:pos,unidade_id:v('aUni'),foto_url:f.foto_url||'',
       email:v('aEmail').toLowerCase(),celular:v('aCel'),nascimento:v('aNasc'),elencos:[]};
+    if(v('aPos1')===''&&pos.length){er.textContent='Escolha a 1ª opção de posição.';return;}
+    if(pos.length!==pos.filter(function(p,i){return pos.indexOf(p)===i;}).length){er.textContent='Escolha posições diferentes.';return;}
     var falta=!d.nome?'o nome':!d.posicao?'a posição':!/^\S+@\S+\.\S+$/.test(d.email)?'um e-mail válido':!d.celular?'o celular':!d.nascimento?'a data de nascimento':'';
     Object.keys(CD_COMP).forEach(function(c){var t=document.getElementById('aTime_'+c);if(!t||!t.value||falta)return;
-      var x={time_id:t.value,numero:v('aNum_'+c),nome_camisa:v('aCam_'+c).toUpperCase(),kit:v('aKit_'+c)};
-      falta=!(+x.numero>=1&&+x.numero<=99)?'o número da camisa na '+CD_COMP[c]+' (1 a 99)':!x.nome_camisa?'o nome na camisa na '+CD_COMP[c]:!x.kit?'o tamanho do kit na '+CD_COMP[c]:'';
+      var ant=(f.els||{})[cdTempId(c)],x={time_id:t.value,numero:v('aNum_'+c),nome_camisa:v('aCam_'+c).toUpperCase(),kit:ant&&ant.kit||''};  // o kit saiu da tela; o que já existia fica
+      falta=!(+x.numero>=1&&+x.numero<=99)?'o número da camisa na '+CD_COMP[c]+' (1 a 99)':!x.nome_camisa?'o nome na camisa na '+CD_COMP[c]:'';
       d.elencos.push(x);});
     // competições que não aparecem no formulário: o time que o atleta já tinha nelas continua igual
     Object.keys(CD_COMP).forEach(function(c){var e=(f.els||{})[cdTempId(c)];if(CD_COMP_ATLETA.indexOf(c)<0&&e)d.elencos.push({time_id:e.time_id,numero:String(e.numero),nome_camisa:e.nome_camisa,kit:e.kit});});
