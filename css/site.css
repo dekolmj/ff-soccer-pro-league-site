@@ -1173,4 +1173,6 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 .libbar .ctabs{margin:0;border-bottom:0;padding:0 8px}
 .libbar .ctabs a{color:rgba(27,22,6,.55);border-bottom:3px solid transparent;margin-bottom:0}
 .libbar .ctabs a:hover{color:#1B1606}
-.libbar .ctabs a.on{color:#1B1606;border-bottom-color:#1B1606}
+.libbar .ctabs{padding:6px 8px 0}
+.libbar .ctabs a{border-radius:10px 10px 0 0}
+.libbar .ctabs a.on{color:var(--gold);background:var(--bg);border-bottom-color:var(--bg)}
