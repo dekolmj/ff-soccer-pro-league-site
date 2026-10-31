@@ -39,6 +39,8 @@ function cdRecarregar(){CD.ok=false;cdAba(PN.aba);}
 
 // Competições: a temporada mais recente de cada uma.
 var CD_COMP={pro_league:'FF Pro League',libertadores:'Libertadores FF'};
+// competições que aparecem no cadastro do atleta (31/10/2026, a pedido do Deko: por enquanto só a Libertadores FF está ativa)
+var CD_COMP_ATLETA=['libertadores'];
 function cdTempId(c){var t=CD.temporadas.filter(function(x){return x.competicao===c;});return t.length?t[t.length-1].id:null;}
 function cdCompDe(tempId){var t=CD.temporadas.filter(function(x){return x.id===tempId;})[0];return t?t.competicao:'';}
 function cdTimesDa(c){var id=cdTempId(c);return CD.times.filter(function(t){return t.temporada_id===id;});}
@@ -354,13 +356,12 @@ function cdAtletaForm(f){var e=f.el||{};
     cdCampo('Nome completo *','<input id="aNome" maxlength="120" value="'+esc(f.nome||'')+'">','full')+
     cdCampo('Posição *','<select id="aPos"><option value="">Escolha</option>'+cdOpcoes(CD_POS.map(function(p){return [p,POSN[p]];}),f.posicao)+'</select>')+
     cdCampo('Unidade FF','<select id="aUni"><option value="">Nenhuma</option>'+cdOpcoes(CD.unidades.map(function(u){return [u.id,u.nome];}),f.unidade_id)+'</select>')+
-    cdCampo('Apelido','<input id="aApe" maxlength="40" value="'+esc(f.apelido||'')+'">')+
     cdCampo('Foto (até 2 MB)','<div class="cdimg">'+(f.foto_url?'<img src="'+esc(f.foto_url)+'" alt="" width="48" height="48">':'')+'<input id="aFoto" type="file" accept="image/png,image/jpeg,image/webp"></div>')+
     '</div><div class="lbl cdsec">Contato (não aparece no site) · o e-mail é o login do atleta</div><div class="cdcampos">'+
     cdCampo('E-mail *','<input id="aEmail" type="email" maxlength="120" value="'+esc(f.email||'')+'"'+(f.conta?' title="Este atleta já tem conta: mudar o e-mail não muda o login dele."':'')+'>')+
     cdCampo('Celular *','<input id="aCel" maxlength="30" value="'+esc(f.celular||'')+'">')+
     cdCampo('Nascimento *','<input id="aNasc" type="date" value="'+esc(f.nascimento||'')+'">')+
-    '</div>'+Object.keys(CD_COMP).map(function(c){var tid=cdTempId(c),e=(f.els||{})[tid]||{};if(!tid)return '';
+    '</div>'+CD_COMP_ATLETA.map(function(c){var tid=cdTempId(c),e=(f.els||{})[tid]||{};if(!tid)return '';
       return '<div class="lbl cdsec">Time na '+CD_COMP[c]+'</div><div class="cdcampos">'+
       cdCampo('Time','<select id="aTime_'+c+'"><option value="">Sem time</option>'+cdOpcoes(cdTimesDa(c).map(function(t){return [t.id,t.nome+(t.grupo?' · Grupo '+t.grupo:'')];}),e.time_id)+'</select>')+
       cdCampo('Número (1 a 99)','<input id="aNum_'+c+'" type="number" min="1" max="99" value="'+esc(e.numero||'')+'">')+
@@ -381,13 +382,15 @@ function cdAtletaLigar(f){
       CD.form=null;toast(r.data.inativado?'O atleta já jogou: ficou inativo e saiu do time.':'Atleta apagado.');cdRecarregar();});
   });
   fm.addEventListener('submit',function(e){e.preventDefault();
-    var d={id:f.id||null,nome:v('aNome'),apelido:v('aApe'),posicao:v('aPos'),unidade_id:v('aUni'),foto_url:f.foto_url||'',
+    var d={id:f.id||null,nome:v('aNome'),apelido:f.apelido||'',posicao:v('aPos'),unidade_id:v('aUni'),foto_url:f.foto_url||'',
       email:v('aEmail').toLowerCase(),celular:v('aCel'),nascimento:v('aNasc'),elencos:[]};
     var falta=!d.nome?'o nome':!d.posicao?'a posição':!/^\S+@\S+\.\S+$/.test(d.email)?'um e-mail válido':!d.celular?'o celular':!d.nascimento?'a data de nascimento':'';
     Object.keys(CD_COMP).forEach(function(c){var t=document.getElementById('aTime_'+c);if(!t||!t.value||falta)return;
       var x={time_id:t.value,numero:v('aNum_'+c),nome_camisa:v('aCam_'+c).toUpperCase(),kit:v('aKit_'+c)};
       falta=!(+x.numero>=1&&+x.numero<=99)?'o número da camisa na '+CD_COMP[c]+' (1 a 99)':!x.nome_camisa?'o nome na camisa na '+CD_COMP[c]:!x.kit?'o tamanho do kit na '+CD_COMP[c]:'';
       d.elencos.push(x);});
+    // competições que não aparecem no formulário: o time que o atleta já tinha nelas continua igual
+    Object.keys(CD_COMP).forEach(function(c){var e=(f.els||{})[cdTempId(c)];if(CD_COMP_ATLETA.indexOf(c)<0&&e)d.elencos.push({time_id:e.time_id,numero:String(e.numero),nome_camisa:e.nome_camisa,kit:e.kit});});
     if(falta){er.textContent='Preencha '+falta+'.';return;}
     var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
     cdEnviar(document.getElementById('aFoto').files[0],'atletas',function(url,erro){
