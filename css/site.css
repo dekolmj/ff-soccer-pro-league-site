@@ -1176,3 +1176,11 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 .libbar .ctabs{padding:6px 8px 0}
 .libbar .ctabs a{border-radius:10px 10px 0 0}
 .libbar .ctabs a.on{color:var(--gold);background:var(--bg);border-bottom-color:var(--bg)}
+/* jogos: nome do time sempre numa linha só (se não couber, termina em "…") */
+.rgame .ln{grid-template-columns:minmax(0,1fr) auto auto auto minmax(0,1fr)}
+.rgame .ln .h,.rgame .ln .a{min-width:0;max-width:100%}
+.rgame .ln .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rgame .ln .badge{flex:none}
+.rgame .ln.nosc{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+.rgame .ln.nosc .sc{display:none}
+@media (max-width:480px){.rgame .ln.nosc{gap:8px}.rgame .ln .h,.rgame .ln .a{font-size:13.5px}}
