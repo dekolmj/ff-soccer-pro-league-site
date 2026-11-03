@@ -41,7 +41,8 @@ function escCortar(url,livre){  // livre = logo de patrocinador: corta a margem 
     ESC_CORTE[key]=q.toDataURL('image/png');
     document.querySelectorAll('img[data-esc]').forEach(function(e){if(e.getAttribute('data-esc')===key)e.src=ESC_CORTE[key];});
   }catch(e){}};
-  im.src=url;}
+  // pede a imagem com um marcador no fim do endereço: assim o navegador não reaproveita a cópia sem permissão de leitura (CORS) já guardada pela <img> da tela
+  im.src=url+(url.indexOf('?')<0?'?':'&')+'corte=1';}
 function badge(tid,cls){var t=TM[tid]||{n:'?',c:'#555'};
   if(t.e){escCortar(t.e);return '<span class="badge esc '+(cls||'')+'"><img src="'+esc(ESC_CORTE[t.e]||t.e)+'" data-esc="'+esc(t.e)+'" alt=""></span>';}
   return '<span class="badge '+(cls||'')+'" style="background:'+esc(t.c)+';color:'+corTexto(t.c)+'">'+esc(t.n[0])+'</span>';}
