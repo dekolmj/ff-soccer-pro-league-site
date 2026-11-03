@@ -18,8 +18,8 @@ function aplicarOnda(){
 // então o site corta essa margem (fundo transparente ou da cor do canto) e o escudo ocupa o quadrado inteiro.
 // Fica guardado em ESC_CORTE; se o navegador não deixar ler a imagem, usa o arquivo original.
 var ESC_CORTE={},ESC_PEDIDO={};
-function escCortar(url){
-  if(!url||ESC_PEDIDO[url])return;ESC_PEDIDO[url]=1;
+function escCortar(url,livre){  // livre = logo de patrocinador: corta a margem mas mantém o formato (não vira quadrado)
+  var key=livre?url+'#l':url;if(!url||ESC_PEDIDO[key])return;ESC_PEDIDO[key]=1;
   var im=new Image();im.crossOrigin='anonymous';
   im.onload=function(){try{
     var W=im.naturalWidth,H=im.naturalHeight;if(!W||!H)return;var k=Math.min(1,256/Math.max(W,H)),w=Math.round(W*k),h=Math.round(H*k);
@@ -29,17 +29,17 @@ function escCortar(url){
     for(var y=0;y<h;y++)for(var x=0;x<w;x++){var o=(y*w+x)*4,dentro=alfa?px[o+3]>24:(Math.abs(px[o]-c0[0])+Math.abs(px[o+1]-c0[1])+Math.abs(px[o+2]-c0[2])>60);
       if(dentro){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
     if(x1<0)return;var bw=x1-x0+1,bh=y1-y0+1;if(alfa&&bw>w*.97&&bh>h*.97)return;  // já sem margem
-    var L=Math.max(bw,bh),sx=x0/k,sy=y0/k,sw=bw/k,sh=bh/k,q=document.createElement('canvas');q.width=q.height=Math.min(256,Math.round(L/k));
-    var f=q.width/Math.max(sw,sh),qx=q.getContext('2d');qx.drawImage(im,sx,sy,sw,sh,(q.width-sw*f)/2,(q.height-sh*f)/2,sw*f,sh*f);
-    if(!alfa){  // fundo sólido (ex.: JPG branco): apaga só o fundo ligado às bordas, sem mexer no branco de dentro do escudo
-      var Q=q.width,dd=qx.getImageData(0,0,Q,Q),P=dd.data,vis=new Uint8Array(Q*Q),fila=[];
-      for(var i=0;i<Q;i++){fila.push(i,(Q-1)*Q+i,i*Q,i*Q+Q-1);}
+    var L=Math.max(bw,bh),sx=x0/k,sy=y0/k,sw=bw/k,sh=bh/k,q=document.createElement('canvas'),f=Math.min(livre?400:256,Math.round(L/k))/Math.max(sw,sh);
+    q.width=Math.max(1,Math.round((livre?sw:Math.max(sw,sh))*f));q.height=Math.max(1,Math.round((livre?sh:Math.max(sw,sh))*f));var qx=q.getContext('2d');qx.drawImage(im,sx,sy,sw,sh,(q.width-sw*f)/2,(q.height-sh*f)/2,sw*f,sh*f);
+    if(!alfa&&!livre){  // fundo sólido (ex.: JPG branco): apaga só o fundo ligado às bordas, sem mexer no branco de dentro do escudo
+      var Q=q.width,QH=q.height,dd=qx.getImageData(0,0,Q,QH),P=dd.data,vis=new Uint8Array(Q*QH),fila=[];
+      for(var i=0;i<Q;i++)fila.push(i,(QH-1)*Q+i);for(i=0;i<QH;i++)fila.push(i*Q,i*Q+Q-1);
       while(fila.length){var n=fila.pop();if(vis[n])continue;vis[n]=1;var o2=n*4;
         if(P[o2+3]>0&&Math.abs(P[o2]-c0[0])+Math.abs(P[o2+1]-c0[1])+Math.abs(P[o2+2]-c0[2])>60)continue;
-        P[o2+3]=0;var nx=n%Q,ny=(n-nx)/Q;if(nx>0)fila.push(n-1);if(nx<Q-1)fila.push(n+1);if(ny>0)fila.push(n-Q);if(ny<Q-1)fila.push(n+Q);}
+        P[o2+3]=0;var nx=n%Q,ny=(n-nx)/Q;if(nx>0)fila.push(n-1);if(nx<Q-1)fila.push(n+1);if(ny>0)fila.push(n-Q);if(ny<QH-1)fila.push(n+Q);}
       qx.putImageData(dd,0,0);}
-    ESC_CORTE[url]=q.toDataURL('image/png');
-    document.querySelectorAll('img[data-esc]').forEach(function(e){if(e.getAttribute('data-esc')===url)e.src=ESC_CORTE[url];});
+    ESC_CORTE[key]=q.toDataURL('image/png');
+    document.querySelectorAll('img[data-esc]').forEach(function(e){if(e.getAttribute('data-esc')===key)e.src=ESC_CORTE[key];});
   }catch(e){}};
   im.src=url;}
 function badge(tid,cls){var t=TM[tid]||{n:'?',c:'#555'};
@@ -560,7 +560,7 @@ function route(){
   // troca de aba dentro da mesma página (ex.: Libertadores → Estatísticas): a página fica na mesma altura, sem voltar ao topo
   var mesmaPag=page==='libertadores'&&NAV.pag===page&&!(st&&st.k),tb0=mesmaPag&&document.querySelector('#app .ctabs'),tbTela=tb0?tb0.getBoundingClientRect().top:null;NAV.pag=page;
   if(st&&st.k){NAV.k=st.k;}else{NAV.k=Date.now()+'-'+(++NAV.n);try{history.replaceState({k:NAV.k},'',location.href);}catch(e){}}
-  NAV.ant=NAV.atual;NAV.atual='#'+h;
+  NAV.ant=NAV.atual;NAV.atual='#'+h;var pt=document.getElementById('patro');if(pt)pt.classList.toggle('fora',page==='painel');
   app.style.minHeight=mesmaPag?app.offsetHeight+'px':'';app.innerHTML=P[page](arg);  // segura a altura enquanto troca de aba, para o navegador não puxar a página para cima
   // abas da Libertadores: a barra de abas fica no mesmo lugar da tela (e a página tem altura para isso, mesmo com uma aba curta)
   var tb1=page==='libertadores'&&document.querySelector('#app .ctabs');
@@ -629,6 +629,26 @@ function bind(page){
     });
   }
 }
+/* Patrocinadores (03/11/2026, pedido do Deko): faixa com os logos passando, antes do rodapé, em todas as páginas (menos no painel).
+   Lê do banco os que estão "no site" (aba Patrocinadores do painel). Sem nenhum, a faixa não aparece; com ?demo, mostra exemplos. */
+var PATRO_EX=['Patrocinador 1','Patrocinador 2','Patrocinador 3','Patrocinador 4','Patrocinador 5'].map(function(n,i){return {nome:n,exemplo:1,ordem:i};});
+function patroMostra(ls){
+  var el=document.getElementById('patro');if(!el)return;
+  if(!ls.length){el.hidden=true;el.innerHTML='';return;}
+  var item=function(p){var dentro=p.logo_url?'<img src="'+esc(ESC_CORTE[p.logo_url+'#l']||p.logo_url)+'" data-esc="'+esc(p.logo_url+'#l')+'" alt="'+esc(p.nome)+'">':'<span class="pnome">'+esc(p.nome)+'</span>';
+    if(p.logo_url)escCortar(p.logo_url,true);
+    return p.link?'<a class="pitem" href="'+esc(p.link)+'" target="_blank" rel="noopener sponsored" title="'+esc(p.nome)+'">'+dentro+'</a>':'<span class="pitem" title="'+esc(p.nome)+'">'+dentro+'</span>';};
+  var bloco=[];while(bloco.length<10)bloco=bloco.concat(ls);  // repete até encher a faixa
+  var meio=bloco.map(item).join('');
+  el.innerHTML='<div class="wrap"><div class="lbl">Patrocinadores</div></div><div class="ptrilho"><div class="pfita" style="animation-duration:'+(bloco.length*3.2)+'s"><div class="pgrupo">'+meio+'</div><div class="pgrupo" aria-hidden="true">'+meio+'</div></div></div>';
+  el.querySelectorAll('.pgrupo[aria-hidden] a').forEach(function(a){a.tabIndex=-1;});
+  el.hidden=false;}
+function patroCarregar(){
+  var ex=function(){patroMostra(DEMO?PATRO_EX:[]);};
+  if(!CONFIG.SUPABASE_URL||!CONFIG.SUPABASE_KEY||!window.fetch)return ex();
+  fetch(CONFIG.SUPABASE_URL+'/rest/v1/patrocinadores?select=nome,logo_url,link,ordem&ativo=eq.true&order=ordem,nome',{headers:{apikey:CONFIG.SUPABASE_KEY}})
+    .then(function(r){if(!r.ok)throw r;return r.json();})
+    .then(function(ls){if(ls&&ls.length)patroMostra(ls);else ex();},function(){ex();});}
 var SEARCH='';
 document.getElementById('burger').addEventListener('click',function(){var d=document.getElementById('drawer');d.hidden=!d.hidden;
   // o menu do celular abre logo abaixo do cabeçalho (com ?demo, a tarja amarela empurra o cabeçalho para baixo)
@@ -658,6 +678,7 @@ setInterval(function(){
 aplicarOnda();
 // Desenha só depois de todos os scripts (o painel.js vem depois deste arquivo e define o login).
 document.addEventListener('DOMContentLoaded',function(){
+  patroCarregar();
   if(ONDA<2)route();  // onda 1 não mostra dados de jogos: não espera o banco
   else carregarBanco(function(){if(ME&&!PM[ME])ME=null;acct();CLR=CUR;ticker();route();Object.keys(TM).forEach(function(id){escCortar(TM[id].e);});});
 });

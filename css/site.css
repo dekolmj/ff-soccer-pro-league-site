@@ -1184,3 +1184,19 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 .rgame .ln.nosc{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
 .rgame .ln.nosc .sc{display:none}
 @media (max-width:480px){.rgame .ln.nosc{gap:8px}.rgame .ln .h,.rgame .ln .a{font-size:13.5px}}
+/* Patrocinadores: faixa com os logos passando, antes do rodapé */
+.patro{border-top:1px solid var(--line);padding:22px 0 26px;margin-top:40px;overflow:hidden}
+.patro.fora{display:none}
+.patro .lbl{margin-bottom:14px}
+.ptrilho{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.pfita{display:flex;width:max-content;animation:patroAnda linear infinite}
+.ptrilho:hover .pfita{animation-play-state:paused}
+.pgrupo{display:flex;align-items:center;gap:20px;padding-right:20px}
+.pitem{display:flex;align-items:center;justify-content:center;height:64px;min-width:120px;padding:8px 18px;flex:none;background:#F5F3EC;border-radius:12px;transition:transform .2s}
+a.pitem:hover{transform:translateY(-2px)}
+.pitem img{max-height:36px;max-width:150px;width:auto;height:auto;object-fit:contain;display:block}
+.pnome{font-family:var(--cond);font-weight:700;font-size:19px;letter-spacing:.06em;text-transform:uppercase;color:#1B1606;white-space:nowrap}
+@keyframes patroAnda{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.pfita{animation:none}.ptrilho{overflow-x:auto}.pgrupo[aria-hidden]{display:none}}
+@media (max-width:480px){.pgrupo{gap:14px;padding-right:14px}.pitem{height:54px;min-width:100px;padding:6px 14px}.pitem img{max-height:30px;max-width:110px}.pnome{font-size:16px}}
+.patro:not([hidden]):not(.fora)+footer{margin-top:0}
