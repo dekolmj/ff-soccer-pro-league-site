@@ -1200,3 +1200,4 @@ a.pitem:hover{transform:translateY(-2px)}
 @media (prefers-reduced-motion:reduce){.pfita{animation:none}.ptrilho{overflow-x:auto}.pgrupo[aria-hidden]{display:none}}
 @media (max-width:480px){.pgrupo{gap:14px;padding-right:14px}.pitem{height:54px;min-width:100px;padding:6px 14px}.pitem img{max-height:30px;max-width:110px}.pnome{font-size:16px}}
 .patro:not([hidden]):not(.fora)+footer{margin-top:0}
+.ptprev{display:inline-flex;align-items:center;justify-content:center;min-width:72px;max-width:120px;padding:4px 10px;background:#F5F3EC;border-radius:8px;flex:none}.ptprev img{max-height:100%;max-width:100%;object-fit:contain}.ptprev b{color:#1B1606;font-size:12px;text-align:center;line-height:1.1;overflow:hidden}

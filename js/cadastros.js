@@ -33,8 +33,8 @@ function cdCarregar(cb){
     CD.ok=true;cb();
   });
 }
-function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,jogos:cdJogos,aovivo:cdAoVivo,usuarios:cdUsuarios,historico:cdHistorico})[aba]();};
-  if(aba==='historico'||aba==='aovivo'||CD.ok)ir();else cdCarregar(ir);}
+function cdAba(aba){cdMsg('Carregando…');var ir=function(){if(PN.aba!==aba||!cdEl())return;({times:cdTimes,jogos:cdJogos,aovivo:cdAoVivo,patrocinadores:cdPatro,usuarios:cdUsuarios,historico:cdHistorico})[aba]();};
+  if(aba==='historico'||aba==='aovivo'||aba==='patrocinadores'||CD.ok)ir();else cdCarregar(ir);}
 function cdRecarregar(){CD.ok=false;cdAba(PN.aba);}
 
 // Competições: a temporada mais recente de cada uma.
@@ -465,8 +465,67 @@ function cdAoVivo(){
   });
 }
 
+/* ================= PATROCINADORES =================
+   Logos que passam na faixa antes do rodapé do site. Nome, logo, link (opcional), ordem e se aparece no site.
+   Só administrador apaga; quem não é administrador pode tirar do site. */
+var PT={lista:[],form:null};
+function cdPatro(){
+  SB.from('patrocinadores').select('id,nome,logo_url,link,ordem,ativo').order('ordem').order('nome').then(function(r){
+    if(PN.aba!=='patrocinadores'||!cdEl())return;
+    if(r.error){cdMsg('Não foi possível carregar os patrocinadores. Recarregue a página.');console.warn(r.error);return;}
+    PT.lista=r.data||[];cdPatroTela();});
+}
+function cdPatroTela(){
+  var el=cdEl(),f=PT.form,ls=PT.lista,no=ls.filter(function(p){return p.ativo;}).length;
+  var logo=function(p,h){return '<span class="ptprev" style="height:'+h+'px">'+(p.logo_url?'<img src="'+esc(p.logo_url)+'" alt="">':'<b>'+esc(p.nome)+'</b>')+'</span>';};
+  el.innerHTML='<div class="pnbusca"><p class="muted" style="margin:0;flex:1 1 300px">'+(ls.length?no+' de '+ls.length+(ls.length===1?' patrocinador':' patrocinadores')+' no site.':'Nenhum patrocinador cadastrado ainda.')+
+    ' Os que estão "no site" passam na faixa antes do rodapé, em todas as páginas, nesta ordem. Sem logo, aparece o nome.</p>'+
+    '<button class="btn primary sm" id="ptNovo">+ Novo patrocinador</button></div>'+
+    (f?'<form class="card cdform" id="cdForm" novalidate><h3>'+(f.id?'Editar '+esc(f.nome):'Novo patrocinador')+'</h3><div class="cdcampos">'+
+      cdCampo('Nome *','<input id="ptNome" maxlength="60" value="'+esc(f.nome||'')+'">')+
+      cdCampo('Ordem na faixa','<input id="ptOrdem" type="number" min="0" max="999" value="'+esc(f.ordem==null?'':f.ordem)+'">')+
+      cdCampo('Link (site ou Instagram, opcional)','<input id="ptLink" maxlength="300" placeholder="https://…" value="'+esc(f.link||'')+'">','full')+
+      cdCampo('Logo (PNG, JPG, WEBP ou SVG, até 2 MB; de preferência sem fundo ou com fundo branco)','<div class="cdimg">'+(f.logo_url?logo(f,48):'')+'<input id="ptLogo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></div>','full')+
+      '<label class="fld full" style="flex-direction:row;align-items:center;gap:10px;display:flex"><input type="checkbox" id="ptAtivo" style="width:auto"'+(f.ativo!==false?' checked':'')+'> Aparece no site</label>'+
+      '</div><div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button>'+
+      (f.id&&cdAdmin()?'<button class="btn cdapaga" type="button" id="cdApaga">Apagar patrocinador</button>':'')+'</div></form>':'')+
+    '<div class="cdgrid">'+ls.map(function(p){return '<div class="card cdtime"><div class="row">'+logo(p,44)+'<div style="min-width:0"><b>'+esc(p.nome)+'</b>'+
+      '<div class="lbl">Ordem '+p.ordem+(p.link?' · com link':'')+'</div><span class="chip '+(p.ativo?'ok':'')+'">'+(p.ativo?'No site':'Fora do site')+'</span></div></div>'+
+      '<div class="cdtbts"><button class="btn sm" data-ptliga="'+esc(p.id)+'">'+(p.ativo?'Tirar do site':'Pôr no site')+'</button><button class="btn sm" data-pted="'+esc(p.id)+'">Editar</button></div></div>';}).join('')+'</div>';
+  var acha=function(id){return ls.filter(function(p){return p.id===id;})[0];};
+  document.getElementById('ptNovo').addEventListener('click',function(){PT.form={ativo:true,ordem:ls.length+1};cdPatroTela();cdFoco();});
+  el.querySelectorAll('[data-pted]').forEach(function(b){b.addEventListener('click',function(){var p=acha(b.dataset.pted);PT.form={id:p.id,nome:p.nome,logo_url:p.logo_url,link:p.link,ordem:p.ordem,ativo:p.ativo};cdPatroTela();cdFoco();});});
+  el.querySelectorAll('[data-ptliga]').forEach(function(b){b.addEventListener('click',function(){var p=acha(b.dataset.ptliga);b.disabled=true;
+    SB.from('patrocinadores').update({ativo:!p.ativo}).eq('id',p.id).then(function(r){
+      if(r.error){b.disabled=false;toast('Não foi possível alterar. Tente de novo.');return;}
+      toast(p.nome+(p.ativo?' saiu do site.':' está no site.'));cdPatro();});});});
+  if(!f)return;
+  var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr');
+  document.getElementById('cdCancela').addEventListener('click',function(){PT.form=null;cdPatroTela();});
+  var ap=document.getElementById('cdApaga');
+  if(ap)ap.addEventListener('click',function(){if(!confirm('Apagar o patrocinador '+f.nome+'? Isso não pode ser desfeito.'))return;ap.disabled=true;
+    SB.from('patrocinadores').delete().eq('id',f.id).then(function(r){
+      if(r.error){ap.disabled=false;er.textContent='Não foi possível apagar. Tente de novo.';return;}
+      PT.form=null;toast('Patrocinador apagado.');cdPatro();});});
+  fm.addEventListener('submit',function(e){e.preventDefault();
+    var nome=document.getElementById('ptNome').value.trim(),link=document.getElementById('ptLink').value.trim();
+    if(!nome){er.textContent='Preencha o nome do patrocinador.';return;}
+    if(link&&!/^https?:\/\//i.test(link))link='https://'+link;
+    if(link&&!/^https?:\/\/[^\s.]+\.[^\s]+$/i.test(link)){er.textContent='Confira o link (ex.: https://www.site.com.br).';return;}
+    var dados={nome:nome,link:link||null,ordem:Math.max(0,Math.min(999,parseInt(document.getElementById('ptOrdem').value,10)||0)),ativo:document.getElementById('ptAtivo').checked};
+    var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
+    cdEnviar(document.getElementById('ptLogo').files[0],'patrocinadores',function(url,erro){
+      if(erro){bt.disabled=false;er.textContent=erro;return;}
+      if(url)dados.logo_url=url;
+      (f.id?SB.from('patrocinadores').update(dados).eq('id',f.id):SB.from('patrocinadores').insert(dados)).then(function(r){bt.disabled=false;
+        if(r.error){er.textContent='Não foi possível salvar. Tente de novo.';console.warn(r.error);return;}
+        PT.form=null;toast(f.id?'Patrocinador atualizado.':'Patrocinador cadastrado.');cdPatro();});
+    });
+  });
+}
+
 /* ================= HISTÓRICO ================= */
-var CD_TAB={times:'Time',atletas:'Atleta',elencos:'Elenco',jogos:'Jogo',rodadas:'Rodada',transmissao:'Transmissão'};
+var CD_TAB={times:'Time',atletas:'Atleta',elencos:'Elenco',jogos:'Jogo',rodadas:'Rodada',transmissao:'Transmissão',patrocinadores:'Patrocinador'};
 function cdHistorico(){
   SB.from('historico').select('quando,quem,tabela,acao,resumo').order('quando',{ascending:false}).limit(200).then(function(r){
     var el=cdEl();if(!el||PN.aba!=='historico')return;
