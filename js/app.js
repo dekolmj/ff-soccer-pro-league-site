@@ -142,8 +142,9 @@ function libEstatHTML(){
 }
 // Linha de um jogo nos quadros de rodada (FF Pro League e Libertadores FF)
 function rgameHTML(g){var done=jogou(g),d=g.date;
-  return '<div class="rgame"><div class="meta">'+esc(g.field)+' &nbsp;<b>'+(d?String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' · '+['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][d.getDay()]+(g.time?' · '+g.time:''):'Data a definir')+'</b></div>'+
+  return '<div class="rgame"><div class="meta"><b>'+(d?String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' · '+['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][d.getDay()]+(g.time?' · '+g.time:''):'Data a definir')+'</b></div>'+
     '<div class="ln'+(done?'':' nosc')+'"><span class="h"><span class="nm">'+tn(g.h)+'</span>'+badge(g.h,'sm')+'</span><span class="sc">'+(done?g.gh:'')+'</span><span class="x">×</span><span class="sc">'+(done?g.ga:'')+'</span><span class="a">'+badge(g.a,'sm')+'<span class="nm">'+tn(g.a)+'</span></span></div>'+
+    (g.field?'<div class="rloc"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>Unidade '+esc(g.field)+'</div>':'')+
     '<a class="go'+(g.st==='ao vivo'?' lv':'')+'" href="#'+g.id+'">'+(g.st==='ao vivo'?'● Ao vivo'+(g.min!=null?' · '+g.min+"'":''):g.st==='encerrado'?'Saiba como foi':g.st==='adiado'?'Adiado':g.st==='cancelado'?'Cancelado':'Detalhes do jogo')+'</a></div>';}
 function libJogosBox(G){
   if(!G.rodadas.length)return '<p class="muted" style="margin:0">Nenhum jogo cadastrado ainda.</p>';
