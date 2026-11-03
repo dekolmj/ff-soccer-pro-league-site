@@ -1187,7 +1187,7 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 /* Patrocinadores: faixa com os logos passando, antes do rodapé */
 .patro{border-top:1px solid var(--line);padding:22px 0 26px;margin-top:40px;overflow:hidden}
 .patro.fora{display:none}
-.patro .lbl{margin-bottom:14px}
+.patro .lbl{margin-bottom:14px;text-align:center}
 .ptrilho{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .pfita{display:flex;width:max-content;animation:patroAnda linear infinite}
 .ptrilho:hover .pfita{animation-play-state:paused}
@@ -1201,3 +1201,4 @@ a.pitem:hover{transform:translateY(-2px)}
 @media (max-width:480px){.pgrupo{gap:14px;padding-right:14px}.pitem{height:54px;min-width:100px;padding:6px 14px}.pitem img{max-height:30px;max-width:110px}.pnome{font-size:16px}}
 .patro:not([hidden]):not(.fora)+footer{margin-top:0}
 .ptprev{display:inline-flex;align-items:center;justify-content:center;min-width:72px;max-width:120px;padding:4px 10px;background:#F5F3EC;border-radius:8px;flex:none}.ptprev img{max-height:100%;max-width:100%;object-fit:contain}.ptprev b{color:#1B1606;font-size:12px;text-align:center;line-height:1.1;overflow:hidden}
+.ptrilho.parado{-webkit-mask-image:none;mask-image:none;display:flex;justify-content:center}.ptrilho.parado .pgrupo{padding:0 16px;flex-wrap:nowrap}

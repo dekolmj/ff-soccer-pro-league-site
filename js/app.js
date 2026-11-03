@@ -638,11 +638,16 @@ function patroMostra(ls){
   var item=function(p){var dentro=p.logo_url?'<img src="'+esc(ESC_CORTE[p.logo_url+'#l']||p.logo_url)+'" data-esc="'+esc(p.logo_url+'#l')+'" alt="'+esc(p.nome)+'">':'<span class="pnome">'+esc(p.nome)+'</span>';
     if(p.logo_url)escCortar(p.logo_url,true);
     return p.link?'<a class="pitem" href="'+esc(p.link)+'" target="_blank" rel="noopener sponsored" title="'+esc(p.nome)+'">'+dentro+'</a>':'<span class="pitem" title="'+esc(p.nome)+'">'+dentro+'</span>';};
+  PATRO_LS=ls;var tit='<div class="wrap"><div class="lbl">Patrocinadores</div></div>';
+  // cabem todos na tela: ficam parados, centralizados, cada um uma vez só; não cabem: a faixa roda (03/11/2026, pedido do Deko)
+  el.innerHTML=tit+'<div class="ptrilho parado"><div class="pgrupo">'+ls.map(item).join('')+'</div></div>';el.hidden=false;
+  var tr=el.querySelector('.ptrilho'),g=el.querySelector('.pgrupo');if(g.scrollWidth<=tr.clientWidth){g.querySelectorAll('img').forEach(function(im){im.addEventListener('load',function(){if(tr.isConnected&&tr.classList.contains('parado')&&g.scrollWidth>tr.clientWidth)patroMostra(ls);});});return;}
   var bloco=[];while(bloco.length<10)bloco=bloco.concat(ls);  // repete até encher a faixa
   var meio=bloco.map(item).join('');
-  el.innerHTML='<div class="wrap"><div class="lbl">Patrocinadores</div></div><div class="ptrilho"><div class="pfita" style="animation-duration:'+(bloco.length*3.2)+'s"><div class="pgrupo">'+meio+'</div><div class="pgrupo" aria-hidden="true">'+meio+'</div></div></div>';
-  el.querySelectorAll('.pgrupo[aria-hidden] a').forEach(function(a){a.tabIndex=-1;});
-  el.hidden=false;}
+  el.innerHTML=tit+'<div class="ptrilho"><div class="pfita" style="animation-duration:'+(bloco.length*3.2)+'s"><div class="pgrupo">'+meio+'</div><div class="pgrupo" aria-hidden="true">'+meio+'</div></div></div>';
+  el.querySelectorAll('.pgrupo[aria-hidden] a').forEach(function(a){a.tabIndex=-1;});}
+var PATRO_LS=null,PATRO_T=null,PATRO_W=window.innerWidth;
+window.addEventListener('resize',function(){if(!PATRO_LS||window.innerWidth===PATRO_W)return;PATRO_W=window.innerWidth;clearTimeout(PATRO_T);PATRO_T=setTimeout(function(){patroMostra(PATRO_LS);},300);});
 function patroCarregar(){
   var ex=function(){patroMostra(DEMO?PATRO_EX:[]);};
   if(!CONFIG.SUPABASE_URL||!CONFIG.SUPABASE_KEY||!window.fetch)return ex();
