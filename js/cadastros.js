@@ -19,7 +19,7 @@ function cdCarregar(cb){
     SB.from('unidades').select('id,nome').eq('ativa',true).order('nome'),
     !preOn()?Promise.resolve({data:[]}):SB.from('pre_inscricoes').select('id,protocolo,nome,email,celular,nascimento,unidade,posicao,posicoes,kit,numero,numeros,nome_camisa').eq('status','aprovada').order('nome'),
     SB.rpc('listar_acessos'),
-    SB.from('jogos').select('id,temporada_id,rodada,ordem,grupo,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,mvp_atleta_id,sumula_fechada,exemplo').order('rodada').order('ordem'),
+    SB.from('jogos').select('id,temporada_id,rodada,ordem,grupo,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,mvp_atleta_id,sumula_fechada,exemplo,observacao,observacao_tipo').order('rodada').order('ordem'),
     SB.from('eventos_jogo').select('jogo_id,atleta_id,time_id').eq('tipo','cartao_vermelho'),
     SB.from('rodadas').select('id,temporada_id,numero,data').order('numero').then(function(x){return x.error?{data:[]}:x;})  // banco ainda sem a tabela rodadas: só as rodadas dos jogos
   ]).then(function(r){
@@ -602,7 +602,7 @@ function cdJogos(){
   box.querySelectorAll('[data-rodada]').forEach(function(b){b.addEventListener('click',function(){var r=rods.filter(function(x){return String(x.numero)===b.dataset.rodada;})[0];
     CD.form={tipo:'rodada',id:r.id,numero:r.numero,antigo:r.numero,data:r.data||'',jogos:js.filter(function(j){return j.rodada===r.numero;}).length};cdJogos();cdFoco();});});
   box.querySelectorAll('[data-jogo]').forEach(function(b){b.addEventListener('click',function(){var j=CD.jogos.filter(function(x){return x.id===b.dataset.jogo;})[0],d=cdBr(j.data_hora)||{};
-    CD.form={tipo:'jogo',id:j.id,rodada:j.rodada,grupo:j.grupo,data:d.data||'',hora:d.hora||'',local:j.local,time_casa:j.time_casa,time_fora:j.time_fora,status:j.status,fechada:j.sumula_fechada};cdJogos();cdFoco();});});
+    CD.form={tipo:'jogo',id:j.id,rodada:j.rodada,grupo:j.grupo,data:d.data||'',hora:d.hora||'',local:j.local,time_casa:j.time_casa,time_fora:j.time_fora,status:j.status,fechada:j.sumula_fechada,obs:j.observacao||'',obsT:j.observacao_tipo||'aviso'};cdJogos();cdFoco();});});
 }
 function cdMaisDias(d,n){var x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return x.getFullYear()+'-'+cdP2(x.getMonth()+1)+'-'+cdP2(x.getDate());}
 
@@ -652,6 +652,8 @@ function cdJogoForm(f){var op=cdOpTimes(f.grupo,[f.time_casa,f.time_fora]),rods=
     cdCampo('Time da casa *','<select id="jCasa"'+(f.fechada?' disabled':'')+'><option value="">Escolha</option>'+cdOpcoes(op,f.time_casa)+'</select>')+
     cdCampo('Time visitante *','<select id="jFora"'+(f.fechada?' disabled':'')+'><option value="">Escolha</option>'+cdOpcoes(op,f.time_fora)+'</select>')+
     (f.status==='encerrado'||f.status==='ao_vivo'?'':cdCampo('Situação','<select id="jSt">'+cdOpcoes([['agendado','Agendado'],['adiado','Adiado'],['cancelado','Cancelado']],f.status)+'</select>'))+
+    cdCampo('Observação (aparece no site, abaixo do jogo)','<textarea id="jObs" maxlength="300" rows="2" placeholder="Ex.: Aulas apenas no período da manhã. Sugestão de reposição: Vila Mariana.">'+esc(f.obs||'')+'</textarea>','full')+
+    cdCampo('Tipo da observação','<select id="jObsT">'+cdOpcoes([['aviso','⚠️ Aviso'],['ok','✅ Tudo normal']],f.obsT||'aviso')+'</select>')+
     '</div>'+(f.fechada?'<p class="muted" style="margin:10px 0 0;font-size:14px">A súmula deste jogo está fechada: os times não mudam. Para trocar, um administrador reabre a súmula.</p>':'')+
     '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button>'+
     (!f.novo&&cdAdmin()?'<button class="btn cdapaga" type="button" id="cdApaga">Apagar jogo</button>':'')+'</div></form>';}
@@ -675,7 +677,7 @@ function cdJogoLigar(f){
     if(hora&&!data){er.textContent='Preencha a data junto com o horário.';return;}
     var d={id:f.id||null,temporada_id:cdTempId(CD.comp),rodada:v('jRod'),grupo:v('jGrupo'),local:v('jLocal'),
       time_casa:f.fechada?f.time_casa:v('jCasa'),time_fora:f.fechada?f.time_fora:v('jFora'),status:v('jSt')||f.status,
-      data_hora:data?data+'T'+(hora||'00:00')+':00-03:00':''};
+      data_hora:data?data+'T'+(hora||'00:00')+':00-03:00':'',observacao:v('jObs'),observacao_tipo:v('jObsT')||'aviso'};
     if(!(+d.rodada>=1)){er.textContent='Preencha a rodada.';return;}
     if(!d.time_casa||!d.time_fora){er.textContent='Escolha os dois times.';return;}
     if(d.time_casa===d.time_fora){er.textContent='Escolha dois times diferentes.';return;}

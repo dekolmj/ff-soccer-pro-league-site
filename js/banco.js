@@ -64,7 +64,7 @@ function montarComp(d,temp,pre,tm,pm,fotos){
   d.jogos.forEach(function(j){if(j.temporada_id!==tid||!tm[j.time_casa]||!tm[j.time_fora])return;
     var dh=j.data_hora?dataBrasilia(j.data_hora):{date:null,time:''};
     var g={id:pre+j.rodada+'-'+j.ordem,r:j.rodada,i:j.ordem-1,h:j.time_casa,a:j.time_fora,date:dh.date,time:dh.time,field:j.local||'',grupo:j.grupo||'',comp:pre,
-      st:j.sumula_fechada?'encerrado':(ST_[j.status]||'agendado'),gh:j.gols_casa,ga:j.gols_fora,ev:[],mvp:sid[j.mvp_atleta_id]||null,varTot:nVar,varH:nVar,varA:nVar,min:j.minuto_atual};
+      st:j.sumula_fechada?'encerrado':(ST_[j.status]||'agendado'),gh:j.gols_casa,ga:j.gols_fora,ev:[],mvp:sid[j.mvp_atleta_id]||null,varTot:nVar,varH:nVar,varA:nVar,min:j.minuto_atual,obs:j.observacao||'',obsT:j.observacao_tipo||'aviso'};
     if(g.st==='encerrado'&&(g.gh==null||g.ga==null))g.st='agendado';
     c.games.push(g);gm[j.id]=g;});
 
@@ -133,7 +133,7 @@ function carregarBanco(pronto){
     sbGet('times','select=id,nome,cor,escudo_url,unidade_id,ordem,temporada_id,grupo&order=ordem,nome'),
     sbGet('atletas','select=id,nome,posicao,unidade_id,foto_url,ativo&order=id'),
     sbGet('elencos','select=time_id,atleta_id,numero,temporada_id&order=id'),
-    sbGet('jogos','select=id,temporada_id,rodada,ordem,grupo,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,minuto_atual,mvp_atleta_id,sumula_fechada&order=rodada,ordem'),
+    sbGet('jogos','select=id,temporada_id,rodada,ordem,grupo,data_hora,local,time_casa,time_fora,status,gols_casa,gols_fora,minuto_atual,mvp_atleta_id,sumula_fechada,observacao,observacao_tipo&order=rodada,ordem'),
     sbGet('escalacoes','select=jogo_id,atleta_id&order=jogo_id,atleta_id'),
     sbGet('eventos_jogo','select=jogo_id,minuto,tipo,time_id,atleta_id,atleta2_id,observacao&order=minuto,criado_em,id'),
     sbGet('desafios_var','select=jogo_id,time_id,minuto,motivo&order=minuto,criado_em,id')

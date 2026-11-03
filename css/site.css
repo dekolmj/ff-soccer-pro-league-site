@@ -1204,3 +1204,8 @@ a.pitem:hover{transform:translateY(-2px)}
 .ptrilho.parado{-webkit-mask-image:none;mask-image:none;display:flex;justify-content:center}.ptrilho.parado .pgrupo{padding:0 16px;flex-wrap:nowrap}
 /* jogos: unidade (local) em destaque, abaixo dos times */
 .rgame .rloc{justify-self:center;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:1px solid rgba(242,193,77,.45);border-radius:999px;background:rgba(242,193,77,.08);color:var(--gold);font-family:var(--cond);font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+/* jogos: observação (aviso de aulas, reposição) abaixo da unidade */
+.rgame .robs{justify-self:center;display:flex;gap:8px;align-items:flex-start;max-width:420px;text-align:left;font-size:13.5px;line-height:1.45;color:var(--ink);padding:8px 12px;border-radius:10px;border:1px solid;background:var(--bg2)}
+.rgame .robs.av{border-color:rgba(242,193,77,.5)}
+.rgame .robs.ok{border-color:rgba(76,175,110,.5);color:var(--mute)}
+.fld textarea{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:11px 14px;color:var(--ink);font:inherit;resize:vertical;min-width:0}
