@@ -113,7 +113,8 @@ var REG_CAP=[
  '<p>O regulamento poderá receber atualizações e complementações caso surjam situações não previstas inicialmente.</p>'+
  '<p>Eventuais alterações passarão a ter validade a partir da divulgação oficial.</p>'+
  '<p>Os casos omissos serão analisados e decididos pela organização, visando sempre a justiça esportiva, a boa convivência e o sucesso do evento.</p>'+
- '<p>Nosso objetivo é proporcionar uma competição organizada, competitiva, divertida e respeitosa para todos os participantes.</p>']
+ '<p>Nosso objetivo é proporcionar uma competição organizada, competitiva, divertida e respeitosa para todos os participantes.</p>'+
+ '<p>Qualquer ajuste ou informação pode ser inserido durante a competição.</p>']
 ];
 
 function libRegulamentoHTML(){
