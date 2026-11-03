@@ -29,7 +29,7 @@ var REG_CAP=[
  '<p>A organização buscará equilibrar os deslocamentos e proporcionar condições adequadas para todas as equipes.</p>'+
  '<p>Por questões logísticas, algumas equipes poderão realizar partidas como mandantes em unidades diferentes de sua unidade de origem.</p>'+
  '<h4>Regras específicas</h4>'+
- '<p><b>Mooca — LDU e Atlético Nacional.</b> Todos os jogos oficiais das equipes da Mooca serão realizados na Rua Clemente Bonifácio, 263, em uma das três quadras disponíveis. A quadra da Padre Raposo não receberá partidas oficiais da competição.</p>'+
+ '<p><b>Mooca — LDU e Atlético Nacional.</b> Todos os jogos oficiais das equipes da Mooca, quando forem mandantes, serão realizados na Rua Clemente Bonifácio, 263, em uma das três quadras disponíveis. A quadra da Padre Raposo não receberá partidas oficiais da competição.</p>'+
  '<p><b>Guarulhos — Boca Juniors e Peñarol.</b> As equipes Boca Juniors e Peñarol representam a unidade Guarulhos e poderão realizar seus mandos de campo nas unidades Guarulhos ou Tucuruvi. Essa decisão considera a estrutura coberta da quadra do Tucuruvi, a proximidade entre as unidades e as necessidades operacionais da competição.</p>'+
  '<p><b>Vila Mariana — Libertad.</b> A equipe Libertad terá seus jogos como mandante distribuídos entre Campo Belo e Vila-Lobos, uma vez que a quadra de Vila Mariana não apresenta as condições de segurança ideais para partidas de competição.</p>'+
  '<h4>Validade dos mandos alternativos</h4>'+
