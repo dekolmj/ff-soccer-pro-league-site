@@ -4,7 +4,7 @@
    (páginas de time, atleta e jogo servem para as duas).
    Desde 26/10/2026 o Campeonato não usa mais os dados de exemplo: se o banco falhar, as páginas avisam e ficam vazias. */
 
-var BANCO_OK=false,BANCO_ERRO=false,UNID_END={};  // UNID_END: endereço de cada unidade, pelo nome (selo da unidade nos jogos)
+var BANCO_OK=false,BANCO_ERRO=false,UNID_END={},ATL_PID={};  // ATL_PID: id do atleta no banco → id dele no site  // UNID_END: endereço de cada unidade, pelo nome (selo da unidade nos jogos)
 var LIB={teams:[],players:[],games:[],grupos:[],scorers:[],mvps:[],nome:''},ALLGAMES=[],RLIST=[],PRO_NOME='';
 
 function sbGet(tabela,query){
@@ -55,8 +55,9 @@ function montarComp(d,temp,pre,tm,pm,fotos){
   c.teams=d.times.filter(function(t){return t.temporada_id===tid;}).map(function(t){var x={id:t.id,n:t.nome,c:t.cor||'#888',e:t.escudo_url||'',u:un[t.unidade_id]||'',grupo:t.grupo||'',comp:pre,roster:[]};tm[t.id]=x;return x;});
   // id do atleta no site = <time>-<número da camisa>, como nas rotas #atleta-falcoes-10
   d.elencos.forEach(function(e){var a=at[e.atleta_id];if(e.temporada_id!==tid||!a||!tm[e.time_id]||a.ativo===false)return;
-    var p={id:e.time_id+'-'+e.numero,n:a.nome,num:e.numero,pos:a.posicao||'',team:e.time_id,unit:un[a.unidade_id]||'',g:0,a:0,j:0,mvp:0,min:0,ca:0,cv:0,games:[]};
-    sid[a.id]=p.id;pm[p.id]=p;if(a.foto_url)fotos[p.id]=a.foto_url;c.players.push(p);});
+    var pid=e.time_id+'-'+e.numero,k=2;while(pm[pid])pid=e.time_id+'-'+e.numero+'-'+(k++);  // número repetido no time (permitido desde 04/11/2026): o 2º vira <time>-<número>-2
+    var p={id:pid,n:a.nome,num:e.numero,pos:a.posicao||'',team:e.time_id,unit:un[a.unidade_id]||'',g:0,a:0,j:0,mvp:0,min:0,ca:0,cv:0,games:[]};
+    sid[a.id]=p.id;ATL_PID[a.id]=p.id;pm[p.id]=p;if(a.foto_url)fotos[p.id]=a.foto_url;c.players.push(p);});
   c.players.sort(function(x,y){return c.teams.indexOf(tm[x.team])-c.teams.indexOf(tm[y.team])||(ORD[x.pos]==null?9:ORD[x.pos])-(ORD[y.pos]==null?9:ORD[y.pos])||x.num-y.num;});
   c.players.forEach(function(p){tm[p.team].roster.push(p);});
 
@@ -91,6 +92,7 @@ function montarComp(d,temp,pre,tm,pm,fotos){
 }
 
 function montarDados(d){
+  ATL_PID={};
   UNID_END={};d.unidades.forEach(function(u){if(u.endereco)UNID_END[u.nome]=u.endereco;});
   var ultima=function(comp){return d.temporadas.filter(function(t){return (t.competicao||'pro_league')===comp;}).sort(function(a,b){return b.id-a.id;})[0];};
   var tm={},pm={},fotos={};

@@ -311,7 +311,7 @@ function atDataBr(d){return d?String(d).split('-').reverse().join('/'):'';}
 function atMostra(tab){
   var el=atEl();if(!el)return;var a=AT.atleta;
   var els=(a.elencos||[]).slice().sort(function(x,y){return y.temporada_id-x.temporada_id;}),e=els[0]||null;
-  var pid=e?e.time_id+'-'+e.numero:'',p=PM[pid]||null,t=e?TM[e.time_id]:null,lib=t&&t.comp==='jogo-lib-';
+  var pid=e?(ATL_PID[a.id]||e.time_id+'-'+e.numero):'',p=PM[pid]||null,t=e?TM[e.time_id]:null,lib=t&&t.comp==='jogo-lib-';
   var comp=t?(lib?'Libertadores FF':(PRO_NOME||'FF Pro League')):'';
   var cab='<nav class="side"><div class="me atme"><div class="avatar'+(a.foto_url?' ret':'')+'" style="width:52px;height:52px;border:2px solid #0B0B0A;'+(a.foto_url?'background:url('+esc(a.foto_url)+') center 18%/cover;':'')+'"></div>'+
       '<b title="'+esc(a.nome)+'">'+esc(a.nome)+'</b><span>'+esc(atPosicoes(a).split(' · ')[0]||'Atleta')+(t?' · '+esc(t.n)+' · Nº '+e.numero:'')+'</span></div>'+

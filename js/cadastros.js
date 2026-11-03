@@ -165,7 +165,7 @@ function cdElencoLigar(f){
     if(!(num>=1&&num<=99)){er.textContent='Número de 1 a 99.';return;}
     if(!cam){er.textContent='Preencha o nome na camisa.';return;}
     var dono=cdElenco(f.id,tid).filter(function(x){return x.id!==a.id&&x.els[tid].numero===num;})[0];
-    if(dono){er.textContent='O número '+num+' já é de '+dono.nome+' neste time.';return;}
+    if(dono&&!confirm('O número '+num+' já é de '+dono.nome+' neste time. Usar o mesmo número mesmo assim?'))return;  // número repetido é permitido desde 04/11/2026
     var ant=a.els[tid],ot=ant&&ant.time_id!==f.id?cdTime(ant.time_id):null;
     if(ot&&!confirm(a.nome+' está no '+ot.nome+'. Passar para o '+cdTime(f.id).nome+'?'))return;
     var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
