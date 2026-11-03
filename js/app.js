@@ -351,14 +351,14 @@ P['libertadores']=function(tab){
   '<hr class="libsep" style="margin:40px 0 0"><div class="libbar"><div class="libbar-t"><h2>Campeonato</h2></div>'+
   '<nav class="ctabs">'+[['regulamento','Regulamento','libertadores-regulamento'],['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav></div>'+
   (BANCO_ERRO&&tab!=='regulamento'?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
-  (tab==='regulamento'?libFormatoHTML():tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
+  (tab==='regulamento'?libRegulamentoHTML():tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
 };
 // formato da disputa (aba Regulamento; chamava Formato até 03/11/2026): três etapas, de grupos até a final
 function libFormatoHTML(){
   return '<div class="formato" aria-label="Formato da disputa"><ol>'+
     [['Fase de grupos',['Todos contra todos dentro de cada grupo.','4 jogos por equipe.','Os 2 primeiros de cada grupo avançam.']],
      ['Semifinais',['Cruzadas: 1º A × 2º B e 1º B × 2º A.']],
-     ['Final',['Os vencedores das semifinais disputam a grande final.']]].map(function(x,i){return '<li><span class="fn">'+(i+1)+'</span><div><b>'+x[0]+'</b>'+x[1].map(function(t){return '<p>'+t+'</p>';}).join('')+'</div></li>';}).join('')+'</ol></div>';
+     ['Finais',['Final Ouro: vencedores das semifinais.','Final Prata: perdedores das semifinais.']]].map(function(x,i){return '<li><span class="fn">'+(i+1)+'</span><div><b>'+x[0]+'</b>'+x[1].map(function(t){return '<p>'+t+'</p>';}).join('')+'</div></li>';}).join('')+'</ol></div>';
 }
 P['a-league']=function(){
   return '<div class="wrap"><div class="phead"><div class="eyebrow">Uma nova era começa agora</div><h1>A Pro League</h1><p class="lead">Mais do que um campeonato, a FF Soccer Pro League é uma experiência de temporada. Você vive cada momento: time fixo, uniforme personalizado, jogos transmitidos ao vivo, seus números registrados rodada a rodada e, claro, VAR.</p></div>'+

@@ -1209,3 +1209,25 @@ a.pitem:hover{transform:translateY(-2px)}
 .rgame .robs.av{border-color:rgba(242,193,77,.5)}
 .rgame .robs.ok{border-color:rgba(76,175,110,.5);color:var(--mute)}
 .fld textarea{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:11px 14px;color:var(--ink);font:inherit;resize:vertical;min-width:0}
+/* Libertadores: aba Regulamento */
+.regdest{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:28px}
+.regdest .card{padding:16px 18px;display:grid;gap:6px;align-content:start}
+.regdest .regic{font-size:24px}
+.regdest b{font-family:var(--cond);text-transform:uppercase;letter-spacing:.04em;font-size:17px;color:var(--gold)}
+.regdest p{margin:0;color:var(--mute);font-size:14px;line-height:1.45}
+.regtit{font-family:var(--disp);font-weight:900;text-transform:uppercase;font-size:26px;line-height:1.05;margin:0 0 14px}
+.reghead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:36px 0 14px;padding-top:24px;border-top:1px solid var(--line)}
+.regcaps{display:grid;gap:10px}
+.regcap{padding:0}
+.regcap summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 18px;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:17px}
+.regcap summary::-webkit-details-marker{display:none}
+.regcap summary::after{content:'+';margin-left:auto;color:var(--gold);font-size:22px;line-height:1}
+.regcap[open] summary::after{content:'−'}
+.regn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#1B1606;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.regtxt{padding:0 18px 18px 58px;color:var(--ink);font-size:15px;line-height:1.6}
+.regtxt p{margin:0 0 10px}.regtxt ul,.regtxt ol{margin:0 0 12px;padding-left:20px;display:grid;gap:4px}
+.regtxt h4{font-family:var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--gold);font-size:15px;margin:18px 0 8px}
+.regtxt a{color:var(--gold)}
+.reggr{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px 24px}.reggr ul{list-style:none;padding:0}
+.regfim{text-align:center;color:var(--mute);margin:28px 0 8px;line-height:1.6}
+@media (max-width:480px){.regdest{grid-template-columns:1fr 1fr;gap:8px}.regdest .card{padding:12px}.regdest .regic{font-size:20px}.regdest b{font-size:14.5px}.regdest p{font-size:12.5px}.regtxt{padding:0 16px 16px}.regcap summary{padding:14px 16px;font-size:16px}.regtit{font-size:22px}}
