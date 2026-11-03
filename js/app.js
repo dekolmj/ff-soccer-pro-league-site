@@ -349,11 +349,11 @@ P['libertadores']=function(tab){
   '<div class="feat" style="margin:8px 0 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+[['⚽','Times de 10 a 12 atletas'],['👕','Uniforme com personalização do time'],['📸','Fotos gratuitas quando houver cobertura'],['🎥','Final transmitida ao vivo'],['🏆','E muito mais!']].map(function(x){return '<div><span style="font-size:26px">'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>'+
   // abaixo dos cartões: barra da competição (como a barra de seções de um portal de esporte; 31/10/2026, pedido do Deko)
   '<hr class="libsep" style="margin:40px 0 0"><div class="libbar"><div class="libbar-t"><h2>Campeonato</h2></div>'+
-  '<nav class="ctabs">'+[['formato','Formato','libertadores-formato'],['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav></div>'+
-  (BANCO_ERRO&&tab!=='formato'?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
-  (tab==='formato'?libFormatoHTML():tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
+  '<nav class="ctabs">'+[['regulamento','Regulamento','libertadores-regulamento'],['','Tabela e jogos','libertadores'],['semifinal','Semifinal','libertadores-semifinal'],['final','Final','libertadores-final'],['estatisticas','Estatísticas','libertadores-estatisticas']].map(function(t){return '<a href="#'+t[2]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</a>';}).join('')+'</nav></div>'+
+  (BANCO_ERRO&&tab!=='regulamento'?'<div class="notice" style="margin-bottom:18px">Não foi possível carregar o campeonato agora. Tente de novo em alguns minutos.</div>':'')+
+  (tab==='regulamento'?libFormatoHTML():tab==='estatisticas'?libEstatHTML():tab==='semifinal'?libSemiHTML():tab==='final'?libFinalHTML():libGruposHTML())+'</div>';
 };
-// formato da disputa (aba Formato): três etapas, de grupos até a final
+// formato da disputa (aba Regulamento; chamava Formato até 03/11/2026): três etapas, de grupos até a final
 function libFormatoHTML(){
   return '<div class="formato" aria-label="Formato da disputa"><ol>'+
     [['Fase de grupos',['Todos contra todos dentro de cada grupo.','4 jogos por equipe.','Os 2 primeiros de cada grupo avançam.']],
@@ -546,7 +546,8 @@ function route(){
   // a aba Campeonato saiu em 31/10/2026, a pedido do Deko: cada competição fica na sua página (Libertadores FF em #libertadores;
   // a FF Pro League vai para #a-league quando tiver jogos). Os endereços do Campeonato levam para a FF Pro League.
   if(h==='campeonato'||h.indexOf('campeonato-')===0){page=h='a-league';arg=null;}
-  if(/^libertadores-(formato|estatisticas|semifinal|final)$/.test(h)){page='libertadores';arg=h.slice(13);}
+  if(h==='libertadores-formato')h='libertadores-regulamento';  // endereço antigo da aba
+  if(/^libertadores-(regulamento|estatisticas|semifinal|final)$/.test(h)){page='libertadores';arg=h.slice(13);}
   if(/^jogo-(lib-)?\d+-\d+$/.test(h)){page='jogo';arg=h;}
   else if(/^jogos-\d+$/.test(h)){page='jogos';arg=h.split('-')[1];}
   else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}
