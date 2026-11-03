@@ -5,12 +5,11 @@
 var REG_DESTAQUES=[
   ['🛡️','10 equipes','2 grupos de 5 times, com 10 a 12 jogadores por equipe.'],
   ['⚽','4 jogos garantidos','Cada equipe faz 4 partidas na fase de grupos, de 16/11 a 08/12.'],
-  ['⏱️','6 contra 6','2 tempos de 25 minutos. Em quadra menor, 5x5 ou 4x4.'],
+  ['⏱️','6 contra 6 (preferencial)','2 tempos de 25 minutos. Em quadra menor, 5x5 ou 4x4.'],
   ['🙋','Todo mundo joga','Cada atleta relacionado atua no mínimo 3 minutos por tempo (6 por jogo).'],
   ['🟥','Vermelho suspende','Suspensão automática no jogo seguinte, sem perdão por mudança de fase.'],
   ['⏰','15 minutos de tolerância','Atraso maior que 15 minutos pode resultar em W.O.'],
-  ['🏆','Final Ouro e Final Prata','Vencedores e perdedores das semifinais. Empate na final: pênaltis.'],
-  ['📸','Fotos gratuitas','Quando houver fotógrafo oficial no jogo, as fotos saem sem custo.']
+  ['🏆','Final Ouro e Final Prata','Vencedores e perdedores das semifinais. Empate na final: pênaltis.']
 ];
 
 var REG_CAP=[
