@@ -121,8 +121,9 @@ function libRegulamentoHTML(){
   return '<div class="regdest">'+REG_DESTAQUES.map(function(d){return '<div class="card"><span class="regic" aria-hidden="true">'+d[0]+'</span><b>'+d[1]+'</b><p>'+d[2]+'</p></div>';}).join('')+'</div>'+
     '<h3 class="regtit">Como funciona a disputa</h3>'+libFormatoHTML()+
     '<div class="reghead"><div><div class="eyebrow">FF Soccer Academy · Edição Libertadores</div><h3 class="regtit" style="margin:6px 0 0">🏆 Regulamento oficial · Copa FF Libertadores 2026</h3></div>'+
-    '<button type="button" class="btn sm" id="regTudo">Abrir tudo</button></div>'+
-    '<div class="regcaps">'+REG_CAP.map(function(c,i){return '<details class="card regcap"'+(i===0?' open':'')+'><summary><span class="regn">'+(i+1)+'</span>'+c[0]+'</summary><div class="regtxt">'+c[1]+'</div></details>';}).join('')+'</div>'+
+    '<div class="regbts"><a class="btn primary sm" href="assets/regulamento-copa-ff-libertadores-2026.pdf" download="Regulamento Copa FF Libertadores 2026.pdf"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v10M5.5 8.5L10 13l4.5-4.5M4 17h12"/></svg>Baixar regulamento (PDF)</a>'+
+    '<button type="button" class="btn sm" id="regTudo">Abrir tudo</button></div></div>'+
+    '<div class="regcaps">'+REG_CAP.map(function(c,i){return '<details class="card regcap"><summary><span class="regn">'+(i+1)+'</span>'+c[0]+'</summary><div class="regtxt">'+c[1]+'</div></details>';}).join('')+'</div>'+
     '<p class="regfim"><b>🏆 Copa FF Libertadores 2026</b><br>FF Soccer Academy · Mais do que futebol. Uma experiência de competição.</p>';
 }
 // botão "Abrir tudo / Fechar tudo" do regulamento (o conteúdo é desenhado pelo route(); o clique é pego aqui)
