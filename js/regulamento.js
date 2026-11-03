@@ -17,8 +17,8 @@ var REG_CAP=[
 ['Formato geral',
  '<p>A Copa FF Libertadores 2026 tem como objetivo promover integração, competitividade, espírito esportivo e experiências memoráveis entre os alunos da FF Soccer Academy.</p>'+
  '<ul><li>As equipes terão, em média, entre 10 e 12 jogadores.</li><li>A competição contará com 10 equipes divididas em 2 grupos de 5 times.</li><li>Cada equipe disputará 4 partidas na fase classificatória.</li><li>Os jogos acontecerão preferencialmente no período noturno, conforme calendário divulgado pela organização.</li></ul>'+
- '<div class="reggr"><div><h4>Grupo A</h4><ul><li>🇪🇨 LDU — Mooca</li><li>🇨🇴 Atlético Nacional — Mooca</li><li>🇦🇷 Boca Juniors — Guarulhos</li><li>🇵🇾 Cerro Porteño — Barra Funda</li><li>🇺🇾 Peñarol — Guarulhos</li></ul></div>'+
- '<div><h4>Grupo B</h4><ul><li>🇦🇷 Estudiantes — Vila-Lobos</li><li>🇵🇾 Libertad — Vila Mariana</li><li>🇦🇷 Vélez Sarsfield — Morumbi</li><li>🇦🇷 River Plate — Campo Belo</li><li>🇦🇷 Racing Club — Campo Belo</li></ul></div></div>'],
+ '<div class="reggr"><div><h4>Grupo A</h4><ul><li>LDU — Mooca</li><li>Atlético Nacional — Mooca</li><li>Boca Juniors — Guarulhos</li><li>Cerro Porteño — Barra Funda</li><li>Peñarol — Guarulhos</li></ul></div>'+
+ '<div><h4>Grupo B</h4><ul><li>Estudiantes — Vila-Lobos</li><li>Libertad — Vila Mariana</li><li>Vélez Sarsfield — Morumbi</li><li>River Plate — Campo Belo</li><li>Racing Club — Campo Belo</li></ul></div></div>'],
 ['Calendário da competição',
  '<p>A fase de grupos será realizada entre 16 de novembro e 8 de dezembro de 2026, conforme as tabelas oficiais divulgadas pela organização.</p>'+
  '<p>As datas das semifinais e finais serão divulgadas posteriormente.</p>'+
