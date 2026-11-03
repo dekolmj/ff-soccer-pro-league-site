@@ -1234,3 +1234,8 @@ a.pitem:hover{transform:translateY(-2px)}
 /* Final Prata (perdedores das semifinais) */
 .mmprata{border-color:#B9BEC4}.chip.prata{border-color:#B9BEC4;color:#DDE1E6;background:rgba(185,190,196,.1)}.mmcamp.prata{color:#DDE1E6}
 .regbts{display:flex;gap:8px;flex-wrap:wrap}.regbts .btn{display:inline-flex;align-items:center;gap:8px}
+/* selo da unidade com endereço: balão ao passar o mouse (ou focar), clique abre o mapa */
+.rgame .rloc.temend{position:relative;cursor:pointer;text-decoration:none}
+.rgame .rloc.temend:hover{background:rgba(242,193,77,.16)}
+.rgame .rloc.temend::after{content:attr(data-end);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:max-content;max-width:260px;padding:8px 12px;border-radius:10px;background:#FAF9F5;color:#1B1606;font-family:var(--body);font-weight:600;font-size:13px;letter-spacing:0;text-transform:none;line-height:1.35;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .15s;z-index:5}
+.rgame .rloc.temend:hover::after,.rgame .rloc.temend:focus-visible::after{opacity:1}

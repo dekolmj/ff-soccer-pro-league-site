@@ -4,7 +4,7 @@
    (páginas de time, atleta e jogo servem para as duas).
    Desde 26/10/2026 o Campeonato não usa mais os dados de exemplo: se o banco falhar, as páginas avisam e ficam vazias. */
 
-var BANCO_OK=false,BANCO_ERRO=false;
+var BANCO_OK=false,BANCO_ERRO=false,UNID_END={};  // UNID_END: endereço de cada unidade, pelo nome (selo da unidade nos jogos)
 var LIB={teams:[],players:[],games:[],grupos:[],scorers:[],mvps:[],nome:''},ALLGAMES=[],RLIST=[],PRO_NOME='';
 
 function sbGet(tabela,query){
@@ -91,6 +91,7 @@ function montarComp(d,temp,pre,tm,pm,fotos){
 }
 
 function montarDados(d){
+  UNID_END={};d.unidades.forEach(function(u){if(u.endereco)UNID_END[u.nome]=u.endereco;});
   var ultima=function(comp){return d.temporadas.filter(function(t){return (t.competicao||'pro_league')===comp;}).sort(function(a,b){return b.id-a.id;})[0];};
   var tm={},pm={},fotos={};
   var pro=montarComp(d,ultima('pro_league'),'jogo-',tm,pm,fotos),lib=montarComp(d,ultima('libertadores'),'jogo-lib-',tm,pm,fotos);
@@ -129,7 +130,7 @@ function carregarBanco(pronto){
   var T=['temporadas','unidades','times','atletas','elencos','jogos','escalacoes','eventos_jogo','desafios_var'];
   Promise.all([
     sbGet('temporadas','select=id,nome,desafios_var_por_jogo,competicao&order=id.desc'),
-    sbGet('unidades','select=id,nome'),
+    sbGet('unidades','select=id,nome,endereco'),
     sbGet('times','select=id,nome,cor,escudo_url,unidade_id,ordem,temporada_id,grupo&order=ordem,nome'),
     sbGet('atletas','select=id,nome,posicao,unidade_id,foto_url,ativo&order=id'),
     sbGet('elencos','select=time_id,atleta_id,numero,temporada_id&order=id'),
