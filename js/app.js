@@ -17,7 +17,7 @@ function aplicarOnda(){
 // Escudos do mesmo tamanho (31/10/2026, pedido do Deko): cada arquivo tem uma margem diferente em volta do desenho,
 // então o site corta essa margem (fundo transparente ou da cor do canto) e o escudo ocupa o quadrado inteiro.
 // Fica guardado em ESC_CORTE; se o navegador não deixar ler a imagem, usa o arquivo original.
-var ESC_CORTE={},ESC_PEDIDO={};
+var ESC_CORTE={},ESC_PEDIDO={},ESC_FUNDO={};  // ESC_FUNDO: cor de fundo dos logos de patrocinador com fundo sólido (a plaquinha pega essa cor)
 function escCortar(url,livre){  // livre = logo de patrocinador: corta a margem mas mantém o formato (não vira quadrado)
   var key=livre?url+'#l':url;if(!url||ESC_PEDIDO[key])return;ESC_PEDIDO[key]=1;
   var im=new Image();im.crossOrigin='anonymous';
@@ -25,6 +25,7 @@ function escCortar(url,livre){  // livre = logo de patrocinador: corta a margem 
     var W=im.naturalWidth,H=im.naturalHeight;if(!W||!H)return;var k=Math.min(1,256/Math.max(W,H)),w=Math.round(W*k),h=Math.round(H*k);
     var cv=document.createElement('canvas');cv.width=w;cv.height=h;var cx=cv.getContext('2d');cx.drawImage(im,0,0,w,h);
     var px=cx.getImageData(0,0,w,h).data,c0=[px[0],px[1],px[2],px[3]],alfa=c0[3]<200;
+    if(livre&&!alfa){ESC_FUNDO[key]='rgb('+c0[0]+','+c0[1]+','+c0[2]+')';patroFundo(key);}
     var x0=w,y0=h,x1=-1,y1=-1;
     for(var y=0;y<h;y++)for(var x=0;x<w;x++){var o=(y*w+x)*4,dentro=alfa?px[o+3]>24:(Math.abs(px[o]-c0[0])+Math.abs(px[o+1]-c0[1])+Math.abs(px[o+2]-c0[2])>60);
       if(dentro){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
@@ -637,6 +638,8 @@ function bind(page){
 }
 /* Patrocinadores (03/11/2026, pedido do Deko): faixa com os logos passando, antes do rodapé, em todas as páginas (menos no painel).
    Lê do banco os que estão "no site" (aba Patrocinadores do painel). Sem nenhum, a faixa não aparece; com ?demo, mostra exemplos. */
+// plaquinha do patrocinador com a cor de fundo do próprio logo (ex.: logo em fundo preto → plaquinha preta, sem borda branca em volta)
+function patroFundo(key){var c=ESC_FUNDO[key];if(!c)return;document.querySelectorAll('#patro img[data-esc]').forEach(function(e){if(e.getAttribute('data-esc')===key&&e.parentNode)e.parentNode.style.background=c;});}
 var PATRO_EX=['Patrocinador 1','Patrocinador 2','Patrocinador 3','Patrocinador 4','Patrocinador 5'].map(function(n,i){return {nome:n,exemplo:1,ordem:i};});
 function patroMostra(ls){
   var el=document.getElementById('patro');if(!el)return;
@@ -647,11 +650,12 @@ function patroMostra(ls){
   PATRO_LS=ls;var tit='<div class="wrap"><div class="lbl">Patrocinadores</div></div>';
   // cabem todos na tela: ficam parados, centralizados, cada um uma vez só; não cabem: a faixa roda (03/11/2026, pedido do Deko)
   el.innerHTML=tit+'<div class="ptrilho parado"><div class="pgrupo">'+ls.map(item).join('')+'</div></div>';el.hidden=false;
-  var tr=el.querySelector('.ptrilho'),g=el.querySelector('.pgrupo');if(g.scrollWidth<=tr.clientWidth){g.querySelectorAll('img').forEach(function(im){im.addEventListener('load',function(){if(tr.isConnected&&tr.classList.contains('parado')&&g.scrollWidth>tr.clientWidth)patroMostra(ls);});});return;}
+  var tr=el.querySelector('.ptrilho'),g=el.querySelector('.pgrupo');if(g.scrollWidth<=tr.clientWidth){ls.forEach(function(p){if(p.logo_url)patroFundo(p.logo_url+'#l');});g.querySelectorAll('img').forEach(function(im){im.addEventListener('load',function(){if(tr.isConnected&&tr.classList.contains('parado')&&g.scrollWidth>tr.clientWidth)patroMostra(ls);});});return;}
   var bloco=[];while(bloco.length<10)bloco=bloco.concat(ls);  // repete até encher a faixa
   var meio=bloco.map(item).join('');
   el.innerHTML=tit+'<div class="ptrilho"><div class="pfita" style="animation-duration:'+(bloco.length*3.2)+'s"><div class="pgrupo">'+meio+'</div><div class="pgrupo" aria-hidden="true">'+meio+'</div></div></div>';
-  el.querySelectorAll('.pgrupo[aria-hidden] a').forEach(function(a){a.tabIndex=-1;});}
+  el.querySelectorAll('.pgrupo[aria-hidden] a').forEach(function(a){a.tabIndex=-1;});
+  ls.forEach(function(p){if(p.logo_url)patroFundo(p.logo_url+'#l');});}
 var PATRO_LS=null,PATRO_T=null,PATRO_W=window.innerWidth;
 window.addEventListener('resize',function(){if(!PATRO_LS||window.innerWidth===PATRO_W)return;PATRO_W=window.innerWidth;clearTimeout(PATRO_T);PATRO_T=setTimeout(function(){patroMostra(PATRO_LS);},300);});
 function patroCarregar(){

@@ -1192,7 +1192,7 @@ td.team .tuni{display:block;font-size:12px;line-height:1.2;overflow:hidden;text-
 .pfita{display:flex;width:max-content;animation:patroAnda linear infinite}
 .ptrilho:hover .pfita{animation-play-state:paused}
 .pgrupo{display:flex;align-items:center;gap:20px;padding-right:20px}
-.pitem{display:flex;align-items:center;justify-content:center;height:76px;min-width:130px;padding:8px 12px;flex:none;background:#FFFFFF;border-radius:12px;transition:transform .2s}
+.pitem{display:flex;align-items:center;justify-content:center;height:76px;min-width:130px;padding:8px 12px;flex:none;background:#FFFFFF;border:1px solid rgba(255,255,255,.14);border-radius:12px;transition:transform .2s}
 a.pitem:hover{transform:translateY(-2px)}
 .pitem img{max-height:60px;max-width:190px;width:auto;height:auto;object-fit:contain;display:block}
 .pnome{font-family:var(--cond);font-weight:700;font-size:19px;letter-spacing:.06em;text-transform:uppercase;color:#1B1606;white-space:nowrap}
