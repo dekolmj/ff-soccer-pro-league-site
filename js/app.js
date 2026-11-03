@@ -648,9 +648,9 @@ function patroMostra(ls){
     if(p.logo_url)escCortar(p.logo_url,true);
     return p.link?'<a class="pitem" href="'+esc(p.link)+'" target="_blank" rel="noopener sponsored" title="'+esc(p.nome)+'">'+dentro+'</a>':'<span class="pitem" title="'+esc(p.nome)+'">'+dentro+'</span>';};
   PATRO_LS=ls;var tit='<div class="wrap"><div class="lbl">Patrocinadores</div></div>';
-  // cabem todos na tela: ficam parados, centralizados, cada um uma vez só; não cabem: a faixa roda (03/11/2026, pedido do Deko)
+  // 1 patrocinador só: fica parado e centralizado; 2 ou mais: a faixa roda sempre, em loop (pedido do Deko, 04/11/2026)
   el.innerHTML=tit+'<div class="ptrilho parado"><div class="pgrupo">'+ls.map(item).join('')+'</div></div>';el.hidden=false;
-  var tr=el.querySelector('.ptrilho'),g=el.querySelector('.pgrupo');if(g.scrollWidth<=tr.clientWidth){ls.forEach(function(p){if(p.logo_url)patroFundo(p.logo_url+'#l');});g.querySelectorAll('img').forEach(function(im){im.addEventListener('load',function(){if(tr.isConnected&&tr.classList.contains('parado')&&g.scrollWidth>tr.clientWidth)patroMostra(ls);});});return;}
+  var tr=el.querySelector('.ptrilho'),g=el.querySelector('.pgrupo');if(ls.length<2){ls.forEach(function(p){if(p.logo_url)patroFundo(p.logo_url+'#l');});g.querySelectorAll('img').forEach(function(im){im.addEventListener('load',function(){if(tr.isConnected&&tr.classList.contains('parado')&&g.scrollWidth>tr.clientWidth)patroMostra(ls);});});return;}
   var bloco=[];while(bloco.length<10)bloco=bloco.concat(ls);  // repete até encher a faixa
   var meio=bloco.map(item).join('');
   el.innerHTML=tit+'<div class="ptrilho"><div class="pfita" style="animation-duration:'+(bloco.length*3.2)+'s"><div class="pgrupo">'+meio+'</div><div class="pgrupo" aria-hidden="true">'+meio+'</div></div></div>';
