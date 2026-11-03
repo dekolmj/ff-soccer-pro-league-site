@@ -1231,3 +1231,5 @@ a.pitem:hover{transform:translateY(-2px)}
 .reggr{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px 24px}.reggr ul{list-style:none;padding:0}
 .regfim{text-align:center;color:var(--mute);margin:28px 0 8px;line-height:1.6}
 @media (max-width:480px){.regdest{grid-template-columns:1fr 1fr;gap:8px}.regdest .card{padding:12px}.regdest .regic{font-size:20px}.regdest b{font-size:14.5px}.regdest p{font-size:12.5px}.regtxt{padding:0 16px 16px}.regcap summary{padding:14px 16px;font-size:16px}.regtit{font-size:22px}}
+/* Final Prata (perdedores das semifinais) */
+.mmprata{border-color:#B9BEC4}.chip.prata{border-color:#B9BEC4;color:#DDE1E6;background:rgba(185,190,196,.1)}.mmcamp.prata{color:#DDE1E6}

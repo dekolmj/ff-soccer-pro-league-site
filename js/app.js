@@ -160,7 +160,7 @@ document.addEventListener('click',function(e){var b=e.target.closest('button.lna
   document.getElementById('lbox-'+(G.g||'x')).innerHTML=libJogosBox(G);});
 function libGruposHTML(){
   if(!LIB.teams.length)return '<div class="card" style="margin-bottom:40px"><p class="muted" style="margin:0">Nenhum time cadastrado ainda. Os grupos e os jogos aparecem aqui assim que a equipe FF cadastrar no painel.</p></div>';
-  var mm=libMataMata(),usados=[mm.sf[0].j,mm.sf[1].j,mm.fin.j].filter(Boolean).map(function(g){return g.id;}),ex=(LIB.extras||[]).filter(function(g){return usados.indexOf(g.id)<0;});
+  var mm=libMataMata(),usados=[mm.sf[0].j,mm.sf[1].j,mm.fin.j,mm.prata.j].filter(Boolean).map(function(g){return g.id;}),ex=(LIB.extras||[]).filter(function(g){return usados.indexOf(g.id)<0;});
   return '<div style="display:grid;gap:18px">'+LIB.grupos.map(function(G){return '<div class="clsgrid" style="align-items:stretch">'+libGrupoHTML(G)+
     '<div class="card" style="padding:20px"><h2 class="blkh">Jogos · '+(G.g?'Grupo '+esc(G.g):'Sem grupo')+'</h2><div id="lbox-'+(G.g||'x')+'">'+libJogosBox(G)+'</div></div></div>';}).join('')+
     (ex.length?'<div class="card" style="padding:20px"><h2 class="blkh">Outros jogos</h2>'+ex.slice().sort(function(a,b){return a.r-b.r||a.i-b.i;}).map(rgameHTML).join('')+'</div>':'')+'</div>'+
@@ -315,9 +315,10 @@ function libJogoEntre(a,b){if(!a||!b)return null;return (LIB.extras||[]).filter(
 function libVencedor(j){if(!j||j.st!=='encerrado'||j.gh==null||j.gh===j.ga)return null;return TM[j.gh>j.ga?j.h:j.a];}
 function libMataMata(){
   var sf=[[libVaga('A',1),libVaga('B',2)],[libVaga('B',1),libVaga('A',2)]].map(function(v){return {v:v,j:libJogoEntre(v[0].t,v[1].t)};});
-  sf.forEach(function(x){x.w=libVencedor(x.j);});
+  sf.forEach(function(x){x.w=libVencedor(x.j);x.l=x.w?(x.w.id===x.v[0].t.id?x.v[1].t:x.v[0].t):null;});  // l = perdedor (vai para a Final Prata)
   var fv=[{lbl:'Vencedor da Semifinal 1',t:sf[0].w,hoje:null},{lbl:'Vencedor da Semifinal 2',t:sf[1].w,hoje:null}],fj=libJogoEntre(fv[0].t,fv[1].t);
-  return {sf:sf,fin:{v:fv,j:fj,w:libVencedor(fj)}};
+  var pv=[{lbl:'Perdedor da Semifinal 1',t:sf[0].l,hoje:null},{lbl:'Perdedor da Semifinal 2',t:sf[1].l,hoje:null}],pj=libJogoEntre(pv[0].t,pv[1].t);
+  return {sf:sf,fin:{v:fv,j:fj,w:libVencedor(fj)},prata:{v:pv,j:pj,w:libVencedor(pj)}};
 }
 // Cartão de um confronto do mata-mata: um time de frente para o outro, como no placar de um jogo
 function libMMCard(titulo,v,j,w,final){
@@ -328,20 +329,21 @@ function libMMCard(titulo,v,j,w,final){
   var rod=!j?'<span class="lbl">'+(v[0].t&&v[1].t?'Jogo ainda não cadastrado':'Aguardando '+(final?'as semifinais':'a fase de grupos'))+'</span>':
     j.st==='encerrado'?(w?'':'<span class="lbl">Empate no tempo normal</span> ')+'<a class="go" href="#'+j.id+'">Saiba como foi</a>':
     '<a class="go'+(j.st==='ao vivo'?' lv':'')+'" href="#'+j.id+'">'+(j.st==='ao vivo'?'● Ao vivo':'Detalhes do jogo')+'</a>';
-  return '<div class="card mmcard'+(final?' mmfinal':'')+'"><div class="mmtop"><span class="chip'+(final?' gold':'')+'">'+titulo+'</span><span class="lbl">'+(j?quando(j)+(j.field?' · '+esc(j.field):''):'Data a definir')+'</span></div>'+
+  return '<div class="card mmcard'+(final==='prata'?' mmprata':final?' mmfinal':'')+'"><div class="mmtop"><span class="chip'+(final==='prata'?' prata':final?' gold':'')+'">'+titulo+'</span><span class="lbl">'+(j?quando(j)+(j.field?' · '+esc(j.field):''):'Data a definir')+'</span></div>'+
     '<div class="mmvs">'+lado(v[0],'mmh')+'<div class="mmplac"><b>'+gl(v[0].t)+'</b><i>×</i><b>'+gl(v[1].t)+'</b></div>'+lado(v[1],'mma')+'</div>'+
-    (final&&w?'<div class="mmcamp">🏆 Campeão: '+tn(w.id)+'</div>':'')+'<div class="mmrod">'+rod+'</div></div>';
+    (final&&w?'<div class="mmcamp'+(final==='prata'?' prata':'')+'">🏆 '+(final==='prata'?'Campeão da Final Prata':'Campeão')+': '+tn(w.id)+'</div>':'')+'<div class="mmrod">'+rod+'</div></div>';
 }
 function libSemiHTML(){
   if(!LIB.teams.length)return libGruposHTML();
   var m=libMataMata();
-  return '<p class="muted" style="margin:0 0 16px">Semifinais cruzadas: o 1º do Grupo A enfrenta o 2º do Grupo B, e o 1º do Grupo B enfrenta o 2º do Grupo A. Os vencedores vão para a final.</p>'+
+  return '<p class="muted" style="margin:0 0 16px">Semifinais cruzadas: o 1º do Grupo A enfrenta o 2º do Grupo B, e o 1º do Grupo B enfrenta o 2º do Grupo A. Os vencedores vão para a Final Ouro e os perdedores, para a Final Prata.</p>'+
     '<div class="mmgrid" style="margin-bottom:40px">'+libMMCard('Semifinal 1',m.sf[0].v,m.sf[0].j,m.sf[0].w)+libMMCard('Semifinal 2',m.sf[1].v,m.sf[1].j,m.sf[1].w)+'</div>';
 }
 function libFinalHTML(){
   if(!LIB.teams.length)return libGruposHTML();
-  var m=libMataMata();
-  return '<p class="muted" style="margin:0 0 16px;text-align:center">A final reúne os vencedores das duas semifinais.</p><div style="max-width:640px;margin:0 auto 40px">'+libMMCard('Final',m.fin.v,m.fin.j,m.fin.w,true)+'</div>';
+  var m=libMataMata();  // Final Ouro (vencedores das semifinais) e Final Prata (perdedores), 03/11/2026, pedido do Deko
+  return '<p class="muted" style="margin:0 0 16px;text-align:center">A <b>Final Ouro</b> reúne os vencedores das semifinais e a <b>Final Prata</b>, os perdedores. Empate nas finais: pênaltis.</p>'+
+    '<div class="mmgrid" style="margin-bottom:40px">'+libMMCard('Final Ouro',m.fin.v,m.fin.j,m.fin.w,true)+libMMCard('Final Prata',m.prata.v,m.prata.j,m.prata.w,'prata')+'</div>';
 }
 P['libertadores']=function(tab){
   tab=tab||'';
