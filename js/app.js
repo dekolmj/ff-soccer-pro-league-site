@@ -107,8 +107,14 @@ P.jogo=function(id){
    (g.st==='ao vivo'&&ondaDaPagina('ao-vivo')<=ONDA?'<a class="card between" href="#ao-vivo"><div><span class="live">Ao vivo</span><div class="muted" style="margin-top:6px">Acompanhe a transmissão na página Ao vivo.</div></div><span class="more">Assistir ›</span></a>':'')+
    (g.mvp&&PM[g.mvp]?'<a class="card between" href="#atleta-'+g.mvp+'"><div><div class="lbl">Craque do jogo</div><b style="font-family:var(--cond);font-size:20px;text-transform:uppercase">'+nm(g.mvp)+'</b></div><span class="chip gold">⭐ MVP</span></a>':'')+
   '</div><div style="display:grid;gap:18px;align-content:start">'+
+   // Libertadores: no lugar dos desafios de VAR (não há VAR na Libertadores), as informações do jogo: data, unidade, endereço completo e observação (04/11/2026, pedido do Deko)
+   (lib?'<div class="card jinfo"><h3>Informações do jogo</h3>'+
+     '<div class="jinfo-l"><span class="lbl">Data e horário</span><b>'+(g.date?quando(g):'A definir')+'</b></div>'+
+     (g.field?'<div class="jinfo-l"><span class="lbl">Local</span><b>Unidade '+esc(g.field)+'</b>'+(UNID_END[g.field]?'<span>'+esc(UNID_END[g.field])+'</span><a class="more" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(UNID_END[g.field])+'" target="_blank" rel="noopener">Abrir no mapa ›</a>':'')+'</div>':'')+
+     (g.obs?'<div class="robs jinfo-obs '+(g.obsT==='ok'?'ok':'av')+'"><span aria-hidden="true">'+(g.obsT==='ok'?'✅':'⚠️')+'</span><span>'+esc(g.obs)+'</span></div>':'')+
+   '</div>':'')+
    (done?'<div class="card"><h3 style="margin-bottom:8px">Lances</h3><div class="tl">'+(ev||'<p class="muted">Sem lances registrados.</p>')+'</div></div>':'')+
-   (g.varTot?'<div class="card" style="display:grid;gap:10px"><h3>Desafios de VAR</h3><div class="between"><span>'+tn(g.h)+'</span>'+dots(g.varH)+'</div><div class="between"><span>'+tn(g.a)+'</span>'+dots(g.varA)+'</div><span class="lbl">'+g.varTot+' por equipe · pênalti, impedimento e agressão</span></div>':'')+
+   (g.varTot&&!lib?'<div class="card" style="display:grid;gap:10px"><h3>Desafios de VAR</h3><div class="between"><span>'+tn(g.h)+'</span>'+dots(g.varH)+'</div><div class="between"><span>'+tn(g.a)+'</span>'+dots(g.varA)+'</div><span class="lbl">'+g.varTot+' por equipe · pênalti, impedimento e agressão</span></div>':'')+
   '</div></div></div>';
 };
 

@@ -1239,3 +1239,9 @@ a.pitem:hover{transform:translateY(-2px)}
 .rgame .rloc.temend:hover{background:rgba(242,193,77,.16)}
 .rgame .rloc.temend::after{content:attr(data-end);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:max-content;max-width:260px;padding:8px 12px;border-radius:10px;background:#FAF9F5;color:#1B1606;font-family:var(--body);font-weight:600;font-size:13px;letter-spacing:0;text-transform:none;line-height:1.35;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .15s;z-index:5}
 .rgame .rloc.temend:hover::after,.rgame .rloc.temend:focus-visible::after{opacity:1}
+/* página do jogo (Libertadores): informações do jogo */
+.jinfo{display:grid;gap:14px}
+.jinfo-l{display:grid;gap:3px}.jinfo-l b{font-family:var(--cond);font-size:19px;text-transform:uppercase;letter-spacing:.03em}.jinfo-l span:not(.lbl){color:var(--mute);font-size:15px}
+.jinfo-l .more{justify-self:start;margin-top:4px}
+.robs.jinfo-obs{display:flex;gap:8px;align-items:flex-start;font-size:14.5px;line-height:1.5;padding:10px 12px;border-radius:10px;border:1px solid rgba(242,193,77,.5);background:var(--bg2)}
+.robs.jinfo-obs.ok{border-color:rgba(76,175,110,.5)}
