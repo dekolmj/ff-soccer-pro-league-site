@@ -61,7 +61,7 @@ function spBaixar(S){
     [I('Como preencher:')],
     [I('1. Placar: os gols de cada time nas células amarelas acima.')],
     [I('2. Aba "Quem jogou": marque X na coluna "Jogou" de cada atleta que entrou em campo.')],
-    [I('3. Aba "Gols": uma linha por gol, com o time que marcou, o minuto, o nº da camisa e o nome do jogador (dá para escolher o nome na lista).')],
+    [I('3. Aba "Gols": uma linha por gol, com o time que marcou, o nº da camisa e o nome do jogador (dá para escolher o nome na lista).')],
     [I('4. Aba "Cartões": uma linha por cartão, com o time, o minuto, o nº da camisa, o nome do jogador e Amarelo ou Vermelho.')],
     [I('Gol contra: lance direto na tela da súmula, depois de importar.')],
     [I('5. Salve o arquivo e use "Importar planilha" na súmula do painel. Confira a tela e clique em Salvar ou Fechar súmula.')],
@@ -75,10 +75,10 @@ function spBaixar(S){
   var nomeA=function(id){var a=cdAtleta(id);return a?a.nome:'';};
   var refNomes="'Quem jogou'!$C$2:$C$"+Math.max(2,ros.length);  // lista de nomes = coluna Nome da aba Quem jogou
   var gs=S.gols.filter(function(g){return g.tipo!=='gol_contra';});
-  var gl=[[H('Time'),H('Minuto'),H('Nº da camisa'),H('Nome do jogador')].concat(lib?[]:[H('Nº da assistência')])];
+  var gl=[[H('Time'),H('Nº da camisa'),H('Nome do jogador')].concat(lib?[]:[H('Nº da assistência')])];
   for(var i=0;i<Math.max(SP_LINHAS,gs.length+5);i++){var g=gs[i];
-    gl.push([E(g?nomeT(g.time_id):''),E(g?g.minuto:''),E(g?nCol(g):''),E(g?nomeA(g.atleta_id):'')].concat(lib?[]:[E(g&&g.atleta2_id?nCol({atleta_id:g.atleta2_id}):'')]));}
-  var aba3=spAba(gl,[24,9,14,36].concat(lib?[]:[18]),[['A2:A'+gl.length,[C,F]],['D2:D'+gl.length,refNomes]],1);
+    gl.push([E(g?nomeT(g.time_id):''),E(g?nCol(g):''),E(g?nomeA(g.atleta_id):'')].concat(lib?[]:[E(g&&g.atleta2_id?nCol({atleta_id:g.atleta2_id}):'')]));}
+  var aba3=spAba(gl,[24,14,36].concat(lib?[]:[18]),[['A2:A'+gl.length,[C,F]],['C2:C'+gl.length,refNomes]],1);  // gol sem minuto (04/11/2026, pedido do Deko)
   var ca=[[H('Time'),H('Minuto'),H('Nº da camisa'),H('Nome do jogador'),H('Cartão')]];
   for(i=0;i<Math.max(SP_LINHAS,S.cartoes.length+5);i++){var c=S.cartoes[i];
     ca.push([E(c?nomeT(c.time_id):''),E(c?c.minuto:''),E(c?nCol(c):''),E(c?nomeA(c.atleta_id):''),E(c?(c.tipo==='cartao_vermelho'?'Vermelho':'Amarelo'):'')]);}
@@ -179,13 +179,15 @@ function spAplicar(S,ab){
     if(n==null&&!nome)av.push(aba+', linha '+(r+1)+': falta o nº da camisa ou o nome do jogador.');
     else if(m.length===0)av.push(aba+', linha '+(r+1)+': não achei '+(n!=null?'o nº '+n:'"'+nome+'"')+' no '+nomeT(t)+'.');
     else if(m.length>1)av.push(aba+', linha '+(r+1)+': o nº '+n+' tem mais de um atleta no '+nomeT(t)+'. Escolha o atleta na tela.');
-    if(mi==null)av.push(aba+', linha '+(r+1)+': falta o minuto.');
+    if(mi==null&&aba!=='Gols')av.push(aba+', linha '+(r+1)+': falta o minuto.');
     var at=m.length===1?m[0].id:'';
     if(at&&S.esc[at]!==t){S.esc[at]=t;av.push((cdAtleta(at)||{}).nome+' aparece em '+aba.toLowerCase()+' e foi marcado como "jogou".');}
     return {time_id:t,minuto:mi==null?'':mi,atleta_id:at};};
   if(a3){var gols=S.gols.filter(function(g){return g.tipo==='gol_contra';});  // gol contra é lançado na tela; a planilha não mexe neles
+  var g3min=a3[0]&&spNorm(a3[0][1])==='minuto';  // planilha antiga, ainda com a coluna Minuto
   a3.forEach(function(l,r){if(!l||r===0||!l.slice(0,5).some(function(v){return String(v==null?'':v).trim();}))return;
-      var e=linhaEv('Gols',l,r);if(!e)return;e.tipo='gol';e.atleta2_id='';
+      if(!g3min)l=[l[0],null,l[1],l[2],l[3]];  // Gols: Time | Nº | Nome | (Nº da assistência), sem minuto
+      var e=linhaEv('Gols',l,r);if(!e)return;e.tipo='gol';e.atleta2_id='';e.minuto=null;
       if(!lib&&e.tipo==='gol'&&num(l[4])!=null){var as=achaA(e.time_id,num(l[4]));if(as.length===1&&as[0].id!==e.atleta_id){e.atleta2_id=as[0].id;if(S.esc[as[0].id]!==e.time_id)S.esc[as[0].id]=e.time_id;}
         else av.push('Gols, linha '+(r+1)+': não achei a assistência nº '+num(l[4])+'.');}
       gols.push(e);});S.gols=gols;}
