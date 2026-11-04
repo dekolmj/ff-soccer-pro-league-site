@@ -753,6 +753,7 @@ function cdSumulaTela(){
       '<input type="number" min="0" max="99" id="sGf" value="'+esc(S.gf)+'"'+dis+' aria-label="Gols do visitante"><b>'+esc(nomeT(j.time_fora))+'</b>'+cdEscudo(f,40)+'</div>'+
       '<div class="cdsumst">'+(j.sumula_fechada?'<span class="chip ok">Súmula fechada</span>':'<span class="chip gold">Súmula em aberto</span>')+
       '<span class="lbl" id="sConf">Gols lançados: '+ct[0]+' x '+ct[1]+(S.gc===''||S.gf===''?'':bate?' · confere com o placar ✓':' · não confere com o placar')+'</span></div></div>'+
+    spCardHTML(S,ro)+  // súmula por planilha (js/sumula-planilha.js)
     '<h3 class="cdsec2">Quem jogou</h3><div class="cdsumcols">'+lado(j.time_casa,nomeT(j.time_casa))+lado(j.time_fora,nomeT(j.time_fora))+'</div>'+
     '<div class="card"><div class="between"><h3>Gols</h3>'+(ro?'':'<button type="button" class="btn sm" data-add="gols">+ Gol</button>')+'</div>'+
       (S.gols.length?S.gols.map(function(x,i){return linha('gols',i,x,[['gol','Gol'],['gol_contra','Gol contra']]);}).join(''):'<p class="muted" style="margin:8px 0 0">Nenhum gol lançado.</p>')+'</div>'+
@@ -811,4 +812,5 @@ function cdSumulaLigar(){
       if(fechar){CD.ok=false;cdVoltaJogos();}else{CD.sumula={id:j.id};cdRecarregar();}});};
   var rb=document.getElementById('sRasc');if(rb)rb.addEventListener('click',function(){salvar(false,rb);});
   var fb=document.getElementById('sFecha');if(fb)fb.addEventListener('click',function(){salvar(true,fb);});
+  spLigar(S);
 }
