@@ -349,7 +349,7 @@ function atMostra(tab){
         '<div class="grid2"><div style="display:grid;gap:18px;align-content:start">'+
           '<div class="card"><h3 style="margin-bottom:10px">Próximo jogo</h3>'+(prox[0]?gameCard(prox[0]):'<p class="muted" style="margin:0">Nenhum jogo marcado ainda.</p>')+'</div>'+
           '<div class="card"><h3 style="margin-bottom:10px">Meus números · '+esc(comp)+'</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">'+
-            [[n.j,'Jogos'],[n.g,'Gols'],[n.a,'Assist.'],[n.ca,'Amarelos'],[n.cv,'Vermelhos'],[n.mvp,'MVPs']].map(function(x){return '<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>'+
+            [[n.j,'Jogos'],[n.g,'Gols']].concat(lib?[]:[[n.a,'Assist.']]).concat([[n.ca,'Amarelos'],[n.cv,'Vermelhos'],[n.mvp,'MVPs']]).map(function(x){return '<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>'+
             '<p class="muted" style="margin:10px 0 0;font-size:13px">Contam os jogos com a súmula fechada pela equipe FF.</p></div></div>'+
         '<div class="card" style="align-content:start"><h3 style="margin-bottom:10px">Últimos resultados do time</h3>'+(fins.length?'<div style="display:grid;gap:10px">'+fins.slice(-3).reverse().map(gameCard).join('')+'</div>':'<p class="muted" style="margin:0">O time ainda não jogou.</p>')+
           (prox.length>1?'<h3 style="margin:18px 0 10px">Depois</h3><div style="display:grid;gap:10px">'+prox.slice(1,4).map(gameCard).join('')+'</div>':'')+'</div></div>';

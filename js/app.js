@@ -144,8 +144,9 @@ function libGrupoHTML(G){
   return '<div class="card" style="padding:20px 20px 16px"><h2 class="blkh">'+(G.g?'Grupo '+esc(G.g):'Times sem grupo')+'</h2>'+h+'</tbody></table></div></div>';
 }
 function libEstatHTML(){
-  var yc=LIB.players.filter(function(p){return p.ca>0;}).sort(function(a,b){return b.ca-a.ca;}),as=LIB.players.filter(function(p){return p.a>0;}).sort(function(a,b){return b.a-a.a||b.g-a.g;});
-  return '<div class="grid4" style="margin-bottom:40px"><div class="card"><h3>Artilharia</h3>'+scorersHTML(LIB.scorers,10)+'</div><div class="card"><h3>Assistências</h3>'+scorersHTML(as,10,'a')+'</div>'+
+  // sem Assistências: a Libertadores não controla assistência (04/11/2026, pedido do Deko)
+  var yc=LIB.players.filter(function(p){return p.ca>0;}).sort(function(a,b){return b.ca-a.ca;});
+  return '<div class="grid3" style="margin-bottom:40px"><div class="card"><h3>Artilharia</h3>'+scorersHTML(LIB.scorers,10)+'</div>'+
     '<div class="card"><h3>Cartões amarelos</h3>'+scorersHTML(yc,10,'ca')+'</div><div class="card"><h3>MVPs</h3>'+scorersHTML(LIB.mvps,10,'mvp')+'</div></div>';
 }
 // Linha de um jogo nos quadros de rodada (FF Pro League e Libertadores FF)
