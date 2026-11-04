@@ -17,7 +17,7 @@ var REG_CAP=[
  '<p>A Copa FF Libertadores 2026 tem como objetivo promover integração, competitividade, espírito esportivo e experiências memoráveis entre os alunos da FF Soccer Academy.</p>'+
  '<ul><li>As equipes terão, em média, entre 10 e 12 jogadores.</li><li>A competição contará com 10 equipes divididas em 2 grupos de 5 times.</li><li>Cada equipe disputará 4 partidas na fase classificatória.</li><li>Os jogos acontecerão preferencialmente no período noturno, conforme calendário divulgado pela organização.</li></ul>'+
  '<div class="reggr"><div><h4>Grupo A</h4><ul><li>LDU — Mooca</li><li>Atlético Nacional — Mooca</li><li>Boca Juniors — Guarulhos</li><li>Cerro Porteño — Barra Funda</li><li>Peñarol — Guarulhos</li></ul></div>'+
- '<div><h4>Grupo B</h4><ul><li>Estudiantes — Vila-Lobos</li><li>Libertad — Vila Mariana</li><li>Vélez Sarsfield — Morumbi</li><li>River Plate — Campo Belo</li><li>Racing Club — Campo Belo</li></ul></div></div>'],
+ '<div><h4>Grupo B</h4><ul><li>Estudiantes — Villa Lobos</li><li>Libertad — Vila Mariana</li><li>Vélez Sarsfield — Morumbi</li><li>River Plate — Campo Belo</li><li>Racing Club — Campo Belo</li></ul></div></div>'],
 ['Calendário da competição',
  '<p>A fase de grupos será realizada entre 16 de novembro e 8 de dezembro de 2026, conforme as tabelas oficiais divulgadas pela organização.</p>'+
  '<p>As datas das semifinais e finais serão divulgadas posteriormente.</p>'+
@@ -31,7 +31,7 @@ var REG_CAP=[
  '<h4>Regras específicas</h4>'+
  '<p><b>Mooca — LDU e Atlético Nacional.</b> Todos os jogos oficiais das equipes da Mooca, quando forem mandantes, serão realizados na Rua Clemente Bonifácio, 263, em uma das três quadras disponíveis. A quadra da Padre Raposo não receberá partidas oficiais da competição.</p>'+
  '<p><b>Guarulhos — Boca Juniors e Peñarol.</b> As equipes Boca Juniors e Peñarol representam a unidade Guarulhos e poderão realizar seus mandos de campo nas unidades Guarulhos ou Tucuruvi. Essa decisão considera a estrutura coberta da quadra do Tucuruvi, a proximidade entre as unidades e as necessidades operacionais da competição.</p>'+
- '<p><b>Vila Mariana — Libertad.</b> A equipe Libertad terá seus jogos como mandante distribuídos entre Campo Belo e Vila-Lobos, uma vez que a quadra de Vila Mariana não apresenta as condições de segurança ideais para partidas de competição.</p>'+
+ '<p><b>Vila Mariana — Libertad.</b> A equipe Libertad terá seus jogos como mandante distribuídos entre Campo Belo e Villa Lobos, uma vez que a quadra de Vila Mariana não apresenta as condições de segurança ideais para partidas de competição.</p>'+
  '<h4>Validade dos mandos alternativos</h4>'+
  '<p>Para fins de regulamento, as partidas realizadas em locais alternativos serão consideradas jogos em casa da equipe originalmente mandante, independentemente da unidade utilizada.</p>'+
  '<p>Essas adaptações não representam qualquer vantagem esportiva e têm como finalidade garantir segurança, equilíbrio competitivo e qualidade operacional.</p>'],
@@ -67,7 +67,7 @@ var REG_CAP=[
  '<ol><li>Maior pontuação.</li><li>Maior número de vitórias.</li><li>Melhor saldo de gols.</li><li>Maior número de gols marcados.</li><li>Confronto direto, quando aplicável.</li><li>Sorteio realizado pela organização.</li></ol>'+
  '<h4>Semifinais</h4><ul><li><b>Semifinal 1:</b> 1º colocado do Grupo A × 2º colocado do Grupo B.</li><li><b>Semifinal 2:</b> 1º colocado do Grupo B × 2º colocado do Grupo A.</li></ul>'+
  '<p>Locais previstos para as semifinais: as semifinais deverão acontecer, preferencialmente, em uma das seguintes unidades da FF Soccer Academy:</p>'+
- '<ul><li>📍 Vila-Lobos</li><li>📍 Barra Funda</li><li>📍 Tucuruvi</li></ul>'+
+ '<ul><li>📍 Villa Lobos</li><li>📍 Barra Funda</li><li>📍 Tucuruvi</li></ul>'+
  '<p>A escolha definitiva dos locais será realizada pela organização, considerando a disponibilidade das quadras, as condições estruturais, a logística e a segurança dos participantes.</p>'+
  '<p>As datas, os horários e os locais oficiais serão comunicados previamente aos capitães das equipes classificadas.</p>'+
  '<h4>Finais</h4><ul><li><b>Final Ouro:</b> vencedores das semifinais.</li><li><b>Final Prata:</b> perdedores das semifinais.</li></ul>'+
