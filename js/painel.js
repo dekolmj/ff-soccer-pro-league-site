@@ -26,7 +26,8 @@ function pnErro(m){
 }
 
 // Cada aba do painel e cada súmula têm o seu endereço (#painel-times, #painel-jogos, #painel-aovivo, #painel-sumula-<id>…), para o "voltar" do navegador funcionar.
-var PN_ABAS=['inscricoes','times','jogos','aovivo','patrocinadores','usuarios','historico'];
+// aba Histórico oculta desde 04/11/2026, a pedido do Deko (o código e o registro no banco continuam; para voltar, pôr 'historico' de novo aqui e na lista de abas)
+var PN_ABAS=['inscricoes','times','jogos','aovivo','patrocinadores','usuarios'];
 P.painel=function(arg){
   var aba=arg||'',sum=null;
   if(/^sumula-/.test(aba)){sum=aba.slice(7);aba='jogos';}
@@ -144,7 +145,7 @@ function pnData(iso){if(!iso)return '';var d=new Date(iso);return String(d.getDa
 
 function pnPainel(){
   var el=pnEl();if(!el)return;
-  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['jogos','Jogos'],['aovivo','Ao vivo'],['patrocinadores','Patrocinadores'],['usuarios','Usuários'],['historico','Histórico']].filter(function(a){return a[0]!=='inscricoes'||preOn();});
+  var abas=[['inscricoes','Pré-inscrições'],['times','Times'],['jogos','Jogos'],['aovivo','Ao vivo'],['patrocinadores','Patrocinadores'],['usuarios','Usuários']].filter(function(a){return a[0]!=='inscricoes'||preOn();});
   el.innerHTML='<div class="ahead" style="padding-top:30px"><div><div class="eyebrow">Painel da FF · '+esc(PN.equipe.nome)+'</div><h1>'+abas.filter(function(a){return a[0]===PN.aba;})[0][1]+'</h1></div>'+
   '<div class="pnquem">'+pnSelo(PN.equipe)+'<button class="btn sm" id="pnSair">Sair</button></div></div>'+
   '<nav class="ctabs pnabas" aria-label="Seções do painel">'+abas.map(function(a){return '<a href="#painel-'+a[0]+'" class="'+(PN.aba===a[0]?'on':'')+'">'+a[1]+'</a>';}).join('')+'</nav>'+
