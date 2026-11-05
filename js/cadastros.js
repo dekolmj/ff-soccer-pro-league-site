@@ -742,7 +742,6 @@ function cdSumulaTela(){
   var rot=function(txt,html,cl){return '<label class="cdevc '+cl+'"><small>'+txt+'</small>'+html+'</label>';};
   var linha=function(lista,i,x,tipos){var t=x.time_id||j.time_casa,gol=lista==='gols';x.time_id=t;
     return '<div class="cdev">'+rot('Tipo','<select data-k="'+lista+'.'+i+'.tipo"'+dis+'>'+cdOpcoes(tipos,x.tipo)+'</select>','ctipo')+rot(gol?(x.tipo==='gol_contra'?'Time de quem fez contra':'Time que marcou'):'Time',selT(lista+'.'+i+'.time_id',t),'ctime')+
-      (gol?'':rot('Minuto','<input type="number" min="0" max="130" placeholder="Min." data-k="'+lista+'.'+i+'.minuto" value="'+esc(x.minuto==null?'':x.minuto)+'"'+dis+'>','cmin'))+  // gol sem minuto (04/11/2026, pedido do Deko)
       rot(gol?(x.tipo==='gol_contra'?'Quem fez contra':'Autor do gol'):'Atleta','<select data-k="'+lista+'.'+i+'.atleta_id"'+dis+'>'+opAt(t,x.atleta_id)+'</select>','cat')+
       (gol?(x.tipo==='gol'?(libS?'':rot('Assistência','<select data-k="gols.'+i+'.atleta2_id"'+dis+'><option value="">Sem assistência</option>'+opAt(t,x.atleta2_id,x.atleta_id).replace('<option value="">Escolha</option>','')+'</select>','cat')):'<span class="lbl">conta para o adversário</span>'):'')+
       (ro?'':'<button type="button" class="pnic no" data-tira="'+lista+'.'+i+'" title="Tirar" aria-label="Tirar">✕</button>')+'</div>';};
@@ -793,7 +792,7 @@ function cdSumulaLigar(){
     else x.addEventListener('input',function(){set();if(p[0]==='gols')conf();});});
   var salvar=function(fechar,bt){var er=document.getElementById('cdErr'),msg='';
     var ev=S.gols.concat(S.cartoes);
-    ev.forEach(function(x,i){if(!msg&&(!x.atleta_id||(x.tipo.indexOf('cartao')===0&&(x.minuto===''||x.minuto==null))))msg='Complete o jogador de cada gol e o jogador e o minuto de cada cartão.';});
+    ev.forEach(function(x,i){if(!msg&&!x.atleta_id)msg='Escolha o jogador de cada gol e de cada cartão.';});
     S.var.forEach(function(x){if(!msg&&!String(x.motivo||'').trim())msg='Escreva o motivo de cada pedido de VAR.';});
     if(!msg&&fechar){var ct=cdContaGols(S);
       if(S.gc===''||S.gf==='')msg='Preencha o placar para fechar a súmula.';
@@ -804,7 +803,7 @@ function cdSumulaLigar(){
     bt.disabled=true;er.textContent='';
     var d={gols_casa:S.gc,gols_fora:S.gf,mvp:S.mvp,fechar:fechar,
       escalacao:Object.keys(S.esc).map(function(id){return {atleta_id:id,time_id:S.esc[id]};}),
-      eventos:ev.map(function(x){return {tipo:x.tipo,minuto:x.tipo.indexOf('cartao')===0?x.minuto:null,time_id:x.time_id,atleta_id:x.atleta_id,atleta2_id:x.tipo==='gol'?x.atleta2_id:''};}),
+      eventos:ev.map(function(x){return {tipo:x.tipo,minuto:null,time_id:x.time_id,atleta_id:x.atleta_id,atleta2_id:x.tipo==='gol'?x.atleta2_id:''};}),
       var:S.var.map(function(x){return {time_id:x.time_id,minuto:x.minuto,motivo:x.motivo,resultado:x.resultado};})};
     SB.rpc('salvar_sumula',{jogo:j.id,dados:d}).then(function(r){bt.disabled=false;
       if(r.error||!r.data||!r.data.ok){er.textContent=(r.data&&r.data.erro)||'Não foi possível salvar a súmula. Tente de novo.';if(r.error)console.warn(r.error);return;}
