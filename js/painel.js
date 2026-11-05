@@ -307,6 +307,34 @@ function atCarregar(tab){
         AT.atleta=q.data;pnGuardaPerfil('atleta');acct();segue();});
   });});
 }
+// Foto do atleta: diminui no navegador (até 900 px, JPG), envia para a pasta dele em 'marca' e grava pelo minha_foto()
+function atTrocaFoto(arq,tab){
+  var msg=document.getElementById('atFotoMsg'),bt=document.getElementById('atFotoBt'),dz=function(t){if(msg)msg.textContent=t;};
+  if(!/^image\/(png|jpeg|webp)$/.test(arq.type))return dz('Use uma imagem JPG, PNG ou WEBP.');
+  if(arq.size>20*1024*1024)return dz('A imagem é grande demais (até 20 MB).');
+  dz('Enviando a foto…');if(bt)bt.classList.add('off');
+  var falha=function(t){dz(t||'Não foi possível trocar a foto. Tente de novo.');if(bt)bt.classList.remove('off');};
+  var url=URL.createObjectURL(arq),img=new Image();
+  img.onerror=function(){URL.revokeObjectURL(url);falha('Não consegui abrir esta imagem. Tente outra.');};
+  img.onload=function(){URL.revokeObjectURL(url);
+    var k=Math.min(1,900/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(img.naturalWidth*k));c.height=Math.max(1,Math.round(img.naturalHeight*k));
+    var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+    c.toBlob(function(blob){if(!blob)return falha();
+      var pasta='atletas/u-'+PN.user.id+'/',cam=pasta+Date.now().toString(36)+'.jpg',velha=AT.atleta.foto_url||'';
+      SB.storage.from('marca').upload(cam,blob,{contentType:'image/jpeg',upsert:false}).then(function(r){
+        if(r.error)return falha();
+        var nova=SB.storage.from('marca').getPublicUrl(cam).data.publicUrl;
+        SB.rpc('minha_foto',{url:nova}).then(function(q){
+          if(q.error||!q.data||!q.data.ok){SB.storage.from('marca').remove([cam]);return falha(q.data&&q.data.erro);}
+          // apaga a foto anterior, se era uma enviada pelo próprio atleta
+          var i=velha.indexOf('/marca/'+pasta);if(i>=0)SB.storage.from('marca').remove([decodeURIComponent(velha.slice(i+7).split('?')[0])]);
+          AT.atleta.foto_url=nova;var pid=ATL_PID[AT.atleta.id];if(pid&&typeof FOTOS==='object'&&FOTOS)FOTOS[pid]=nova;
+          if(atEl())atMostra(tab);toast('Foto atualizada.');});
+      });
+    },'image/jpeg',0.85);};
+  img.src=url;
+}
 function atPosicoes(a){var ps=a.posicoes&&a.posicoes.length?a.posicoes:(a.posicao?[a.posicao]:[]);return ps.map(function(p){return POSN[p]||p;}).join(' · ');}
 function atDataBr(d){return d?String(d).split('-').reverse().join('/'):'';}
 function atMostra(tab){
@@ -323,10 +351,15 @@ function atMostra(tab){
     var pv=Array.isArray(a.atletas_privado)?a.atletas_privado[0]:a.atletas_privado;pv=pv||{};
     var lin=function(k,v){return '<div class="between"><span class="muted">'+k+'</span><b>'+(v?esc(v):'–')+'</b></div>';};
     corpo='<div class="ahead"><div><div class="eyebrow">Meus dados</div><h1>'+esc(a.nome.split(' ')[0])+'</h1></div></div>'+
+      // o próprio atleta troca a foto (05/11/2026, pedido do Deko)
+      '<div class="card atfoto"><div class="atfotoimg"'+(a.foto_url?' style="background-image:url('+esc(a.foto_url)+')"':'')+'></div>'+
+        '<div><h3>Minha foto</h3><p class="muted">Aparece no seu perfil e no elenco do time. Use uma foto sua, de frente, com boa luz (JPG, PNG ou WEBP).</p>'+
+        '<label class="btn sm primary" id="atFotoBt">'+(a.foto_url?'Trocar foto':'Colocar foto')+'<input type="file" id="atFotoArq" accept="image/png,image/jpeg,image/webp" hidden></label>'+
+        '<p class="muted" id="atFotoMsg" style="margin:8px 0 0;font-size:13px" aria-live="polite"></p></div></div>'+
       '<div class="grid2"><div class="card agenda" style="display:grid;gap:12px"><h3>Cadastro</h3>'+lin('Nome',a.nome)+lin('Posições',atPosicoes(a))+lin('Unidade FF',a.unidades&&a.unidades.nome)+
         lin('E-mail (login)',pv.email)+lin('Celular',pv.celular)+lin('Nascimento',atDataBr(pv.nascimento))+'</div>'+
       '<div class="card agenda" style="display:grid;gap:12px;align-content:start"><h3>Camisa</h3>'+lin('Competição',comp)+lin('Time',t&&t.n)+lin('Número',e&&String(e.numero))+lin('Nome na camisa',e&&e.nome_camisa)+'</div></div>'+
-      '<p class="muted" style="margin:16px 0 0;font-size:14px">Algum dado errado? Fale com a equipe FF para corrigir. Estes dados não aparecem no site, só o nome, o time e a camisa.</p>';
+      '<p class="muted" style="margin:16px 0 0;font-size:14px">Algum dado errado? Fale com a equipe FF para corrigir. Estes dados não aparecem no site, só o nome, a foto, o time e a camisa.</p>';
   }else if(!t){
     corpo='<div class="ahead"><div><div class="eyebrow">Área do atleta</div><h1>Olá, '+esc(a.nome.split(' ')[0])+'!</h1></div></div>'+
       '<div class="card"><p class="muted" style="margin:0">Você ainda não está em um time. Assim que a equipe FF colocar você num time, os seus jogos e números aparecem aqui.</p></div>';
@@ -360,5 +393,6 @@ function atMostra(tab){
   // páginas de jogo, time e atleta ainda não estão abertas ao público: os cartões viram texto, sem link
   if(ondaDaPagina('jogo')>ONDA)el.querySelectorAll('a[href^="#jogo"],a[href^="#time-"],a[href^="#atleta-"]').forEach(function(x){var s=document.createElement(x.classList.contains('game')?'div':'span');s.className=x.className+' semlink';s.innerHTML=x.innerHTML;
     var f=s.querySelector('.foot span:last-child');if(f)f.textContent='';x.parentNode.replaceChild(s,x);});
+  var fa=document.getElementById('atFotoArq');if(fa)fa.addEventListener('change',function(){if(fa.files[0])atTrocaFoto(fa.files[0],tab);fa.value='';});
   document.getElementById('atSair').addEventListener('click',function(ev){ev.preventDefault();SB.auth.signOut().then(function(){AT.atleta=null;pnGuardaPerfil(null);acct();location.hash='entrar';toast('Você saiu.');});});
 }

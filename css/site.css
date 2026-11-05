@@ -1246,3 +1246,9 @@ a.pitem:hover{transform:translateY(-2px)}
 .robs.jinfo-obs{display:flex;gap:8px;align-items:flex-start;font-size:14.5px;line-height:1.5;padding:10px 12px;border-radius:10px;border:1px solid rgba(242,193,77,.5);background:var(--bg2)}
 .robs.jinfo-obs.ok{border-color:rgba(76,175,110,.5)}
 .spavisos{margin-top:12px;padding:10px 14px;border-radius:10px;border:1px solid rgba(242,193,77,.5);background:var(--bg2);font-size:14px}.spavisos ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}.spavisos.ok{border-color:rgba(76,175,110,.5)}
+/* Minha foto, na área do atleta (05/11/2026) */
+.atfoto{display:flex;gap:18px;align-items:center;margin-bottom:18px}
+.atfoto h3{margin:0 0 6px}.atfoto p.muted{margin:0 0 12px;font-size:14px}
+.atfotoimg{flex:none;width:96px;aspect-ratio:4/5;border-radius:12px;background:radial-gradient(circle at 50% 38%,#cfd8d1 0 18%,transparent 19%),radial-gradient(ellipse at 50% 100%,#cfd8d1 0 44%,transparent 45%),#2b2a24;background-size:cover;background-position:center 18%}
+.atfoto .btn.off{opacity:.5;pointer-events:none}
+@media (max-width:520px){.atfoto{gap:14px;align-items:flex-start}.atfotoimg{width:76px}}
