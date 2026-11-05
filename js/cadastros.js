@@ -355,7 +355,7 @@ function cdAtletaForm(f){var e=f.el||{};
     '<div class="lbl cdsec">Dados do atleta</div><div class="cdcampos">'+
     cdCampo('Nome completo *','<input id="aNome" maxlength="120" value="'+esc(f.nome||'')+'">','full')+
     (function(){var ps=f.posicoes&&f.posicoes.length?f.posicoes:(f.posicao?[f.posicao]:[]);
-      return [1,2,3].map(function(n){return cdCampo(n===1?'Posição · 1ª opção *':'Posição · '+n+'ª opção','<select id="aPos'+n+'"><option value="">'+(n===1?'Escolha':'Nenhuma')+'</option>'+cdOpcoes(CD_POS.map(function(p){return [p,POSN[p]];}),ps[n-1]||'')+'</select>');}).join('');})()+
+      return [1,2,3].map(function(n){return cdCampo('Posição · '+n+'ª opção','<select id="aPos'+n+'"><option value="">Nenhuma</option>'+cdOpcoes(CD_POS.map(function(p){return [p,POSN[p]];}),ps[n-1]||'')+'</select>');}).join('');})()+
     cdCampo('Unidade FF','<select id="aUni"><option value="">Nenhuma</option>'+cdOpcoes(CD.unidades.map(function(u){return [u.id,u.nome];}),f.unidade_id)+'</select>')+
     cdCampo('Foto (até 2 MB)','<div class="cdimg">'+(f.foto_url?'<img src="'+esc(f.foto_url)+'" alt="" width="48" height="48">':'')+'<input id="aFoto" type="file" accept="image/png,image/jpeg,image/webp"></div>')+
     '</div><div class="lbl cdsec">Contato (não aparece no site) · o e-mail é o login do atleta</div><div class="cdcampos">'+
@@ -388,7 +388,7 @@ function cdAtletaLigar(f){
       email:v('aEmail').toLowerCase(),celular:v('aCel'),nascimento:v('aNasc'),elencos:[]};
     if(v('aPos1')===''&&pos.length){er.textContent='Escolha a 1ª opção de posição.';return;}
     if(pos.length!==pos.filter(function(p,i){return pos.indexOf(p)===i;}).length){er.textContent='Escolha posições diferentes.';return;}
-    var falta=!d.nome?'o nome':!d.posicao?'a posição':!/^\S+@\S+\.\S+$/.test(d.email)?'um e-mail válido':!d.celular?'o celular':!d.nascimento?'a data de nascimento':'';
+    var falta=!d.nome?'o nome':!/^\S+@\S+\.\S+$/.test(d.email)?'um e-mail válido':!d.celular?'o celular':!d.nascimento?'a data de nascimento':'';
     Object.keys(CD_COMP).forEach(function(c){var t=document.getElementById('aTime_'+c);if(!t||!t.value||falta)return;
       var ant=(f.els||{})[cdTempId(c)],x={time_id:t.value,numero:v('aNum_'+c),nome_camisa:v('aCam_'+c).toUpperCase(),kit:ant&&ant.kit||''};  // o kit saiu da tela; o que já existia fica
       falta=!(+x.numero>=1&&+x.numero<=99)?'o número da camisa na '+CD_COMP[c]+' (1 a 99)':!x.nome_camisa?'o nome na camisa na '+CD_COMP[c]:'';
