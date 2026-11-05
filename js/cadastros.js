@@ -140,7 +140,7 @@ function cdElencoHTML(f){
     '<form id="cdElF" novalidate style="margin-top:16px"><h4 style="margin:0 0 8px">'+(e0?'Editar '+esc(ed.nome):'Colocar atleta no time')+'</h4><div class="cdcampos">'+
       cdCampo('Atleta *','<select id="eAt"'+(e0?' disabled':'')+'><option value="">Escolha</option>'+cdOpcoes(ops,f.atleta)+'</select>','full')+
       cdCampo('Número *','<input id="eNum" type="number" min="1" max="99" value="'+esc(e0?e0.numero:'')+'">')+
-      cdCampo('Nome na camisa *','<input id="eCam" maxlength="12" value="'+esc(e0?e0.nome_camisa:'')+'">')+
+      cdCampo('Nome na camisa *','<input id="eCam" maxlength="15" value="'+esc(e0?e0.nome_camisa:'')+'">')+
     '</div><p class="muted" style="margin:8px 0 0;font-size:14px">Atleta ainda não cadastrado? Crie em <a class="more" href="#painel-usuarios">Usuários</a> e volte aqui.</p>'+
     '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">'+(e0?'Salvar':'Colocar no time')+'</button>'+
     (e0?'<button class="btn" type="button" id="cdElNovo">Cancelar edição</button>':'')+'<button class="btn" type="button" id="cdCancela">Fechar elenco</button></div></form></div>';
@@ -151,7 +151,7 @@ function cdElencoLigar(f){
   var nv=document.getElementById('cdElNovo');if(nv)nv.addEventListener('click',function(){CD.form={tipo:'elenco',id:f.id};cdTimes();});
   // ao escolher o atleta, sugere o nome na camisa do cadastro dele
   at.addEventListener('change',function(){var a=cdAtleta(at.value);if(!a)return;var e=a.els[tid]||a.el||(a.elencos||[])[0];
-    var cam=document.getElementById('eCam');if(!cam.value)cam.value=(e&&e.nome_camisa)||String(a.apelido||a.nome.split(' ')[0]).toUpperCase().slice(0,12);});
+    var cam=document.getElementById('eCam');if(!cam.value)cam.value=(e&&e.nome_camisa)||String(a.apelido||a.nome.split(' ')[0]).toUpperCase().slice(0,15);});
   document.querySelectorAll('[data-eledita]').forEach(function(b){b.addEventListener('click',function(){CD.form={tipo:'elenco',id:f.id,atleta:b.dataset.eledita};cdTimes();
     var fe=document.getElementById('cdElF');if(fe)fe.scrollIntoView({block:'center',behavior:'smooth'});});});
   document.querySelectorAll('[data-eltira]').forEach(function(b){b.addEventListener('click',function(){var a=cdAtleta(b.dataset.eltira);
@@ -366,7 +366,7 @@ function cdAtletaForm(f){var e=f.el||{};
       return '<div class="lbl cdsec">Time na '+CD_COMP[c]+'</div><div class="cdcampos">'+
       cdCampo('Time','<select id="aTime_'+c+'"><option value="">Sem time</option>'+cdOpcoes(cdTimesDa(c).map(function(t){return [t.id,t.nome+(t.grupo?' · Grupo '+t.grupo:'')];}),e.time_id)+'</select>')+
       cdCampo('Número (1 a 99)','<input id="aNum_'+c+'" type="number" min="1" max="99" value="'+esc(e.numero||'')+'">')+
-      cdCampo('Nome na camisa','<input id="aCam_'+c+'" maxlength="12" style="text-transform:uppercase" value="'+esc(e.nome_camisa||'')+'">')+
+      cdCampo('Nome na camisa','<input id="aCam_'+c+'" maxlength="15" style="text-transform:uppercase" value="'+esc(e.nome_camisa||'')+'">')+
       '</div>';}).join('')+
     '</div><div class="err" id="cdErr" role="alert"></div><div class="cdbts">'+
     '<button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button>'+
