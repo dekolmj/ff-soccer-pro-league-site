@@ -265,7 +265,7 @@ function pnZip(arq){
   var partes=[],central=[],pos=0;
   var cab=function(tam){var b=new Uint8Array(tam);return {b:b,v:new DataView(b.buffer)};};
   Object.keys(arq).forEach(function(nome){
-    var nm=enc.encode(nome),dd=enc.encode(arq[nome]),c=crc(dd);
+    var nm=enc.encode(nome),dd=arq[nome] instanceof Uint8Array?arq[nome]:enc.encode(arq[nome]),c=crc(dd);  // texto ou arquivo (ex.: o escudo da súmula)
     var l=cab(30);l.v.setUint32(0,0x04034b50,true);l.v.setUint16(4,20,true);l.v.setUint16(6,0x0800,true);l.v.setUint16(10,hora,true);l.v.setUint16(12,data,true);
     l.v.setUint32(14,c,true);l.v.setUint32(18,dd.length,true);l.v.setUint32(22,dd.length,true);l.v.setUint16(26,nm.length,true);
     var g=cab(46);g.v.setUint32(0,0x02014b50,true);g.v.setUint16(4,20,true);g.v.setUint16(6,20,true);g.v.setUint16(8,0x0800,true);g.v.setUint16(12,hora,true);g.v.setUint16(14,data,true);
