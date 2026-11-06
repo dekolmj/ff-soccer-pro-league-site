@@ -1252,3 +1252,10 @@ a.pitem:hover{transform:translateY(-2px)}
 .atfotoimg{flex:none;width:96px;aspect-ratio:4/5;border-radius:12px;background:radial-gradient(circle at 50% 38%,#cfd8d1 0 18%,transparent 19%),radial-gradient(ellipse at 50% 100%,#cfd8d1 0 44%,transparent 45%),#2b2a24;background-size:cover;background-position:center 18%}
 .atfoto .btn.off{opacity:.5;pointer-events:none}
 @media (max-width:520px){.atfoto{gap:14px;align-items:flex-start}.atfotoimg{width:76px}}
+/* Meus dados: posições e celular editáveis pelo atleta (06/11/2026) */
+.atedit{display:grid;gap:6px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.atedit small{font-size:12px}
+.atpos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.atedit select,.atedit input{background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:9px 10px;color:var(--ink);font:inherit;font-size:14px;min-width:0;width:100%;box-sizing:border-box}
+.atsalva{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:6px}.atsalva .muted{font-size:13px}
+@media (max-width:520px){.atpos{grid-template-columns:1fr}}

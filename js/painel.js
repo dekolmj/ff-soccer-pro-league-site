@@ -360,10 +360,18 @@ function atMostra(tab){
         '<div><h3>Minha foto</h3><p class="muted">Aparece no seu perfil e no elenco do time. Use uma foto sua, de frente, com boa luz (JPG, PNG ou WEBP).</p>'+
         '<label class="btn sm primary" id="atFotoBt">'+(a.foto_url?'Trocar foto':'Colocar foto')+'<input type="file" id="atFotoArq" accept="image/png,image/jpeg,image/webp" hidden></label>'+
         '<p class="muted" id="atFotoMsg" style="margin:8px 0 0;font-size:13px" aria-live="polite"></p></div></div>'+
-      '<div class="grid2"><div class="card agenda" style="display:grid;gap:12px"><h3>Cadastro</h3>'+lin('Nome',a.nome)+lin('Posições',atPosicoes(a))+lin('Unidade FF',a.unidades&&a.unidades.nome)+
-        lin('E-mail (login)',pv.email)+lin('Celular',pv.celular)+lin('Nascimento',atDataBr(pv.nascimento))+'</div>'+
+      '<div class="grid2"><div class="card agenda" style="display:grid;gap:12px"><h3>Cadastro</h3>'+lin('Nome',a.nome)+
+        // posições e celular: o próprio atleta edita (06/11/2026, pedido do Deko); o resto só a equipe FF
+        (function(){var ps=a.posicoes&&a.posicoes.length?a.posicoes:(a.posicao?[a.posicao]:[]);
+          return '<div class="atedit"><span class="muted">Posições <small>(até 3, em ordem de preferência)</small></span><div class="atpos">'+[0,1,2].map(function(i){
+            return '<select id="atP'+(i+1)+'" aria-label="Posição '+(i+1)+'ª opção"><option value="">'+(i+1)+'ª · Nenhuma</option>'+['GOL','LAT','ZAG','VOL','MEI','ATA'].map(function(c){
+              return '<option value="'+c+'"'+(ps[i]===c?' selected':'')+'>'+(i+1)+'ª · '+esc(POSN[c]||c)+'</option>';}).join('')+'</select>';}).join('')+'</div></div>';})()+
+        lin('Unidade FF',a.unidades&&a.unidades.nome)+lin('E-mail (login)',pv.email)+
+        '<div class="atedit"><span class="muted">Celular</span><input id="atCel" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(11) 99999-9999" value="'+esc(pv.celular||'')+'"></div>'+
+        lin('Nascimento',atDataBr(pv.nascimento))+
+        '<div class="atsalva"><button type="button" class="btn sm primary" id="atSalva">Salvar posições e celular</button><span class="muted" id="atDadosMsg" aria-live="polite"></span></div></div>'+
       '<div class="card agenda" style="display:grid;gap:12px;align-content:start"><h3>Camisa</h3>'+lin('Competição',comp)+lin('Time',t&&t.n)+lin('Número',e&&String(e.numero))+lin('Nome na camisa',e&&e.nome_camisa)+'</div></div>'+
-      '<p class="muted" style="margin:16px 0 0;font-size:14px">Algum dado errado? Fale com a equipe FF para corrigir. Estes dados não aparecem no site, só o nome, a foto, o time e a camisa.</p>';
+      '<p class="muted" style="margin:16px 0 0;font-size:14px">Posições e celular você mesmo atualiza aqui. Os outros dados, fale com a equipe FF para corrigir. Estes dados não aparecem no site, só o nome, a foto, o time e a camisa.</p>';
   }else if(!t){
     corpo='<div class="ahead"><div><div class="eyebrow">Área do atleta</div><h1>Olá, '+esc(a.nome.split(' ')[0])+'!</h1></div></div>'+
       '<div class="card"><p class="muted" style="margin:0">Você ainda não está em um time. Assim que a equipe FF colocar você num time, os seus jogos e números aparecem aqui.</p></div>';
@@ -397,6 +405,17 @@ function atMostra(tab){
   // páginas de jogo, time e atleta ainda não estão abertas ao público: os cartões viram texto, sem link
   if(ondaDaPagina('jogo')>ONDA)el.querySelectorAll('a[href^="#jogo"],a[href^="#time-"],a[href^="#atleta-"]').forEach(function(x){var s=document.createElement(x.classList.contains('game')?'div':'span');s.className=x.className+' semlink';s.innerHTML=x.innerHTML;
     var f=s.querySelector('.foot span:last-child');if(f)f.textContent='';x.parentNode.replaceChild(s,x);});
+  var sv=document.getElementById('atSalva');if(sv)sv.addEventListener('click',function(){
+    var g=function(id){return document.getElementById(id).value;},pos=[g('atP1'),g('atP2'),g('atP3')].filter(Boolean),msg=document.getElementById('atDadosMsg');
+    if(pos.length!==pos.filter(function(x,i){return pos.indexOf(x)===i;}).length){msg.textContent='Escolha posições diferentes.';return;}
+    var d=g('atCel').replace(/\D/g,'');if(d.length>11&&d.indexOf('55')===0)d=d.slice(2);
+    if(d.length<10||d.length>11){msg.textContent='Celular com DDD: (11) 99999-9999.';return;}
+    sv.disabled=true;msg.textContent='Salvando…';
+    SB.rpc('meus_dados',{posicoes:pos,celular:g('atCel')}).then(function(r){sv.disabled=false;
+      if(r.error||!r.data||!r.data.ok){msg.textContent=(r.data&&r.data.erro)||'Não deu certo agora. Tente de novo.';return;}
+      AT.atleta.posicoes=r.data.posicoes;AT.atleta.posicao=r.data.posicoes?r.data.posicoes[0]:null;
+      var pv=Array.isArray(AT.atleta.atletas_privado)?AT.atleta.atletas_privado[0]:AT.atleta.atletas_privado;if(pv)pv.celular=r.data.celular;
+      if(atEl())atMostra(tab);toast('Dados atualizados.');});});
   var fa=document.getElementById('atFotoArq');if(fa)fa.addEventListener('change',function(){if(fa.files[0])atTrocaFoto(fa.files[0],tab);fa.value='';});
   document.getElementById('atSair').addEventListener('click',function(ev){ev.preventDefault();SB.auth.signOut().then(function(){AT.atleta=null;pnGuardaPerfil(null);acct();location.hash='entrar';toast('Você saiu.');});});
 }
