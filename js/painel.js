@@ -68,12 +68,13 @@ function enForm(msg){
   var el=enEl();if(!el)return;var criar=EN.modo==='criar';
   el.innerHTML='<form id="enF" novalidate style="display:grid;gap:14px"><label class="fld">E-mail<input id="enEmail" type="email" autocomplete="username" placeholder="voce@email.com"></label>'+
   '<label class="fld">'+(criar?'Crie uma senha (mínimo 6 caracteres)':'Senha')+'<input id="enSenha" type="password" autocomplete="'+(criar?'new-password':'current-password')+'" placeholder="••••••••"></label>'+
-  (criar?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>':'')+
+  (criar?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>'+
+    '<label class="fld">Data de nascimento<input id="enNasc" type="date" autocomplete="bday" max="'+new Date().toISOString().slice(0,10)+'"></label>':'')+
   '<div class="err" id="enErr" role="alert"></div>'+(msg?'<div class="notice">'+msg+'</div>':'')+
   '<button class="btn primary" type="submit" style="justify-content:center">'+(criar?'Criar senha':'Entrar')+'</button>'+
   '<p class="muted" style="margin:0;text-align:center;font-size:14px">'+(criar?'<a class="more" href="#entrar" id="enModo">Já tenho senha · Entrar</a>':'Atleta cadastrado na FF? <a class="more" href="#entrar" id="enModo">Primeiro acesso</a>')+'</p>'+
   '</form>';
-  if(criar)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Primeiro acesso do atleta</h3><p class="muted" style="margin:0;font-size:14px">Use o e-mail que você informou à FF e crie a sua senha. Depois, confirme pelo link que vai chegar no seu e-mail.</p></div>');
+  if(criar)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Primeiro acesso do atleta</h3><p class="muted" style="margin:0;font-size:14px">Use o e-mail que você informou à FF, crie a sua senha e confirme a sua data de nascimento. Se tudo bater com o cadastro, você já entra.</p></div>');
   document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=criar?'entrar':'criar';enForm();});
   document.getElementById('enF').addEventListener('submit',function(e){
     e.preventDefault();var em=document.getElementById('enEmail').value.trim(),se=document.getElementById('enSenha').value,er=document.getElementById('enErr');
@@ -83,10 +84,13 @@ function enForm(msg){
     var bt=this.querySelector('button');bt.disabled=true;er.textContent='';
     if(criar){
       if(se.length<6){bt.disabled=false;er.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
+      // a data de nascimento prova que é o atleta (o banco confere antes de criar a conta; sem e-mail de confirmação, 06/11/2026)
+      var na=document.getElementById('enNasc').value;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(na)){bt.disabled=false;er.textContent='Preencha a sua data de nascimento.';return;}
       SB.rpc('primeiro_acesso_liberado',{email:em}).then(function(l){
         if(l.error||l.data!==true){bt.disabled=false;er.textContent=l.error?pnErro(l.error.message):'Este e-mail não está cadastrado como atleta, ou já tem senha. Confira o e-mail ou fale com a FF.';return;}
-        SB.auth.signUp({email:em,password:se,options:{emailRedirectTo:location.href.split('#')[0]+'#entrar'}}).then(function(r){
-          bt.disabled=false;if(r.error){er.textContent=pnErro(r.error.message);return;}
+        SB.auth.signUp({email:em,password:se,options:{emailRedirectTo:location.href.split('#')[0]+'#entrar',data:{nascimento:na}}}).then(function(r){
+          bt.disabled=false;if(r.error){er.textContent=/Database error/i.test(r.error.message)?'A data de nascimento não confere com o cadastro da FF. Confira a data ou fale com a FF.':pnErro(r.error.message);return;}
           if(r.data.session)return enDestino(r.data.user);
           EN.modo='entrar';enForm('Senha criada. Falta confirmar o e-mail: abra o link que chegou para você (confira o spam). Depois, é só entrar aqui.');
         });
