@@ -65,24 +65,38 @@ function entrarIniciar(){
 }
 
 function enForm(msg){
-  var el=enEl();if(!el)return;var criar=EN.modo==='criar';
+  var el=enEl();if(!el)return;var criar=EN.modo==='criar',nova=EN.modo==='senha',dois=criar||nova;  // nova: "Esqueci a senha" (06/11/2026)
   el.innerHTML='<form id="enF" novalidate style="display:grid;gap:14px"><label class="fld">E-mail<input id="enEmail" type="email" autocomplete="username" placeholder="voce@email.com"></label>'+
-  '<label class="fld">'+(criar?'Crie uma senha (mínimo 6 caracteres)':'Senha')+'<input id="enSenha" type="password" autocomplete="'+(criar?'new-password':'current-password')+'" placeholder="••••••••"></label>'+
-  (criar?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>'+
+  '<label class="fld">'+(criar?'Crie uma senha (mínimo 6 caracteres)':nova?'Nova senha (mínimo 6 caracteres)':'Senha')+'<input id="enSenha" type="password" autocomplete="'+(dois?'new-password':'current-password')+'" placeholder="••••••••"></label>'+
+  (dois?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>'+
     '<label class="fld">Data de nascimento<input id="enNasc" type="date" autocomplete="bday" max="'+new Date().toISOString().slice(0,10)+'"></label>':'')+
   '<div class="err" id="enErr" role="alert"></div>'+(msg?'<div class="notice">'+msg+'</div>':'')+
-  '<button class="btn primary" type="submit" style="justify-content:center">'+(criar?'Criar senha':'Entrar')+'</button>'+
-  '<p class="muted" style="margin:0;text-align:center;font-size:14px">'+(criar?'<a class="more" href="#entrar" id="enModo">Já tenho senha · Entrar</a>':'Atleta cadastrado na FF? <a class="more" href="#entrar" id="enModo">Primeiro acesso</a>')+'</p>'+
+  '<button class="btn primary" type="submit" style="justify-content:center">'+(criar?'Criar senha':nova?'Trocar senha':'Entrar')+'</button>'+
+  '<p class="muted" style="margin:0;text-align:center;font-size:14px">'+(dois?'<a class="more" href="#entrar" id="enModo">'+(nova?'Lembrei a senha':'Já tenho senha')+' · Entrar</a>':'Atleta cadastrado na FF? <a class="more" href="#entrar" id="enModo">Primeiro acesso</a>')+'</p>'+
+  (dois?'':'<p class="muted" style="margin:-6px 0 0;text-align:center;font-size:14px">Esqueceu a senha? <a class="more" href="#entrar" id="enEsq">Criar nova senha</a></p>')+
   '</form>';
   if(criar)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Primeiro acesso do atleta</h3><p class="muted" style="margin:0;font-size:14px">Use o e-mail que você informou à FF, crie a sua senha e confirme a sua data de nascimento. Se tudo bater com o cadastro, você já entra.</p></div>');
-  document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=criar?'entrar':'criar';enForm();});
+  if(nova)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Esqueci a senha</h3><p class="muted" style="margin:0;font-size:14px">Para atletas que já criaram a senha. Informe o seu e-mail, a sua data de nascimento e a senha nova. Se tudo bater com o cadastro, a senha é trocada e você já entra.</p></div>');
+  document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=dois?'entrar':'criar';enForm();});
+  var esq=document.getElementById('enEsq');if(esq)esq.addEventListener('click',function(e){e.preventDefault();EN.modo='senha';enForm();});
   document.getElementById('enF').addEventListener('submit',function(e){
     e.preventDefault();var em=document.getElementById('enEmail').value.trim(),se=document.getElementById('enSenha').value,er=document.getElementById('enErr');
     if(!/^\S+@\S+\.\S+$/.test(em)||!se){er.textContent='Preencha e-mail e senha.';return;}
-    if(criar&&se!==document.getElementById('enSenha2').value){er.textContent='As duas senhas não são iguais.';return;}
+    if(dois&&se!==document.getElementById('enSenha2').value){er.textContent='As duas senhas não são iguais.';return;}
     if(!SB){er.textContent='Login indisponível agora. Tente de novo em instantes.';return;}
     var bt=this.querySelector('button');bt.disabled=true;er.textContent='';
-    if(criar){
+    if(nova){
+      if(se.length<6){bt.disabled=false;er.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
+      var nn=document.getElementById('enNasc').value;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(nn)){bt.disabled=false;er.textContent='Preencha a sua data de nascimento.';return;}
+      // o banco confere e-mail + data de nascimento e troca a senha (5 erros em 1 hora bloqueiam; sem e-mail)
+      SB.rpc('redefinir_senha',{email:em,nascimento:nn,nova:se}).then(function(r){
+        if(r.error||!r.data||!r.data.ok){bt.disabled=false;er.textContent=(r.data&&r.data.erro)||pnErro(r.error&&r.error.message);return;}
+        SB.auth.signInWithPassword({email:em,password:se}).then(function(q){bt.disabled=false;
+          if(q.error){EN.modo='entrar';enForm('Senha trocada. Entre com a senha nova.');return;}
+          toast('Senha trocada.');enDestino(q.data.user);});
+      });
+    }else if(criar){
       if(se.length<6){bt.disabled=false;er.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
       // a data de nascimento prova que é o atleta (o banco confere antes de criar a conta; sem e-mail de confirmação, 06/11/2026)
       var na=document.getElementById('enNasc').value;
