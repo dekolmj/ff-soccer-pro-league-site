@@ -301,22 +301,36 @@ window.addEventListener('hashchange',function(){if(PN.canal&&location.hash.index
    Desde 31/10/2026 (pedido do Deko): o atleta com login entra em #minha-area e vê os dados do painel:
    Meu painel (próximo jogo, números, avisos e resultados), Meu time (tabela, elenco e jogos) e Meus dados (cadastro, só leitura).
    Usa o time mais recente do atleta (a competição ativa). Substitui a área de demonstração antiga. */
-var AT={atleta:null,carregando:false};
+var AT={atleta:null,carregando:false,ver:null,verId:null};
 function atEl(){return document.getElementById('atArea');}
-function atTela(tab){setTimeout(function(){atCarregar(tab);},0);
+function atTela(tab,verId){setTimeout(function(){atCarregar(tab,verId);},0);
   return '<div class="wrap"><div class="area" id="atArea"><p class="muted" style="padding:40px 0">Carregando a sua área…</p></div></div>';}
 P['minha-area']=function(){return atTela('painel');};
 P['minha-area-time']=function(){return atTela('time');};
 P['minha-area-dados']=function(){return atTela('dados');};
+// Visão do atleta (08/11/2026, pedido do Deko): o administrador vê a área de um atleta como ele vê, só para consulta.
+// Endereços: #ver-atleta-<id> (Meu painel), #ver-atleta-time-<id> (Meu time) e #ver-atleta-dados-<id> (Meus dados).
+P['ver-atleta']=function(arg){var m=/^(?:(time|dados)-)?(.+)$/.exec(arg||'');return atTela(m&&m[1]||'painel',m?m[2]:'');};
 
-function atCarregar(tab){
+function atCarregar(tab,verId){
   if(!CONFIG.SUPABASE_URL){var e0=atEl();if(e0)e0.innerHTML='<p class="muted">Área indisponível.</p>';return;}
+  AT.verId=verId||null;
   pnSb(function(){SB.auth.getSession().then(function(r){var s=r.data&&r.data.session;if(!s)return location.replace('#entrar');
     PN.user=s.user;
     var segue=function(){if(!atEl())return;
       // os jogos, times e números vêm do mesmo lugar do Campeonato (banco.js)
       if(!BANCO_OK&&!BANCO_ERRO){if(AT.carregando)return;AT.carregando=true;carregarBanco(function(){AT.carregando=false;if(atEl())atMostra(tab);});return;}
       atMostra(tab);};
+    if(verId){  // visão do atleta: só administrador
+      if(AT.ver&&AT.ver.id===verId)return segue();
+      return pnPerfil(function(p){
+        if(!p||p.tipo!=='equipe')return location.replace(p&&p.tipo==='atleta'?'#minha-area':'#entrar');
+        if(p.papel!=='admin'){var e1=atEl();if(e1)e1.innerHTML='<div class="card"><p class="muted" style="margin:0">Só administradores usam a visão do atleta.</p></div>';return;}
+        SB.from('atletas').select('id,nome,posicao,posicoes,unidade_id,foto_url,user_id,unidades(nome),elencos(time_id,numero,nome_camisa,temporada_id),atletas_privado(email,celular,nascimento)')
+          .eq('id',verId).maybeSingle().then(function(q){var e2=atEl();if(!e2)return;
+            if(q.error||!q.data){e2.innerHTML='<div class="card"><p class="muted" style="margin:0">Atleta não encontrado. <a href="#painel-usuarios">Voltar aos usuários</a></p></div>';return;}
+            AT.ver=q.data;segue();});});
+    }
     if(AT.atleta&&AT.atleta.user_id===s.user.id)return segue();
     SB.from('atletas').select('id,nome,posicao,posicoes,unidade_id,foto_url,user_id,unidades(nome),elencos(time_id,numero,nome_camisa,temporada_id),atletas_privado(email,celular,nascimento)')
       .eq('user_id',s.user.id).maybeSingle().then(function(q){
@@ -356,14 +370,15 @@ function atTrocaFoto(arq,tab){
 function atPosicoes(a){var ps=a.posicoes&&a.posicoes.length?a.posicoes:(a.posicao?[a.posicao]:[]);return ps.map(function(p){return POSN[p]||p;}).join(' · ');}
 function atDataBr(d){return d?String(d).split('-').reverse().join('/'):'';}
 function atMostra(tab){
-  var el=atEl();if(!el)return;var a=AT.atleta;
+  var el=atEl();if(!el)return;var ver=!!AT.verId&&AT.ver&&AT.ver.id===AT.verId,a=ver?AT.ver:AT.atleta;if(!a)return;
+  var ir=function(t){return ver?'ver-atleta-'+(t==='painel'?'':t+'-')+a.id:{painel:'minha-area',time:'minha-area-time',dados:'minha-area-dados'}[t];};
   var els=(a.elencos||[]).slice().sort(function(x,y){return y.temporada_id-x.temporada_id;}),e=els[0]||null;
   var pid=e?(ATL_PID[a.id]||e.time_id+'-'+e.numero):'',p=PM[pid]||null,t=e?TM[e.time_id]:null,lib=t&&t.comp==='jogo-lib-';
   var comp=t?(lib?'Libertadores FF':(PRO_NOME||'FF Pro League')):'';
   var cab='<nav class="side"><div class="me atme"><div class="avatar'+(a.foto_url?' ret':'')+'" style="width:52px;height:52px;border:2px solid #0B0B0A;'+(a.foto_url?'background:url('+esc(a.foto_url)+') center 18%/cover;':'')+'"></div>'+
       '<b title="'+esc(a.nome)+'">'+esc(a.nome)+'</b><span>'+esc(atPosicoes(a).split(' · ')[0]||'Atleta')+(t?' · '+esc(t.n)+' · Nº '+e.numero:'')+'</span></div>'+
-    [['painel','minha-area','🏠 Meu painel'],['time','minha-area-time','⚽ Meu time'],['dados','minha-area-dados','👤 Meus dados']].map(function(x){return '<a href="#'+x[1]+'" class="'+(tab===x[0]?'on':'')+'">'+x[2]+'</a>';}).join('')+
-    '<a href="#entrar" id="atSair">↩ Sair</a></nav>';
+    [['painel','🏠 Meu painel'],['time','⚽ Meu time'],['dados','👤 Meus dados']].map(function(x){return '<a href="#'+ir(x[0])+'" class="'+(tab===x[0]?'on':'')+'">'+x[1]+'</a>';}).join('')+
+    (ver?'<a href="#painel-usuarios">‹ Voltar ao painel</a>':'<a href="#entrar" id="atSair">↩ Sair</a>')+'</nav>';
   var corpo='';
   if(tab==='dados'){
     var pv=Array.isArray(a.atletas_privado)?a.atletas_privado[0]:a.atletas_privado;pv=pv||{};
@@ -415,10 +430,15 @@ function atMostra(tab){
           (prox.length>1?'<h3 style="margin:18px 0 10px">Depois</h3><div style="display:grid;gap:10px">'+prox.slice(1,4).map(gameCard).join('')+'</div>':'')+'</div></div>';
     }
   }
+  if(ver)corpo='<div class="notice atver"><b>👁 Visão do atleta</b> · Você está vendo a área de '+esc(a.nome)+' como ele vê. Só para consulta: nada pode ser alterado aqui. '+
+    '<a href="#painel-usuarios">Voltar ao painel</a></div>'+corpo;
   el.innerHTML=cab+'<div>'+corpo+'</div>';
+  if(ver){el.querySelectorAll('.atfoto input,.atfoto label,#atP1,#atP2,#atP3,#atCel,#atSalva').forEach(function(x){if(x.tagName==='LABEL')x.classList.add('off');else x.disabled=true;});
+    var am=document.getElementById('atDadosMsg');if(am)am.textContent='Só o atleta altera.';}
   // páginas de jogo, time e atleta ainda não estão abertas ao público: os cartões viram texto, sem link
   if(ondaDaPagina('jogo')>ONDA)el.querySelectorAll('a[href^="#jogo"],a[href^="#time-"],a[href^="#atleta-"]').forEach(function(x){var s=document.createElement(x.classList.contains('game')?'div':'span');s.className=x.className+' semlink';s.innerHTML=x.innerHTML;
     var f=s.querySelector('.foot span:last-child');if(f)f.textContent='';x.parentNode.replaceChild(s,x);});
+  if(ver)return;
   var sv=document.getElementById('atSalva');if(sv)sv.addEventListener('click',function(){
     var g=function(id){return document.getElementById(id).value;},pos=[g('atP1'),g('atP2'),g('atP3')].filter(Boolean),msg=document.getElementById('atDadosMsg');
     if(pos.length!==pos.filter(function(x,i){return pos.indexOf(x)===i;}).length){msg.textContent='Escolha posições diferentes.';return;}

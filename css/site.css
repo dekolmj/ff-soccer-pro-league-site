@@ -1259,3 +1259,5 @@ a.pitem:hover{transform:translateY(-2px)}
 .atedit select,.atedit input{background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:9px 10px;color:var(--ink);font:inherit;font-size:14px;min-width:0;width:100%;box-sizing:border-box}
 .atsalva{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:6px}.atsalva .muted{font-size:13px}
 @media (max-width:520px){.atpos{grid-template-columns:1fr}}
+.atver{margin-bottom:18px;border-color:var(--gold)}
+.atver a{color:var(--gold);font-weight:600}

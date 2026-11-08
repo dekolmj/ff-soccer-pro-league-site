@@ -302,6 +302,7 @@ function cdUsuariosLista(){
         '<td data-l="Acesso"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
         '<td data-l="Último acesso">'+(u.situacao==='convite'?cdQuando(u.convidado).split(' ')[0]+'<div class="lbl">convidado</div>':cdQuando(u.ultimo))+'</td>'+
         '<td class="ac"><div class="pnacoes">'+(u.situacao!=='ativa'?cdEmBreve('Convite'):'')+
+        (u.tipo==='atleta'&&cdAdmin()?'<a class="btn sm" href="#ver-atleta-'+esc(u.id)+'" title="Ver a área deste atleta como ele vê">Visão do atleta</a>':'')+
         (pode?'<button class="btn sm" data-ed="'+esc(u.tipo+'|'+u.id)+'">Editar</button>':'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
   box.querySelectorAll('[data-ed]').forEach(function(b){b.addEventListener('click',function(){
     var p=b.dataset.ed.split('|'),tipo=p[0],id=p.slice(1).join('|');

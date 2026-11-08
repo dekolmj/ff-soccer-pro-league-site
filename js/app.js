@@ -3,7 +3,7 @@ var LOGO='assets/escudo.webp';
 /* ================= ONDAS DE LANÇAMENTO =================
    CONFIG.ONDA diz o que já está no ar; o resto some do menu e das rotas. ?demo mostra tudo (apresentações). */
 var DEMO=/[?&]demo(=|&|$)/.test(location.search),ONDA=DEMO?99:(CONFIG.ONDA||99);
-function ondaDaPagina(pg){return ({libertadores:2,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?1:2);}  // área do atleta: só com login de atleta (desde 31/10/2026, com os dados reais)
+function ondaDaPagina(pg){return ({libertadores:2,'a-league':1,'pre-inscricao':1,entrar:1,painel:1,'ver-atleta':1,'ao-vivo':3})[pg]||(/^minha-area/.test(pg)?1:2);}  // área do atleta: só com login de atleta (desde 31/10/2026, com os dados reais)
 // CONFIG.BOTOES_PRE_E_ENTRAR = false esconde os botões Pré-inscrição e Entrar (as rotas continuam abrindo pelo endereço).
 function semBotoes(){return !DEMO&&CONFIG.BOTOES_PRE_E_ENTRAR===false;}
 // CONFIG.PRE_INSCRICAO = false esconde tudo da pré-inscrição (botões, links, página, pergunta frequente), inclusive com ?demo. Nada é apagado.
@@ -565,6 +565,7 @@ function route(){
   else if(h.indexOf('atleta-')===0){page='atleta';arg=h.slice(7);}
   else if(h.indexOf('time-')===0){page='time';arg=h.slice(5);}
   else if(h.indexOf('painel-')===0){page='painel';arg=h.slice(7);}
+  else if(h.indexOf('ver-atleta-')===0){page='ver-atleta';arg=h.slice(11);}
   if(h==='sair'){logout();return;}
   if(!P[page])page=h='a-league';
   if(ondaDaPagina(page)>ONDA||(page==='pre-inscricao'&&!preOn())){page=h='a-league';arg=null;}
