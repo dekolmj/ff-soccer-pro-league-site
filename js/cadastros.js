@@ -474,13 +474,15 @@ function cdPatro(){
   SB.from('patrocinadores').select('id,nome,logo_url,link,ordem,ativo').order('ordem').order('nome').then(function(r){
     if(PN.aba!=='patrocinadores'||!cdEl())return;
     if(r.error){cdMsg('Não foi possível carregar os patrocinadores. Recarregue a página.');console.warn(r.error);return;}
-    PT.lista=r.data||[];cdPatroTela();});
+    PT.lista=r.data||[];cdPatroTela();
+    // cliques de cada patrocinador no site (09/11/2026, pedido do Deko)
+    SB.rpc('cliques_patrocinadores').then(function(c){if(c.error||PN.aba!=='patrocinadores'||!cdEl())return;PT.cliques={};(c.data||[]).forEach(function(x){PT.cliques[x.patrocinador_id]=x;});cdPatroTela();});});
 }
 function cdPatroTela(){
   var el=cdEl(),f=PT.form,ls=PT.lista,no=ls.filter(function(p){return p.ativo;}).length;
   var logo=function(p,h){return '<span class="ptprev" style="height:'+h+'px">'+(p.logo_url?'<img src="'+esc(p.logo_url)+'" alt="">':'<b>'+esc(p.nome)+'</b>')+'</span>';};
   el.innerHTML='<div class="pnbusca"><p class="muted" style="margin:0;flex:1 1 300px">'+(ls.length?no+' de '+ls.length+(ls.length===1?' patrocinador':' patrocinadores')+' no site.':'Nenhum patrocinador cadastrado ainda.')+
-    ' Os que estão "no site" passam na faixa antes do rodapé, em todas as páginas, nesta ordem. Sem logo, aparece o nome.</p>'+
+    ' Os que estão "no site" passam na faixa antes do rodapé, em todas as páginas, nesta ordem. Sem logo, aparece o nome. Os cliques nos logos do site são contados desde 09/11/2026.</p>'+
     '<button class="btn primary sm" id="ptNovo">+ Novo patrocinador</button></div>'+
     (f?'<form class="card cdform" id="cdForm" novalidate><h3>'+(f.id?'Editar '+esc(f.nome):'Novo patrocinador')+'</h3><div class="cdcampos">'+
       cdCampo('Nome *','<input id="ptNome" maxlength="60" value="'+esc(f.nome||'')+'">')+
@@ -491,7 +493,8 @@ function cdPatroTela(){
       '</div><div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button>'+
       (f.id&&cdAdmin()?'<button class="btn cdapaga" type="button" id="cdApaga">Apagar patrocinador</button>':'')+'</div></form>':'')+
     '<div class="cdgrid">'+ls.map(function(p){return '<div class="card cdtime"><div class="row">'+logo(p,44)+'<div style="min-width:0"><b>'+esc(p.nome)+'</b>'+
-      '<div class="lbl">Ordem '+p.ordem+(p.link?' · com link':'')+'</div><span class="chip '+(p.ativo?'ok':'')+'">'+(p.ativo?'No site':'Fora do site')+'</span></div></div>'+
+      '<div class="lbl">Ordem '+p.ordem+(p.link?' · com link':'')+'</div>'+(p.link?(function(){var c=(PT.cliques||{})[p.id]||{total:0,ultimos_7_dias:0};
+        return '<div class="ptcliq" title="'+(c.ultimo?'Último clique: '+esc(cdQuando(c.ultimo)):'Nenhum clique ainda')+'">👆 <b>'+c.total+'</b> '+(c.total==1?'clique':'cliques')+' · '+c.ultimos_7_dias+' nos últimos 7 dias</div>';})():'')+'<span class="chip '+(p.ativo?'ok':'')+'">'+(p.ativo?'No site':'Fora do site')+'</span></div></div>'+
       '<div class="cdtbts"><button class="btn sm" data-ptliga="'+esc(p.id)+'">'+(p.ativo?'Tirar do site':'Pôr no site')+'</button><button class="btn sm" data-pted="'+esc(p.id)+'">Editar</button></div></div>';}).join('')+'</div>';
   var acha=function(id){return ls.filter(function(p){return p.id===id;})[0];};
   document.getElementById('ptNovo').addEventListener('click',function(){PT.form={ativo:true,ordem:ls.length+1};cdPatroTela();cdFoco();});

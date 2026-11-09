@@ -655,7 +655,7 @@ function patroMostra(ls){
   if(!ls.length){el.hidden=true;el.innerHTML='';return;}
   var item=function(p){var dentro=p.logo_url?'<img src="'+esc(ESC_CORTE[p.logo_url+'#l']||p.logo_url)+'" data-esc="'+esc(p.logo_url+'#l')+'" alt="'+esc(p.nome)+'">':'<span class="pnome">'+esc(p.nome)+'</span>';
     if(p.logo_url)escCortar(p.logo_url,true);
-    return p.link?'<a class="pitem" href="'+esc(p.link)+'" target="_blank" rel="noopener sponsored" title="'+esc(p.nome)+'">'+dentro+'</a>':'<span class="pitem" title="'+esc(p.nome)+'">'+dentro+'</span>';};
+    return p.link?'<a class="pitem" href="'+esc(p.link)+'"'+(p.id?' data-pid="'+esc(p.id)+'"':'')+' target="_blank" rel="noopener sponsored" title="'+esc(p.nome)+'">'+dentro+'</a>':'<span class="pitem" title="'+esc(p.nome)+'">'+dentro+'</span>';};
   PATRO_LS=ls;var tit='<div class="wrap"><div class="lbl">Patrocinadores</div></div>';
   // 1 patrocinador só: fica parado e centralizado; 2 ou mais: a faixa roda sempre, em loop (pedido do Deko, 04/11/2026)
   el.innerHTML=tit+'<div class="ptrilho parado"><div class="pgrupo">'+ls.map(item).join('')+'</div></div>';el.hidden=false;
@@ -665,12 +665,16 @@ function patroMostra(ls){
   el.innerHTML=tit+'<div class="ptrilho"><div class="pfita" style="animation-duration:'+(bloco.length*3.2)+'s"><div class="pgrupo">'+meio+'</div><div class="pgrupo" aria-hidden="true">'+meio+'</div></div></div>';
   el.querySelectorAll('.pgrupo[aria-hidden] a').forEach(function(a){a.tabIndex=-1;});
   ls.forEach(function(p){if(p.logo_url)patroFundo(p.logo_url+'#l');});}
+// cliques nos patrocinadores (09/11/2026, pedido do Deko): cada clique anota só qual patrocinador e quando (registrar_clique_patro)
+function patroClique(ev){if(ev.type==='auxclick'&&ev.button!==1)return;var a=ev.target.closest&&ev.target.closest('a.pitem[data-pid]');if(!a||!CONFIG.SUPABASE_URL||!window.fetch)return;
+  try{fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/registrar_clique_patro',{method:'POST',keepalive:true,headers:{apikey:CONFIG.SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({patrocinador:a.getAttribute('data-pid')})}).catch(function(){});}catch(e){}}
+(function(){var pt=document.getElementById('patro');if(pt){pt.addEventListener('click',patroClique);pt.addEventListener('auxclick',patroClique);}})();
 var PATRO_LS=null,PATRO_T=null,PATRO_W=window.innerWidth;
 window.addEventListener('resize',function(){if(!PATRO_LS||window.innerWidth===PATRO_W)return;PATRO_W=window.innerWidth;clearTimeout(PATRO_T);PATRO_T=setTimeout(function(){patroMostra(PATRO_LS);},300);});
 function patroCarregar(){
   var ex=function(){patroMostra(DEMO?PATRO_EX:[]);};
   if(!CONFIG.SUPABASE_URL||!CONFIG.SUPABASE_KEY||!window.fetch)return ex();
-  fetch(CONFIG.SUPABASE_URL+'/rest/v1/patrocinadores?select=nome,logo_url,link,ordem&ativo=eq.true&order=ordem,nome',{headers:{apikey:CONFIG.SUPABASE_KEY}})
+  fetch(CONFIG.SUPABASE_URL+'/rest/v1/patrocinadores?select=id,nome,logo_url,link,ordem&ativo=eq.true&order=ordem,nome',{headers:{apikey:CONFIG.SUPABASE_KEY}})
     .then(function(r){if(!r.ok)throw r;return r.json();})
     .then(function(ls){if(ls&&ls.length)patroMostra(ls);else ex();},function(){ex();});}
 var SEARCH='';

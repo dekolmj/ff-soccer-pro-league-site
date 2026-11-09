@@ -1261,3 +1261,5 @@ a.pitem:hover{transform:translateY(-2px)}
 @media (max-width:520px){.atpos{grid-template-columns:1fr}}
 .atver{margin-bottom:18px;border-color:var(--gold)}
 .atver a{color:var(--gold);font-weight:600}
+.ptcliq{margin:6px 0 4px;font-size:13px;color:var(--mute)}
+.ptcliq b{color:var(--gold);font-size:15px}
