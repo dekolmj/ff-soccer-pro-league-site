@@ -8,6 +8,8 @@ var CD_POS=['GOL','LAT','ZAG','VOL','MEI','ATA'],CD_KIT=['P','M','G','GG','XG'];
 
 function cdEl(){return document.getElementById('pnAba');}
 function cdAdmin(){return PN.equipe&&PN.equipe.papel==='admin';}
+// Master (10/11/2026, pedido do Deko): administrador com o que é só dele (hoje, a Visão do atleta). A marca só muda pelo banco.
+function cdMaster(){return !!(PN.equipe&&PN.equipe.master);}
 function cdMsg(t){var el=cdEl();if(el)el.innerHTML='<p class="muted" style="padding:20px 0">'+t+'</p>';}
 
 // Carrega times, atletas, unidades e a temporada atual (uma vez; recarrega depois de cada gravação).
@@ -253,7 +255,7 @@ function cdLinhas(){
       situacao:a.user_id?'ativa':'sem_acesso',ultimo:ac.ultimo_acesso,exemplo:a.exemplo,inativo:!a.ativo,a:a};});
   var fu=CD.equipe.map(function(x){
     return {tipo:'func',id:x.email,nome:x.nome,email:x.email,tel:x.telefone||'',funcao:x.cargo||'Funcionário',
-      detalhe:x.papel==='admin'?'Administrador':'Editor',situacao:x.situacao,ultimo:x.situacao==='convite'?null:x.ultimo_acesso,
+      detalhe:x.master?'Master':x.papel==='admin'?'Administrador':'Editor',situacao:x.situacao,ultimo:x.situacao==='convite'?null:x.ultimo_acesso,
       convidado:x.convidado_em,eu:x.eu,x:x};});
   return fu.concat(at);
 }
@@ -302,7 +304,7 @@ function cdUsuariosLista(){
         '<td data-l="Acesso"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
         '<td data-l="Último acesso">'+(u.situacao==='convite'?cdQuando(u.convidado).split(' ')[0]+'<div class="lbl">convidado</div>':cdQuando(u.ultimo))+'</td>'+
         '<td class="ac"><div class="pnacoes">'+(u.situacao!=='ativa'?cdEmBreve('Convite'):'')+
-        (u.tipo==='atleta'&&cdAdmin()?'<a class="btn sm" href="#ver-atleta-'+esc(u.id)+'" title="Ver a área deste atleta como ele vê">Visão do atleta</a>':'')+
+        (u.tipo==='atleta'&&cdMaster()?'<a class="btn sm" href="#ver-atleta-'+esc(u.id)+'" title="Ver a área deste atleta como ele vê">Visão do atleta</a>':'')+
         (pode?'<button class="btn sm" data-ed="'+esc(u.tipo+'|'+u.id)+'">Editar</button>':'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
   box.querySelectorAll('[data-ed]').forEach(function(b){b.addEventListener('click',function(){
     var p=b.dataset.ed.split('|'),tipo=p[0],id=p.slice(1).join('|');

@@ -50,7 +50,7 @@ function pnPerfil(cb){SB.rpc('meu_perfil').then(function(r){
     return SB.from('equipe_ff').select('nome,papel').eq('user_id',PN.user.id).maybeSingle().then(function(q){var p=q.data?{tipo:'equipe',nome:q.data.nome,papel:q.data.papel}:null;pnGuardaPerfil(p&&p.tipo);cb(p);});
   var p=(r.data&&r.data.tipo)?r.data:null;pnGuardaPerfil(p&&p.tipo);cb(p);});}
 function pnGuardaPerfil(t){try{if(t)localStorage.setItem('ffl_perfil',t);else localStorage.removeItem('ffl_perfil');}catch(e){}}
-function pnSelo(p){return p.tipo==='equipe'?'<span class="chip gold">Equipe FF · '+(p.papel==='admin'?'Administrador':'Editor')+'</span>'
+function pnSelo(p){return p.tipo==='equipe'?'<span class="chip gold">Equipe FF · '+(p.master?'Master':p.papel==='admin'?'Administrador':'Editor')+'</span>'
   :'<span class="chip ok">Atleta'+(p.time?' · '+esc(p.time):'')+'</span>';}
 
 /* ================= TELA ENTRAR (#entrar) =================
@@ -321,11 +321,11 @@ function atCarregar(tab,verId){
       // os jogos, times e números vêm do mesmo lugar do Campeonato (banco.js)
       if(!BANCO_OK&&!BANCO_ERRO){if(AT.carregando)return;AT.carregando=true;carregarBanco(function(){AT.carregando=false;if(atEl())atMostra(tab);});return;}
       atMostra(tab);};
-    if(verId){  // visão do atleta: só administrador
+    if(verId){  // visão do atleta: só o usuário Master
       if(AT.ver&&AT.ver.id===verId)return segue();
       return pnPerfil(function(p){
         if(!p||p.tipo!=='equipe')return location.replace(p&&p.tipo==='atleta'?'#minha-area':'#entrar');
-        if(p.papel!=='admin'){var e1=atEl();if(e1)e1.innerHTML='<div class="card"><p class="muted" style="margin:0">Só administradores usam a visão do atleta.</p></div>';return;}
+        if(!p.master){var e1=atEl();if(e1)e1.innerHTML='<div class="card"><p class="muted" style="margin:0">Só o usuário Master usa a visão do atleta.</p></div>';return;}
         SB.from('atletas').select('id,nome,posicao,posicoes,unidade_id,foto_url,user_id,unidades(nome),elencos(time_id,numero,nome_camisa,temporada_id),atletas_privado(email,celular,nascimento)')
           .eq('id',verId).maybeSingle().then(function(q){var e2=atEl();if(!e2)return;
             if(q.error||!q.data){e2.innerHTML='<div class="card"><p class="muted" style="margin:0">Atleta não encontrado. <a href="#painel-usuarios">Voltar aos usuários</a></p></div>';return;}
