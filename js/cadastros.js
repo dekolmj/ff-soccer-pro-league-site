@@ -270,7 +270,7 @@ function cdUsuarios(){
     (preOn()?'<button class="btn sm" id="cdImporta"'+(pend.length?'':' disabled')+'>Cadastrar aprovados · '+pend.length+'</button>':'')+'</div>'+
     '<div class="cdresumo" id="cdResumo"></div>'+
     (f&&f.tipo==='importar'?cdImportaHTML(pend):'')+(f&&f.tipo==='atleta'?cdAtletaForm(f):'')+(f&&f.tipo==='func'?cdFuncForm(f):'')+
-    '<div id="cdLista"></div>';
+    '<div id="cdCodBox"></div><div id="cdLista"></div>';
   document.getElementById('cdBusca').addEventListener('input',function(){CD.busca=this.value;cdUsuariosLista();});
   [['cdTipoF','tipo'],['cdTimeF','time'],['cdSituF','situ']].forEach(function(p){document.getElementById(p[0]).addEventListener('change',function(){CD[p[1]]=this.value;cdUsuariosLista();});});
   document.getElementById('cdNovo').addEventListener('click',function(){CD.form={tipo:'atleta',novo:true,els:{}};cdUsuarios();cdFoco();});
@@ -302,10 +302,15 @@ function cdUsuariosLista(){
         '<td data-l="Função" class="wr">'+esc(u.funcao)+'<div class="lbl">'+esc(u.detalhe)+'</div></td>'+
         '<td data-l="E-mail" class="em">'+esc(u.email)+'</td><td data-l="Telefone">'+esc(u.tel)+'</td>'+
         '<td data-l="Acesso"><span class="chip '+s[1]+'">'+s[0]+'</span></td>'+
-        '<td data-l="Último acesso">'+(u.situacao==='convite'?cdQuando(u.convidado).split(' ')[0]+'<div class="lbl">convidado</div>':cdQuando(u.ultimo))+'</td>'+
-        '<td class="ac"><div class="pnacoes">'+(u.situacao!=='ativa'?cdEmBreve('Convite'):'')+
+        '<td data-l="Último acesso">'+(u.situacao==='convite'?cdQuando(u.convidado).split(' ')[0]+'<div class="lbl">convidado</div>'+
+          (u.tipo==='func'?'<div class="lbl">'+(u.x.codigo_expira&&new Date(u.x.codigo_expira)>new Date()?'código vale até '+cdQuando(u.x.codigo_expira).split(' ')[0]:'sem código válido')+'</div>':''):cdQuando(u.ultimo))+'</td>'+
+        '<td class="ac"><div class="pnacoes">'+(u.tipo==='func'&&u.situacao==='convite'?(cdAdmin()?'<button class="btn sm" data-cod="'+esc(u.email)+'">'+(u.x.codigo_expira&&new Date(u.x.codigo_expira)>new Date()?'Novo código':'Gerar código')+'</button>':''):u.situacao!=='ativa'?cdEmBreve('Convite'):'')+
         (u.tipo==='atleta'&&cdMaster()?'<a class="btn sm" href="#ver-atleta-'+esc(u.id)+'" title="Ver a área deste atleta como ele vê">Visão do atleta</a>':'')+
         (pode?'<button class="btn sm" data-ed="'+esc(u.tipo+'|'+u.id)+'">Editar</button>':'')+'</div></td></tr>';}).join('')+'</tbody></table></div>';
+  box.querySelectorAll('[data-cod]').forEach(function(b){b.addEventListener('click',function(){
+    var x=CD.equipe.filter(function(e){return e.email===b.dataset.cod;})[0];if(!x)return;
+    if(x.codigo_expira&&new Date(x.codigo_expira)>new Date()&&!confirm('Gerar um código novo para '+x.nome+'? O código anterior deixa de valer.'))return;
+    b.disabled=true;cdGerarCodigo(x,function(){b.disabled=false;});});});
   box.querySelectorAll('[data-ed]').forEach(function(b){b.addEventListener('click',function(){
     var p=b.dataset.ed.split('|'),tipo=p[0],id=p.slice(1).join('|');
     if(tipo==='atleta'){var a=CD.atletas.filter(function(x){return x.id===id;})[0];
@@ -333,9 +338,31 @@ function cdFuncForm(f){
     cdCampo('Telefone','<input id="fTel" maxlength="30" value="'+esc(f.telefone||'')+'">')+
     cdCampo('Cargo','<input id="fCargo" maxlength="60" placeholder="Ex.: Coordenador, Mesário, Comunicação" value="'+esc(f.cargo||'')+'">')+
     cdCampo('Perfil de acesso *','<select id="fPapel"'+(f.eu?' disabled title="Você não pode mudar o seu próprio perfil."':'')+'>'+cdOpcoes([['editor','Editor · cadastra e edita'],['admin','Administrador · pode tudo']],f.papel||'editor')+'</select>')+
-    '</div><div class="notice" style="margin-top:14px">'+(f.novo?'O funcionário fica com o convite pendente. Quando o envio por e-mail estiver ligado, ele recebe o link para criar a senha; até lá, a conta é criada pela equipe técnica e já entra com este perfil.'
+    '</div><div class="notice" style="margin-top:14px">'+(f.novo?'O funcionário fica com o convite pendente. Ao salvar, o painel gera um código de convite: mande para a pessoa pelo WhatsApp, e ela cria a senha em Entrar → Primeiro acesso.'
       :'Mudanças de perfil valem a partir do próximo acesso da pessoa.')+'</div>'+
     '<div class="err" id="cdErr" role="alert"></div><div class="cdbts"><button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" id="cdCancela">Cancelar</button></div></form>';
+}
+// Código de convite do funcionário (10/11/2026, pedido do Deko): o administrador gera, copia a mensagem e manda pelo WhatsApp.
+// O código só aparece agora (o banco guarda só o resumo); vale uma vez e por 7 dias.
+function cdGerarCodigo(x,fim){
+  SB.rpc('gerar_codigo_convite',{email:x.email}).then(function(r){if(fim)fim();
+    var bx=document.getElementById('cdCodBox');
+    if(r.error||!r.data||!r.data.ok){toast((r.data&&r.data.erro)||'Não foi possível gerar o código. Tente de novo.');return;}
+    x.codigo_expira=r.data.expira;var ate=cdQuando(r.data.expira).split(' ')[0],site=location.href.split('#')[0].split('?')[0]+'#entrar';
+    var msg='Olá, '+x.nome.split(' ')[0]+'! Você foi cadastrado(a) na equipe da FF Soccer Pro League. Para criar a sua senha:\n'+
+      '1) Abra '+site+'\n2) Toque em "Primeiro acesso"\n3) Toque em "É da equipe FF e recebeu um código de convite?"\n'+
+      '4) Use o e-mail '+x.email+', crie a sua senha e digite o código '+r.data.codigo+'\nO código vale uma vez só, até '+ate+'.';
+    if(!bx)return;
+    bx.innerHTML='<div class="card cdcod"><div class="between" style="gap:10px;flex-wrap:wrap"><div><div class="lbl">Código de convite · '+esc(x.nome)+'</div>'+
+      '<b class="cdcodnum">'+esc(r.data.codigo)+'</b><div class="lbl">vale uma vez só, até '+esc(ate)+'</div></div>'+
+      '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary sm" id="cdCodCopia">Copiar mensagem</button><button class="btn sm" id="cdCodFecha">Fechar</button></div></div>'+
+      '<textarea id="cdCodMsg" readonly rows="6">'+esc(msg)+'</textarea>'+
+      '<p class="muted" style="margin:6px 0 0;font-size:13px">Mande esta mensagem para a pessoa pelo WhatsApp. O código não aparece de novo: se perder, gere outro.</p></div>';
+    bx.scrollIntoView({block:'start',behavior:'smooth'});cdUsuariosLista();
+    document.getElementById('cdCodFecha').addEventListener('click',function(){bx.innerHTML='';});
+    document.getElementById('cdCodCopia').addEventListener('click',function(){var t=document.getElementById('cdCodMsg'),ok=function(){toast('Mensagem copiada.');};
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(msg).then(ok,function(){t.select();document.execCommand('copy');ok();});else{t.select();document.execCommand('copy');ok();}});
+  });
 }
 function cdFuncLigar(f){
   var fm=document.getElementById('cdForm'),er=document.getElementById('cdErr'),v=function(id){return document.getElementById(id).value.trim();};
@@ -347,7 +374,8 @@ function cdFuncLigar(f){
     var bt=fm.querySelector('[type=submit]');bt.disabled=true;er.textContent='';
     SB.rpc('salvar_funcionario',{dados:d}).then(function(r){bt.disabled=false;
       if(r.error||!r.data||!r.data.ok){er.textContent=(r.data&&r.data.erro)||'Não foi possível salvar. Tente de novo.';return;}
-      CD.form=null;toast(f.novo?'Funcionário criado: '+d.nome.split(' ')[0]+'.':'Funcionário atualizado.');cdRecarregar();});
+      CD.form=null;toast(f.novo?'Funcionário criado: '+d.nome.split(' ')[0]+'.':'Funcionário atualizado.');
+      if(f.novo)cdCarregar(function(){cdUsuarios();var x=CD.equipe.filter(function(e){return e.email===d.email;})[0];if(x)cdGerarCodigo(x);});else cdRecarregar();});
   });
 }
 

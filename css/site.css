@@ -1263,3 +1263,6 @@ a.pitem:hover{transform:translateY(-2px)}
 .atver a{color:var(--gold);font-weight:600}
 .ptcliq{margin:6px 0 4px;font-size:13px;color:var(--mute)}
 .ptcliq b{color:var(--gold);font-size:15px}
+.cdcod{margin-bottom:16px;border-color:var(--gold);display:grid;gap:10px}
+.cdcodnum{display:block;font:700 34px/1.1 var(--cond,"Barlow Condensed"),sans-serif;letter-spacing:.18em;color:var(--gold);margin:4px 0}
+.cdcod textarea{width:100%;box-sizing:border-box;background:var(--bg2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font:14px/1.45 Barlow,sans-serif;resize:vertical}

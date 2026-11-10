@@ -69,15 +69,20 @@ function enForm(msg){
   el.innerHTML='<form id="enF" novalidate style="display:grid;gap:14px"><label class="fld">E-mail<input id="enEmail" type="email" autocomplete="username" placeholder="voce@email.com"></label>'+
   '<label class="fld">'+(criar?'Crie uma senha (mínimo 6 caracteres)':nova?'Nova senha (mínimo 6 caracteres)':'Senha')+'<input id="enSenha" type="password" autocomplete="'+(dois?'new-password':'current-password')+'" placeholder="••••••••"></label>'+
   (dois?'<label class="fld">Repita a senha<input id="enSenha2" type="password" autocomplete="new-password" placeholder="••••••••"></label>'+
-    '<label class="fld">Data de nascimento<input id="enNasc" type="date" autocomplete="bday" max="'+new Date().toISOString().slice(0,10)+'"></label>':'')+
+    (criar&&EN.equipe?'<label class="fld">Código de convite (recebido da FF)<input id="enCod" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:.2em" placeholder="EX.: K7P2QX"></label>'
+      :'<label class="fld">Data de nascimento<input id="enNasc" type="date" autocomplete="bday" max="'+new Date().toISOString().slice(0,10)+'"></label>'):'')+
   '<div class="err" id="enErr" role="alert"></div>'+(msg?'<div class="notice">'+msg+'</div>':'')+
   '<button class="btn primary" type="submit" style="justify-content:center">'+(criar?'Criar senha':nova?'Trocar senha':'Entrar')+'</button>'+
   '<p class="muted" style="margin:0;text-align:center;font-size:14px">'+(dois?'<a class="more" href="#entrar" id="enModo">'+(nova?'Lembrei a senha':'Já tenho senha')+' · Entrar</a>':'Atleta cadastrado na FF? <a class="more" href="#entrar" id="enModo">Primeiro acesso</a>')+'</p>'+
   (dois?'':'<p class="muted" style="margin:-6px 0 0;text-align:center;font-size:14px">Esqueceu a senha? <a class="more" href="#entrar" id="enEsq">Criar nova senha</a></p>')+
+  // primeiro acesso da equipe FF com código de convite (10/11/2026, pedido do Deko)
+  (criar?'<p class="muted" style="margin:-6px 0 0;text-align:center;font-size:14px">'+(EN.equipe?'É atleta? <a class="more" href="#entrar" id="enEq">Usar a data de nascimento</a>':'É da equipe FF e recebeu um código de convite? <a class="more" href="#entrar" id="enEq">Toque aqui</a>')+'</p>':'')+
   '</form>';
-  if(criar)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Primeiro acesso do atleta</h3><p class="muted" style="margin:0;font-size:14px">Use o e-mail que você informou à FF, crie a sua senha e confirme a sua data de nascimento. Se tudo bater com o cadastro, você já entra.</p></div>');
+  if(criar&&EN.equipe)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Primeiro acesso da equipe FF</h3><p class="muted" style="margin:0;font-size:14px">Use o e-mail cadastrado pela FF, crie a sua senha e digite o código de convite que você recebeu. O código vale uma vez só.</p></div>');
+  else if(criar)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Primeiro acesso do atleta</h3><p class="muted" style="margin:0;font-size:14px">Use o e-mail que você informou à FF, crie a sua senha e confirme a sua data de nascimento. Se tudo bater com o cadastro, você já entra.</p></div>');
   if(nova)el.querySelector('form').insertAdjacentHTML('afterbegin','<div><h3 style="margin:0 0 4px">Esqueci a senha</h3><p class="muted" style="margin:0;font-size:14px">Para atletas que já criaram a senha. Informe o seu e-mail, a sua data de nascimento e a senha nova. Se tudo bater com o cadastro, a senha é trocada e você já entra.</p></div>');
-  document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=dois?'entrar':'criar';enForm();});
+  document.getElementById('enModo').addEventListener('click',function(e){e.preventDefault();EN.modo=dois?'entrar':'criar';EN.equipe=false;enForm();});
+  var eq=document.getElementById('enEq');if(eq)eq.addEventListener('click',function(e){e.preventDefault();EN.equipe=!EN.equipe;enForm();});
   var esq=document.getElementById('enEsq');if(esq)esq.addEventListener('click',function(e){e.preventDefault();EN.modo='senha';enForm();});
   document.getElementById('enF').addEventListener('submit',function(e){
     e.preventDefault();var em=document.getElementById('enEmail').value.trim(),se=document.getElementById('enSenha').value,er=document.getElementById('enErr');
@@ -95,6 +100,19 @@ function enForm(msg){
         SB.auth.signInWithPassword({email:em,password:se}).then(function(q){bt.disabled=false;
           if(q.error){EN.modo='entrar';enForm('Senha trocada. Entre com a senha nova.');return;}
           toast('Senha trocada.');enDestino(q.data.user);});
+      });
+    }else if(criar&&EN.equipe){
+      if(se.length<6){bt.disabled=false;er.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
+      var cod=document.getElementById('enCod').value.replace(/\s/g,'').toUpperCase();
+      if(!/^[A-Z0-9]{6}$/.test(cod)){bt.disabled=false;er.textContent='Digite o código de convite (6 letras e números).';return;}
+      // o banco confere e-mail + código (5 erros em 1 hora bloqueiam) e, na criação da conta, confere de novo e gasta o código
+      SB.rpc('convite_valido',{email:em,codigo:cod}).then(function(l){
+        if(l.error||!l.data||!l.data.ok){bt.disabled=false;er.textContent=(l.data&&l.data.erro)||pnErro(l.error&&l.error.message);return;}
+        SB.auth.signUp({email:em,password:se,options:{emailRedirectTo:location.href.split('#')[0]+'#entrar',data:{convite:cod}}}).then(function(r){
+          bt.disabled=false;if(r.error){er.textContent=/Database error/i.test(r.error.message)?'O código de convite não confere ou venceu. Peça um código novo à FF.':pnErro(r.error.message);return;}
+          if(r.data.session)return enDestino(r.data.user);
+          EN.modo='entrar';EN.equipe=false;enForm('Senha criada. Agora é só entrar com o seu e-mail e a senha.');
+        });
       });
     }else if(criar){
       if(se.length<6){bt.disabled=false;er.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
